@@ -1,0 +1,953 @@
+// Smilelab MDR Management System - Database Schema
+// EU MDR Annex XIII Compliance for Custom-Made Dental Devices
+// Material Traceability | 10-Year Retention | GDPR Compliance
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ============================================================================
+// USER MANAGEMENT & AUTHENTICATION
+// ============================================================================
+
+enum Role {
+  ADMIN // Full system access, user management
+  TECHNICIAN // Create worksheets, assign materials
+  QC_INSPECTOR // Quality control approval/rejection
+  INVOICING // Generate invoices, send emails
+}
+
+model User {
+  id       String  @id @default(cuid())
+  email    String  @unique
+  name     String
+  password String // Hashed with bcrypt
+  role     Role    @default(TECHNICIAN)
+  active   Boolean @default(true)
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime? // Soft delete support
+
+  // Relations
+  createdOrders     Order[]          @relation("CreatedByUser")
+  createdWorksheets WorkSheet[]      @relation("CreatedByUser")
+  qualityControls   QualityControl[]
+  auditLogs         AuditLog[]
+  invoices          Invoice[]        @relation("CreatedByUser")
+  emailLogs         EmailLog[]
+
+  @@index([email])
+  @@index([role])
+  @@map("users")
+}
+
+// ============================================================================
+// MASTER DATA - DENTISTS & PATIENTS
+// ============================================================================
+
+model Dentist {
+  id            String  @id @default(cuid())
+  clinicName    String
+  dentistName   String
+  licenseNumber String? // Professional license number
+  email         String
+  phone         String
+  address       String
+  city          String
+  postalCode    String
+  country       String  @default("Slovenia")
+
+  // Business identification
+  taxNumber              String? // VAT/Tax number (e.g., SI12345678)
+  businessRegistration   String? // Company registration number
+
+  // Business fields
+  active           Boolean @default(true)
+  paymentTerms     Int     @default(30) // Days
+  requiresInvoicing Boolean @default(true) // If false, orders auto-complete after QC (for internal work)
+  notes            String? @db.Text
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime? // Soft delete
+
+  // Relations
+  orders     Order[]
+  worksheets WorkSheet[]
+  invoices   Invoice[]
+
+  @@index([clinicName])
+  @@index([email])
+  @@map("dentists")
+}
+
+model Patient {
+  id String @id @default(cuid())
+
+  // Patient identification (anonymizable for GDPR)
+  firstName   String
+  lastName    String
+  dateOfBirth DateTime?
+  patientCode String?   @unique // Optional internal code
+
+  // GDPR compliance
+  consentGiven Boolean @default(true)
+  anonymized   Boolean @default(false)
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime? // Soft delete / right to be forgotten
+
+  // Relations removed - patient info stored as text in orders/worksheets
+  // orders          Order[]
+  // worksheets      WorkSheet[]
+
+  @@index([patientCode])
+  @@index([lastName])
+  @@map("patients")
+}
+
+// ============================================================================
+// ORDERS & WORKSHEETS (1:1 RELATIONSHIP)
+// ============================================================================
+
+enum OrderStatus {
+  PENDING // New order, not yet started
+  IN_PRODUCTION // Being worked on
+  QC_PENDING // Waiting for quality control
+  QC_APPROVED // Passed quality control
+  INVOICED // Invoice generated
+  DELIVERED // Delivered to dentist
+  CANCELLED // Cancelled order
+}
+
+enum ImpressionType {
+  PHYSICAL_IMPRINT // Traditional physical impression
+  DIGITAL_SCAN // Digital intraoral scan
+}
+
+model Order {
+  id          String @id @default(cuid())
+  orderNumber String @unique // Sequential: 001, 002, 003...
+
+  // Relationships
+  dentistId String
+  dentist   Dentist @relation(fields: [dentistId], references: [id], onDelete: Restrict)
+
+  createdById String
+  createdBy   User   @relation("CreatedByUser", fields: [createdById], references: [id], onDelete: Restrict)
+
+  // Order details
+  patientName    String? // Simple patient identifier (name or code)
+  orderDate      DateTime       @default(now())
+  dueDate        DateTime?
+  status         OrderStatus    @default(PENDING)
+  priority       Int            @default(0) // 0 = normal, 1 = high, 2 = urgent
+  impressionType ImpressionType @default(PHYSICAL_IMPRINT) // Physical imprint or digital scan
+  notes          String?        @db.Text
+
+  // Metadata
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime? // Soft delete
+
+  // Relations (1:many with WorkSheet - one order can have multiple revisions)
+  worksheets WorkSheet[]
+
+  @@index([orderNumber])
+  @@index([dentistId])
+  @@index([status])
+  @@index([orderDate])
+  @@map("orders")
+}
+
+enum WorksheetStatus {
+  DRAFT // Initial creation
+  IN_PRODUCTION // Being manufactured
+  QC_PENDING // Awaiting quality control
+  QC_APPROVED // QC approved
+  QC_REJECTED // QC rejected, needs rework
+  DELIVERED // Delivered to dentist (set when invoice is created/finalized)
+  CANCELLED // Cancelled/Deleted
+  VOIDED // Voided due to error, preserved for audit trail
+}
+
+model WorkSheet {
+  id              String @id @default(cuid())
+  worksheetNumber String // DN-25001, DN-25002, DN-25003...
+  revision        Int    @default(1) // 1, 2, 3... (for tracking versions)
+
+  // 1:many relationship with Order (one order can have multiple worksheet revisions)
+  orderId String
+  order   Order  @relation(fields: [orderId], references: [id], onDelete: Restrict)
+
+  // Relationships
+  dentistId String
+  dentist   Dentist @relation(fields: [dentistId], references: [id], onDelete: Restrict)
+
+  createdById String
+  createdBy   User   @relation("CreatedByUser", fields: [createdById], references: [id], onDelete: Restrict)
+
+  // Worksheet details
+  patientName       String? // Simple patient identifier (name or code)
+  status            WorksheetStatus @default(DRAFT)
+  deviceDescription String?         @db.Text // Description of dental device
+  intendedUse       String?         @db.Text // Clinical indication
+  manufactureDate   DateTime?
+
+  // Technical notes
+  technicalNotes String? @db.Text
+  qcNotes        String? @db.Text
+
+  // Void tracking (for audit trail)
+  voidReason String? @db.Text
+  voidedAt   DateTime?
+  voidedBy   String?
+
+  // Metadata
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  completedAt DateTime?
+  deletedAt   DateTime?
+
+  // Relations
+  teeth            WorksheetTooth[]
+  products         WorksheetProduct[]
+  materials        WorksheetMaterial[]
+  qualityControls  QualityControl[]
+  documents        Document[]
+  invoiceLineItems InvoiceLineItem[] // Can appear on multiple invoice line items
+
+  @@unique([worksheetNumber, revision]) // Each worksheet number can have multiple revisions
+  @@index([worksheetNumber])
+  @@index([orderId])
+  @@index([orderId, deletedAt]) // Query active worksheets for an order
+  @@index([dentistId])
+  @@index([status])
+  @@index([manufactureDate])
+  @@map("worksheets")
+}
+
+// ============================================================================
+// FDI TEETH NOTATION SYSTEM (ISO 3950)
+// ============================================================================
+
+model WorksheetTooth {
+  id String @id @default(cuid())
+
+  worksheetId String
+  worksheet   WorkSheet @relation(fields: [worksheetId], references: [id], onDelete: Cascade)
+
+  // FDI two-digit notation
+  // Permanent: 11-18, 21-28, 31-38, 41-48
+  // Primary: 51-55, 61-65, 71-75, 81-85
+  toothNumber String // e.g., "11", "26", "55"
+
+  // Work type for this tooth
+  workType String // crown, bridge, filling, implant, denture, inlay, onlay, veneer
+
+  // Additional details
+  shade String? // Tooth shade/color
+  notes String? @db.Text
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([worksheetId, toothNumber]) // Each tooth only once per worksheet
+  @@index([worksheetId])
+  @@index([toothNumber])
+  @@map("worksheet_teeth")
+}
+
+// ============================================================================
+// PRODUCTS & PRICING
+// ============================================================================
+
+enum ProductCategory {
+  CROWN // Prevleke (kovinsko keramične, zirkonij, hibridne)
+  BRIDGE // Mostički
+  FILLING // Polnila
+  IMPLANT // Implantološke komponente (abutments, etc)
+  DENTURE // Proteze (totalne, parcialne, Wizil, Valplast)
+  INLAY // Inlayi in onlayi
+  ONLAY // Onlayi
+  VENEER // Fasete (keramične, akrilne)
+  SPLINT // Ščitniki (bruksistični, športni, nočni)
+  PROVISIONAL // Provizoriji (začasne prevleke)
+  TEMPLATE // Šablone (kirurške, beljenje, načrtovanje)
+  ABUTMENT // Nastavki za implantate
+  SERVICE // Storitve (svetovanje, montaža, frezanje)
+  REPAIR // Reparature
+  MODEL // Modeli (študijski, delovni)
+  ORTHODONTICS // Ortodontija
+  OTHER // Drugo
+}
+
+model Product {
+  id String @id @default(cuid())
+
+  code        String          @unique // Product code (e.g., "CR-001")
+  name        String
+  description String?         @db.Text
+  category    ProductCategory
+
+  // Current price (denormalized for performance)
+  currentPrice Decimal @db.Decimal(10, 2)
+  unit         String  @default("piece") // piece, hour, gram
+
+  // Status
+  active Boolean @default(true)
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  // Relations
+  priceHistory      ProductPriceHistory[]
+  worksheetProducts WorksheetProduct[]
+
+  @@index([code])
+  @@index([category])
+  @@index([active])
+  @@map("products")
+}
+
+model ProductPriceHistory {
+  id String @id @default(cuid())
+
+  productId String
+  product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  price         Decimal   @db.Decimal(10, 2)
+  effectiveFrom DateTime  @default(now())
+  effectiveTo   DateTime?
+  reason        String?   @db.Text // Reason for price change
+
+  createdAt DateTime @default(now())
+
+  @@index([productId])
+  @@index([effectiveFrom])
+  @@map("product_price_history")
+}
+
+model WorksheetProduct {
+  id String @id @default(cuid())
+
+  worksheetId String
+  worksheet   WorkSheet @relation(fields: [worksheetId], references: [id], onDelete: Cascade)
+
+  productId String
+  product   Product @relation(fields: [productId], references: [id], onDelete: Restrict)
+
+  quantity Int @default(1)
+
+  // Price snapshot (immutable - price at time of selection)
+  priceAtSelection Decimal @db.Decimal(10, 2)
+
+  notes String? @db.Text
+
+  // Materials used for this specific product/device (via junction table)
+  productMaterials WorksheetProductMaterial[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([worksheetId])
+  @@index([productId])
+  @@map("worksheet_products")
+}
+
+// ============================================================================
+// MATERIALS & LOT TRACKING (FIFO + TRACEABILITY)
+// ============================================================================
+
+enum MaterialType {
+  CERAMIC
+  METAL
+  RESIN
+  COMPOSITE
+  PORCELAIN
+  ZIRCONIA
+  TITANIUM
+  ALLOY
+  ACRYLIC
+  WAX
+  OTHER
+}
+
+model Material {
+  id String @id @default(cuid())
+
+  code         String       @unique // Material code (e.g., "CER-001")
+  name         String
+  type         MaterialType
+  manufacturer String
+  description  String?      @db.Text
+
+  // Biocompatibility (ISO 10993)
+  biocompatible Boolean @default(true)
+  iso10993Cert  String? // Certificate reference
+
+  // CE marking
+  ceMarked Boolean @default(true)
+  ceNumber String?
+
+  // Unit of measurement
+  unit String @default("gram") // gram, ml, piece
+
+  // Status
+  active Boolean @default(true)
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  // Relations
+  lots               MaterialLot[]
+  worksheetMaterials WorksheetMaterial[]
+  productMaterials   WorksheetProductMaterial[]
+
+  @@index([code])
+  @@index([type])
+  @@index([manufacturer])
+  @@index([active])
+  @@map("materials")
+}
+
+enum MaterialLotStatus {
+  AVAILABLE // Stock available for use
+  DEPLETED // Fully consumed
+  EXPIRED // Past expiry date
+  RECALLED // Manufacturer recall
+}
+
+model MaterialLot {
+  id String @id @default(cuid())
+
+  materialId String
+  material   Material @relation(fields: [materialId], references: [id], onDelete: Restrict)
+
+  // LOT identification (critical for traceability)
+  lotNumber String // Manufacturer's LOT/batch number
+
+  // Stock arrival
+  arrivalDate  DateTime  @default(now())
+  expiryDate   DateTime?
+  supplierName String
+
+  // Quantity tracking (FIFO)
+  quantityReceived  Decimal @db.Decimal(10, 3)
+  quantityAvailable Decimal @db.Decimal(10, 3) // Decremented on use
+
+  // Status
+  status MaterialLotStatus @default(AVAILABLE)
+
+  // Notes
+  notes String? @db.Text
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations (traceability)
+  worksheetMaterials        WorksheetMaterial[]
+  worksheetProductMaterials WorksheetProductMaterial[]
+
+  @@unique([materialId, lotNumber]) // Unique LOT per material
+  @@index([materialId])
+  @@index([lotNumber])
+  @@index([status])
+  @@index([arrivalDate]) // For FIFO ordering
+  @@index([expiryDate])
+  @@map("material_lots")
+}
+
+model WorksheetMaterial {
+  id String @id @default(cuid())
+
+  worksheetId String
+  worksheet   WorkSheet @relation(fields: [worksheetId], references: [id], onDelete: Cascade)
+
+  materialId String
+  material   Material @relation(fields: [materialId], references: [id], onDelete: Restrict)
+
+  // LOT traceability (CRITICAL for EU MDR)
+  // Nullable during planning phase, required before production
+  materialLotId String?
+  materialLot   MaterialLot? @relation(fields: [materialLotId], references: [id], onDelete: Restrict)
+
+  // Total quantity planned for this material in the worksheet
+  // Maps to quantityUsed column for backwards compatibility
+  quantityPlanned Decimal @map("quantityUsed") @db.Decimal(10, 3)
+
+  notes String? @db.Text
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([worksheetId])
+  @@index([materialId])
+  @@index([materialLotId])
+  @@map("worksheet_materials")
+}
+
+// ============================================================================
+// PRODUCT-MATERIAL JUNCTION TABLE (Many-to-Many)
+// ============================================================================
+
+model WorksheetProductMaterial {
+  id String @id @default(cuid())
+
+  // Product reference
+  worksheetProductId String
+  worksheetProduct   WorksheetProduct @relation(fields: [worksheetProductId], references: [id], onDelete: Cascade)
+
+  // Material reference
+  materialId String
+  material   Material @relation(fields: [materialId], references: [id], onDelete: Restrict)
+
+  // LOT reference (optional - can be assigned later during production)
+  materialLotId String?
+  materialLot   MaterialLot? @relation(fields: [materialLotId], references: [id], onDelete: Restrict)
+
+  // How much of this material this specific product uses
+  quantityUsed Decimal @db.Decimal(10, 3)
+
+  // Optional tooth association (FDI notation: 11-48, 51-85)
+  toothNumber String?
+
+  // Optional notes for clarification (e.g., "Left implant base", "Mesial abutment")
+  notes String? @db.Text
+
+  // Position/sequence for ordering (1st instance, 2nd instance, etc.)
+  position Int?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Removed unique constraint to allow multiple instances of same material
+  // Each instance can have different LOT, tooth, or notes
+  @@index([worksheetProductId])
+  @@index([materialId])
+  @@index([materialLotId])
+  @@map("worksheet_product_materials")
+}
+
+// ============================================================================
+// QUALITY CONTROL
+// ============================================================================
+
+enum QCResult {
+  PENDING
+  APPROVED
+  REJECTED
+  CONDITIONAL // Approved with minor notes
+}
+
+model QualityControl {
+  id String @id @default(cuid())
+
+  worksheetId String
+  worksheet   WorkSheet @relation(fields: [worksheetId], references: [id], onDelete: Cascade)
+
+  inspectorId String
+  inspector   User   @relation(fields: [inspectorId], references: [id], onDelete: Restrict)
+
+  // QC results
+  result         QCResult @default(PENDING)
+  inspectionDate DateTime @default(now())
+
+  // Checklist items (can be JSON or separate table)
+  aesthetics Boolean? // Visual appearance
+  fit        Boolean? // Proper fit
+  occlusion  Boolean? // Bite alignment
+  shade      Boolean? // Color match
+  margins    Boolean? // Margin quality
+
+  // Notes
+  notes          String? @db.Text
+  actionRequired String? @db.Text // If rejected, what needs fixing
+
+  // EU MDR Annex XIII Compliance Fields
+  emdnCode         String  @default("Q010206 - Dental Prostheses") // EMDN classification code
+  riskClass        String  @default("Class IIa") // MDR risk classification
+  annexIDeviations String? @db.Text // Deviations from Annex I requirements (NULL = fully compliant)
+  documentVersion  String  @default("1.0") // Document version for tracking revisions
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([worksheetId]) // Each worksheet can only have one QC record
+  @@index([inspectorId])
+  @@index([result])
+  @@index([inspectionDate])
+  @@map("quality_controls")
+}
+
+// ============================================================================
+// DOCUMENTS (ANNEX XIII + INVOICES - 10 YEAR RETENTION)
+// ============================================================================
+
+enum DocumentType {
+  ANNEX_XIII // Manufacturer's Statement (EU MDR)
+  INVOICE
+  DELIVERY_NOTE
+  QC_REPORT
+  OTHER
+}
+
+model Document {
+  id String @id @default(cuid())
+
+  worksheetId String?
+  worksheet   WorkSheet? @relation(fields: [worksheetId], references: [id], onDelete: SetNull)
+
+  type           DocumentType
+  documentNumber String       @unique // Unique document reference
+
+  // Document storage
+  fileName String
+  filePath String // Path to PDF file
+  fileSize Int // Bytes
+  mimeType String @default("application/pdf")
+
+  // 10-year retention (EU MDR requirement)
+  generatedAt    DateTime @default(now())
+  retentionUntil DateTime // generatedAt + 10 years
+
+  // Metadata
+  generatedBy String? // User who generated
+  notes       String? @db.Text
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([worksheetId])
+  @@index([type])
+  @@index([documentNumber])
+  @@index([retentionUntil]) // For retention policy queries
+  @@map("documents")
+}
+
+// ============================================================================
+// INVOICING
+// ============================================================================
+
+enum PaymentStatus {
+  DRAFT
+  FINALIZED
+  SENT
+  VIEWED
+  PAID
+  OVERDUE
+  CANCELLED
+}
+
+model Invoice {
+  id            String  @id @default(cuid())
+  invoiceNumber String? @unique // INV-001, INV-002... (nullable for drafts)
+
+  // Payment reference (same as invoice number, used for bank transfers)
+  paymentReference String? // Set when invoice is finalized
+
+  createdById String
+  createdBy   User   @relation("CreatedByUser", fields: [createdById], references: [id], onDelete: Restrict)
+
+  // Dentist reference (for multi-worksheet invoices from same dentist)
+  dentistId String?
+  dentist   Dentist? @relation(fields: [dentistId], references: [id], onDelete: Restrict)
+
+  // Invoice details
+  invoiceDate DateTime  @default(now())
+  dueDate     DateTime?
+  serviceDate DateTime  @default(now()) // Date when service was performed
+  issuedBy    String    @default("Rommy Balzan Verbič") // Person who issued the invoice
+
+  // Draft mode
+  isDraft Boolean @default(true) // Drafts don't have invoice number yet
+
+  // Amounts (calculated from line items)
+  subtotal       Decimal  @db.Decimal(10, 2)
+  discountRate   Decimal? @default(0.00) @db.Decimal(5, 2) // Discount percentage
+  discountAmount Decimal? @default(0.00) @db.Decimal(10, 2) // Discount amount
+  taxRate        Decimal  @default(22.00) @db.Decimal(5, 2) // Slovenia VAT 22%
+  taxAmount      Decimal  @db.Decimal(10, 2)
+  totalAmount    Decimal  @db.Decimal(10, 2)
+
+  // Payment
+  paymentStatus PaymentStatus @default(DRAFT)
+  paidAt        DateTime?
+  paymentMethod String?
+
+  // PDF document
+  pdfPath String?
+
+  // Notes
+  notes String? @db.Text
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  lineItems InvoiceLineItem[]
+  emailLogs EmailLog[]
+
+  @@index([invoiceNumber])
+  @@index([dentistId])
+  @@index([paymentStatus])
+  @@index([invoiceDate])
+  @@index([dueDate])
+  @@index([isDraft])
+  @@map("invoices")
+}
+
+// Invoice Line Items (supports worksheet products + custom items)
+model InvoiceLineItem {
+  id String @id @default(cuid())
+
+  invoiceId String
+  invoice   Invoice @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+
+  // Worksheet reference (optional - for product lines)
+  worksheetId String?
+  worksheet   WorkSheet? @relation(fields: [worksheetId], references: [id], onDelete: Restrict)
+
+  // Line item details
+  description String
+  quantity    Int     @default(1)
+  unitPrice   Decimal @db.Decimal(10, 2)
+  totalPrice  Decimal @db.Decimal(10, 2) // quantity * unitPrice
+
+  // Line type
+  lineType String @default("product") // product, shipping, discount, adjustment, custom
+
+  // Product reference (optional - for traceability)
+  productCode String?
+  productName String?
+
+  // Sorting
+  position Int @default(0)
+
+  // Notes
+  notes String? @db.Text
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([invoiceId])
+  @@index([worksheetId])
+  @@index([lineType])
+  @@index([position])
+  @@map("invoice_line_items")
+}
+
+// ============================================================================
+// EMAIL TRACKING
+// ============================================================================
+
+enum EmailStatus {
+  PENDING
+  SENT
+  DELIVERED
+  OPENED
+  FAILED
+  BOUNCED
+}
+
+model EmailLog {
+  id String @id @default(cuid())
+
+  // Relations
+  invoiceId String?
+  invoice   Invoice? @relation(fields: [invoiceId], references: [id], onDelete: SetNull)
+
+  sentById String
+  sentBy   User   @relation(fields: [sentById], references: [id], onDelete: Restrict)
+
+  // Email details
+  recipient String
+  subject   String
+  body      String @db.Text
+
+  // Attachments
+  attachments String? @db.Text // JSON array of file paths
+
+  // Status tracking
+  status       EmailStatus @default(PENDING)
+  sentAt       DateTime?
+  deliveredAt  DateTime?
+  openedAt     DateTime?
+  failedAt     DateTime?
+  errorMessage String?     @db.Text
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([invoiceId])
+  @@index([sentById])
+  @@index([recipient])
+  @@index([status])
+  @@index([sentAt])
+  @@map("email_logs")
+}
+
+// ============================================================================
+// AUDIT LOG (IMMUTABLE - EU MDR REQUIREMENT)
+// ============================================================================
+
+enum AuditAction {
+  CREATE
+  UPDATE
+  DELETE
+  LOGIN
+  LOGOUT
+  QC_APPROVE
+  QC_REJECT
+  INVOICE_GENERATE
+  EMAIL_SEND
+  DOCUMENT_GENERATE
+  MATERIAL_ASSIGN
+  STATUS_CHANGE
+}
+
+model AuditLog {
+  id String @id @default(cuid())
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Restrict)
+
+  // WHO, WHAT, WHEN, WHY
+  action     AuditAction
+  entityType String // "Order", "WorkSheet", "Invoice", etc.
+  entityId   String // ID of affected entity
+
+  // Changes (JSON)
+  oldValues String? @db.Text // JSON before change
+  newValues String? @db.Text // JSON after change
+
+  // Context
+  reason    String? @db.Text
+  ipAddress String?
+  userAgent String?
+
+  // Timestamp (immutable)
+  timestamp DateTime @default(now())
+
+  @@index([userId])
+  @@index([entityType, entityId])
+  @@index([action])
+  @@index([timestamp])
+  @@map("audit_logs")
+}
+
+// ============================================================================
+// SYSTEM CONFIGURATION
+// ============================================================================
+
+model SystemConfig {
+  id String @id @default(cuid())
+
+  key         String  @unique // Config key (e.g., "next_order_number")
+  value       String  @db.Text // Config value (string, JSON, etc.)
+  description String? @db.Text
+
+  updatedAt DateTime @updatedAt
+  updatedBy String? // User ID who last updated
+
+  @@map("system_config")
+}
+
+// ============================================================================
+// LABORATORY CONFIGURATION (SINGLETON - FOR ANNEX XIII & INVOICES)
+// ============================================================================
+
+model LabConfiguration {
+  id String @id @default(cuid())
+
+  // Laboratory Information
+  laboratoryName     String // e.g., "Smilelab d.o.o."
+  laboratoryId       String? // Official laboratory registration ID
+  laboratoryLicense  String? // License number
+  registrationNumber String? // Business registration number (Matična številka)
+  taxId              String? // Tax ID (Davčna številka)
+  technicianIdNumber String? // Technician ID/License number
+
+  // Laboratory Address
+  street     String
+  city       String
+  postalCode String
+  country    String  @default("Slovenia")
+  region     String? // Optional: region/county
+
+  // Contact Information
+  phone   String
+  email   String
+  website String?
+
+  // Bank Account Information (for invoices)
+  bankAccounts BankAccount[] // Multiple bank accounts
+
+  // Responsible Person (for EU MDR Annex XIII)
+  responsiblePersonName    String
+  responsiblePersonTitle   String // e.g., "Kvalitetni vodja" / "Quality Manager"
+  responsiblePersonLicense String? // Professional license number
+  responsiblePersonEmail   String?
+  responsiblePersonPhone   String?
+
+  // Digital Signature
+  signaturePath String? // Path to digital signature image
+
+  // Logo
+  logoPath String? // Path to laboratory logo
+
+  // Additional Settings
+  defaultPaymentTerms Int     @default(30) // Days
+  defaultTaxRate      Decimal @default(22.00) @db.Decimal(5, 2) // Slovenia VAT 22%
+  invoiceLegalTerms   String? @db.Text // Legal terms displayed at bottom of invoices
+
+  // Metadata
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  updatedBy String? // User ID who last updated
+
+  @@map("lab_configuration")
+}
+
+// Bank Account Model (for multiple bank accounts on invoices)
+model BankAccount {
+  id String @id @default(cuid())
+
+  labConfigurationId String
+  labConfiguration   LabConfiguration @relation(fields: [labConfigurationId], references: [id], onDelete: Cascade)
+
+  // Bank Account Information
+  bankName String  // e.g., "NLB d.d."
+  iban     String  // IBAN account number (e.g., "SI56 0110 0100 0123 456")
+  swiftBic String? // SWIFT/BIC code (e.g., "LJBASI2X")
+
+  // Account Type
+  accountType String @default("PRIMARY") // PRIMARY, SECONDARY, EUR, USD, etc.
+
+  // Status
+  isActive  Boolean @default(true)
+  isPrimary Boolean @default(false) // Mark primary account for invoices
+
+  // Display Order
+  displayOrder Int @default(0) // Order to display on invoices
+
+  // Metadata
+  notes String? @db.Text
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([labConfigurationId])
+  @@index([isPrimary])
+  @@index([displayOrder])
+  @@map("bank_accounts")
+}

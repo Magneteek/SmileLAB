@@ -1,0 +1,356 @@
+/**
+ * Pricing List Page
+ *
+ * Comprehensive product/pricing management with search, sort, filter, and CRUD operations.
+ * Displays all dental products with their codes, names, prices, and categories.
+ *
+ * Features:
+ * - DataTable with search, sort, and filter
+ * - Add/Edit/Delete products
+ * - Bulk import functionality
+ * - Price history tracking
+ * - Category/group filtering
+ *
+ * Route: /pricing
+ */
+
+'use client';
+
+import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import { useTranslations } from 'next-intl';
+import Link from 'next/link';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import { Badge } from '@/components/ui/badge';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import {
+  Plus,
+  Search,
+  MoreVertical,
+  Edit,
+  Trash2,
+  Upload,
+  Download,
+  AlertCircle,
+  Loader2,
+} from 'lucide-react';
+
+// ============================================================================
+// TYPES
+// ============================================================================
+
+import { ProductCategory } from '@prisma/client';
+
+interface Product {
+  id: string;
+  code: string;
+  name: string;
+  description: string | null;
+  category: ProductCategory;
+  currentPrice: number;
+  unit: string;
+  active: boolean;
+  createdAt: string;
+  updatedAt: string;
+  _count?: {
+    priceHistory: number;
+  };
+}
+
+// ============================================================================
+// MAIN COMPONENT
+// ============================================================================
+
+export default function PricingListPage() {
+  const router = useRouter();
+  const t = useTranslations('pricing');
+
+  // State
+  const [products, setProducts] = useState<Product[]>([]);
+  const [filteredProducts, setFilteredProducts] = useState<Product[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [categoryFilter, setCategoryFilter] = useState<string>('all');
+
+  // Fetch products
+  useEffect(() => {
+    const fetchProducts = async () => {
+      try {
+        setIsLoading(true);
+        const response = await fetch('/api/products');
+
+        if (!response.ok) {
+          throw new Error('Failed to load products');
+        }
+
+        const result = await response.json();
+        setProducts(result.data || []);
+        setFilteredProducts(result.data || []);
+      } catch (err: any) {
+        setError(err.message || 'Failed to load products');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchProducts();
+  }, []);
+
+  // Filter products based on search and category
+  useEffect(() => {
+    let filtered = products;
+
+    // Search filter
+    if (searchQuery) {
+      const query = searchQuery.toLowerCase();
+      filtered = filtered.filter(
+        (p) =>
+          p.code.toLowerCase().includes(query) ||
+          p.name.toLowerCase().includes(query) ||
+          p.description?.toLowerCase().includes(query)
+      );
+    }
+
+    // Category filter
+    if (categoryFilter !== 'all') {
+      filtered = filtered.filter((p) => p.category === categoryFilter);
+    }
+
+    setFilteredProducts(filtered);
+  }, [searchQuery, categoryFilter, products]);
+
+  // Get unique categories
+  const categories = Array.from(new Set(products.map((p) => p.category).filter(Boolean)));
+
+  // Handle delete product
+  const handleDelete = async (productId: string) => {
+    if (!confirm('Are you sure you want to delete this product?')) {
+      return;
+    }
+
+    try {
+      const response = await fetch(`/api/products/${productId}`, {
+        method: 'DELETE',
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to delete product');
+      }
+
+      // Remove from local state
+      setProducts((prev) => prev.filter((p) => p.id !== productId));
+    } catch (err: any) {
+      alert(err.message || 'Failed to delete product');
+    }
+  };
+
+  return (
+    <div className="container mx-auto py-6 space-y-6">
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight">{t('title')}</h1>
+          <p className="text-gray-600 mt-1">
+            {t('subtitle')}
+          </p>
+        </div>
+        <div className="flex gap-2">
+          <Button variant="outline" size="sm">
+            <Upload className="h-4 w-4 mr-2" />
+            {t('import')}
+          </Button>
+          <Button variant="outline" size="sm">
+            <Download className="h-4 w-4 mr-2" />
+            {t('export')}
+          </Button>
+          <Link href="/pricing/new">
+            <Button>
+              <Plus className="h-4 w-4 mr-2" />
+              {t('addProduct')}
+            </Button>
+          </Link>
+        </div>
+      </div>
+
+      {/* Error Alert */}
+      {error && (
+        <Alert variant="destructive">
+          <AlertCircle className="h-4 w-4" />
+          <AlertDescription>{error}</AlertDescription>
+        </Alert>
+      )}
+
+      {/* Filters */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-lg">{t('categoryFilter')}</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {/* Search */}
+            <div className="md:col-span-2">
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                <Input
+                  placeholder={t('searchPlaceholder')}
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="pl-10"
+                />
+              </div>
+            </div>
+
+            {/* Category Filter */}
+            <div>
+              <select
+                value={categoryFilter}
+                onChange={(e) => setCategoryFilter(e.target.value)}
+                className="w-full h-9 rounded-md border border-gray-300 bg-white px-3 text-sm"
+              >
+                <option value="all">{t('allCategories')}</option>
+                {categories.map((cat) => (
+                  <option key={cat} value={cat || ''}>
+                    {t(`category${cat}` as any)}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
+
+          {/* Results count */}
+          <div className="mt-3 text-sm text-gray-600">
+            {t('results', { count: filteredProducts.length })} / {products.length}
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Products Table */}
+      <Card>
+        <CardContent className="p-0">
+          {isLoading ? (
+            <div className="flex items-center justify-center py-12">
+              <Loader2 className="h-8 w-8 animate-spin text-gray-400" />
+              <span className="ml-3 text-gray-600">{t('loadingProducts')}</span>
+            </div>
+          ) : filteredProducts.length === 0 ? (
+            <div className="text-center py-12">
+              <p className="text-gray-500">
+                {searchQuery || categoryFilter !== 'all'
+                  ? t('noProductsFound')
+                  : t('tryAdjustingFilters')}
+              </p>
+              {!searchQuery && categoryFilter === 'all' && (
+                <Link href="/pricing/new">
+                  <Button className="mt-4">
+                    <Plus className="h-4 w-4 mr-2" />
+                    {t('addProduct')}
+                  </Button>
+                </Link>
+              )}
+            </div>
+          ) : (
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>{t('tableHeaderCode')}</TableHead>
+                  <TableHead>{t('tableHeaderName')}</TableHead>
+                  <TableHead>{t('tableHeaderCategory')}</TableHead>
+                  <TableHead className="text-right">{t('tableHeaderPrice')}</TableHead>
+                  <TableHead>{t('tableHeaderUnit')}</TableHead>
+                  <TableHead>{t('tableHeaderStatus')}</TableHead>
+                  <TableHead className="text-right">{t('tableHeaderActions')}</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {filteredProducts.map((product) => (
+                  <TableRow key={product.id}>
+                    <TableCell className="font-mono text-sm">
+                      {product.code}
+                    </TableCell>
+                    <TableCell>
+                      <div>
+                        <div className="font-medium">{product.name}</div>
+                        {product.description && (
+                          <div className="text-sm text-gray-500 line-clamp-1">
+                            {product.description}
+                          </div>
+                        )}
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      {product.category && (
+                        <Badge variant="secondary">{t(`category${product.category}` as any)}</Badge>
+                      )}
+                    </TableCell>
+                    <TableCell className="text-right font-medium">
+                      €{Number(product.currentPrice).toFixed(2)}
+                    </TableCell>
+                    <TableCell className="text-sm text-gray-600">
+                      {product.unit}
+                    </TableCell>
+                    <TableCell>
+                      <Badge variant={product.active ? 'default' : 'secondary'}>
+                        {product.active ? t('active') : t('inactive')}
+                      </Badge>
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="ghost" size="sm">
+                            <MoreVertical className="h-4 w-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuLabel>{t('actionsMenu')}</DropdownMenuLabel>
+                          <DropdownMenuSeparator />
+                          <DropdownMenuItem
+                            onClick={() => router.push(`/pricing/${product.id}/edit`)}
+                          >
+                            <Edit className="h-4 w-4 mr-2" />
+                            {t('edit')}
+                          </DropdownMenuItem>
+                          <DropdownMenuItem
+                            onClick={() => handleDelete(product.id)}
+                            className="text-red-600"
+                          >
+                            <Trash2 className="h-4 w-4 mr-2" />
+                            {t('delete')}
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          )}
+        </CardContent>
+      </Card>
+    </div>
+  );
+}

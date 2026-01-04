@@ -1,0 +1,554 @@
+{
+  "projectId": "ec615192-0f63-48d1-96d5-44834d460e3d",
+  "projectName": "Smilelab MDR Management System",
+  "version": "1.0.0",
+  "createdAt": "2025-12-25T00:00:00Z",
+  "lastUpdated": "2025-12-25T00:00:00Z",
+  "overallProgress": {
+    "totalTasks": 280,
+    "completedTasks": 0,
+    "inProgressTasks": 0,
+    "blockedTasks": 0,
+    "percentComplete": 0.0
+  },
+  "milestones": [
+    {
+      "name": "MVP Launch",
+      "targetDate": "2026-02-15",
+      "status": "pending",
+      "dependencies": ["Phase 1", "Phase 2"]
+    },
+    {
+      "name": "Production Deployment",
+      "targetDate": "2026-04-01",
+      "status": "pending",
+      "dependencies": ["Phase 3", "Phase 4"]
+    }
+  ],
+  "phases": [
+    {
+      "phaseId": 1,
+      "phaseName": "Foundation & Core Features",
+      "status": "not_started",
+      "startDate": null,
+      "targetCompletionDate": "2026-02-08",
+      "actualCompletionDate": null,
+      "estimatedDuration": "6 weeks",
+      "categories": [
+        {
+          "categoryId": "cat-01",
+          "categoryName": "Project Configuration",
+          "totalTasks": 15,
+          "completedTasks": 0,
+          "tasks": [
+            {
+              "taskId": "CONFIG-001",
+              "file": "package.json",
+              "description": "Next.js 15, TypeScript, Prisma, ShadCN UI dependencies",
+              "estimatedLines": 100,
+              "status": "pending",
+              "priority": "critical",
+              "dependencies": [],
+              "assignedAgent": null,
+              "assignedTo": null,
+              "startedAt": null,
+              "completedAt": null,
+              "estimatedHours": 0.5,
+              "actualHours": null,
+              "notes": [],
+              "blockers": []
+            },
+            {
+              "taskId": "CONFIG-002",
+              "file": "tsconfig.json",
+              "description": "TypeScript strict configuration with path aliases",
+              "estimatedLines": 30,
+              "status": "pending",
+              "priority": "critical",
+              "dependencies": ["CONFIG-001"],
+              "assignedAgent": null,
+              "assignedTo": null,
+              "startedAt": null,
+              "completedAt": null,
+              "estimatedHours": 0.5,
+              "actualHours": null,
+              "notes": [],
+              "blockers": []
+            },
+            {
+              "taskId": "CONFIG-003",
+              "file": "next.config.js",
+              "description": "Next.js configuration with Puppeteer webpack config",
+              "estimatedLines": 40,
+              "status": "pending",
+              "priority": "critical",
+              "dependencies": ["CONFIG-001"],
+              "assignedAgent": null,
+              "assignedTo": null,
+              "startedAt": null,
+              "completedAt": null,
+              "estimatedHours": 1.0,
+              "actualHours": null,
+              "notes": ["Puppeteer requires special webpack configuration"],
+              "blockers": []
+            }
+          ]
+        },
+        {
+          "categoryId": "cat-02",
+          "categoryName": "Database & ORM",
+          "totalTasks": 8,
+          "completedTasks": 0,
+          "tasks": [
+            {
+              "taskId": "DB-001",
+              "file": "prisma/schema.prisma",
+              "description": "Complete database schema with 15+ models (CRITICAL)",
+              "estimatedLines": 800,
+              "status": "pending",
+              "priority": "critical",
+              "dependencies": ["CONFIG-001"],
+              "assignedAgent": "Direct Claude Code (domain-specific)",
+              "assignedTo": null,
+              "startedAt": null,
+              "completedAt": null,
+              "estimatedHours": 8.0,
+              "actualHours": null,
+              "notes": [
+                "Most critical file - foundation for entire application",
+                "Includes: User, Dentist, Patient, Order, WorkSheet, Material, QC, Invoice, Document, AuditLog",
+                "Material traceability must be complete",
+                "Audit logs must be immutable (onDelete: Restrict)"
+              ],
+              "blockers": []
+            },
+            {
+              "taskId": "DB-002",
+              "file": "prisma/seed.ts",
+              "description": "Sample data for development and testing",
+              "estimatedLines": 200,
+              "status": "pending",
+              "priority": "high",
+              "dependencies": ["DB-001"],
+              "assignedAgent": null,
+              "assignedTo": null,
+              "startedAt": null,
+              "completedAt": null,
+              "estimatedHours": 3.0,
+              "actualHours": null,
+              "notes": ["Sample users, dentists, materials, products"],
+              "blockers": []
+            },
+            {
+              "taskId": "DB-003",
+              "file": "src/lib/prisma.ts",
+              "description": "Prisma client singleton",
+              "estimatedLines": 20,
+              "status": "pending",
+              "priority": "critical",
+              "dependencies": ["DB-001"],
+              "assignedAgent": null,
+              "assignedTo": null,
+              "startedAt": null,
+              "completedAt": null,
+              "estimatedHours": 0.5,
+              "actualHours": null,
+              "notes": [],
+              "blockers": []
+            }
+          ]
+        },
+        {
+          "categoryId": "cat-03",
+          "categoryName": "Authentication & Authorization",
+          "totalTasks": 10,
+          "completedTasks": 0,
+          "tasks": [
+            {
+              "taskId": "AUTH-001",
+              "file": "src/lib/auth.ts",
+              "description": "NextAuth.js configuration with JWT + RBAC (CRITICAL)",
+              "estimatedLines": 150,
+              "status": "pending",
+              "priority": "critical",
+              "dependencies": ["DB-001"],
+              "assignedAgent": "backend-development-specialist",
+              "assignedTo": null,
+              "startedAt": null,
+              "completedAt": null,
+              "estimatedHours": 4.0,
+              "actualHours": null,
+              "notes": [
+                "4 roles: ADMIN, TECHNICIAN, QC_INSPECTOR, INVOICING",
+                "JWT strategy with session callbacks"
+              ],
+              "blockers": []
+            }
+          ]
+        },
+        {
+          "categoryId": "cat-04",
+          "categoryName": "Worksheet Management (CORE)",
+          "totalTasks": 18,
+          "completedTasks": 0,
+          "tasks": [
+            {
+              "taskId": "WS-001",
+              "file": "src/components/worksheets/TeethSelector.tsx",
+              "description": "FDI teeth notation selector - MOST COMPLEX COMPONENT",
+              "estimatedLines": 400,
+              "status": "pending",
+              "priority": "critical",
+              "dependencies": ["AUTH-001", "DB-001"],
+              "assignedAgent": "Direct Claude Code (no specialized agent) OR frontend-design skill",
+              "assignedTo": null,
+              "startedAt": null,
+              "completedAt": null,
+              "estimatedHours": 12.0,
+              "actualHours": null,
+              "notes": [
+                "UNIQUE COMPONENT - no existing libraries for FDI notation",
+                "Visual jaw representation (upper/lower quadrants)",
+                "FDI two-digit notation: 11-48 (permanent), 51-85 (primary)",
+                "Multi-tooth selection with work type assignment",
+                "Interactive SVG or Canvas rendering",
+                "Expect multiple iterations with user testing"
+              ],
+              "blockers": []
+            },
+            {
+              "taskId": "WS-002",
+              "file": "src/lib/services/worksheet-service.ts",
+              "description": "Worksheet service with state machine (CRITICAL)",
+              "estimatedLines": 400,
+              "status": "pending",
+              "priority": "critical",
+              "dependencies": ["DB-001"],
+              "assignedAgent": "backend-development-specialist",
+              "assignedTo": null,
+              "startedAt": null,
+              "completedAt": null,
+              "estimatedHours": 8.0,
+              "actualHours": null,
+              "notes": [
+                "DN-prefix numbering (DN-001, DN-002...)",
+                "Material LOT assignment (FIFO)",
+                "State machine integration",
+                "Product/material selection logic"
+              ],
+              "blockers": []
+            },
+            {
+              "taskId": "WS-003",
+              "file": "src/lib/state-machines/worksheet-state-machine.ts",
+              "description": "Workflow state machine (CRITICAL)",
+              "estimatedLines": 200,
+              "status": "pending",
+              "priority": "critical",
+              "dependencies": ["WS-002"],
+              "assignedAgent": "backend-development-specialist",
+              "assignedTo": null,
+              "startedAt": null,
+              "completedAt": null,
+              "estimatedHours": 4.0,
+              "actualHours": null,
+              "notes": [
+                "States: DRAFT → IN_PRODUCTION → QC_PENDING → QC_APPROVED → INVOICED → DELIVERED",
+                "Permission checks per transition",
+                "Automatic Annex XIII generation on QC approval"
+              ],
+              "blockers": []
+            }
+          ]
+        },
+        {
+          "categoryId": "cat-05",
+          "categoryName": "Material Inventory (COMPLEX)",
+          "totalTasks": 15,
+          "completedTasks": 0,
+          "tasks": [
+            {
+              "taskId": "MAT-001",
+              "file": "src/lib/services/material-service.ts",
+              "description": "Material inventory with LOT tracking and FIFO (CRITICAL)",
+              "estimatedLines": 300,
+              "status": "pending",
+              "priority": "critical",
+              "dependencies": ["DB-001"],
+              "assignedAgent": "backend-development-specialist",
+              "assignedTo": null,
+              "startedAt": null,
+              "completedAt": null,
+              "estimatedHours": 6.0,
+              "actualHours": null,
+              "notes": [
+                "recordStockArrival() - Create MaterialLot",
+                "getAvailableMaterials() - AVAILABLE status only",
+                "consumeMaterial() - FIFO selection, quantity deduction",
+                "getExpiryAlerts() - 30-day warning"
+              ],
+              "blockers": []
+            }
+          ]
+        },
+        {
+          "categoryId": "cat-06",
+          "categoryName": "Dashboard (CRITICAL)",
+          "totalTasks": 12,
+          "completedTasks": 0,
+          "tasks": [
+            {
+              "taskId": "DASH-001",
+              "file": "src/components/dashboard/DashboardOverview.tsx",
+              "description": "Main dashboard with 6 widget areas (CRITICAL)",
+              "estimatedLines": 300,
+              "status": "pending",
+              "priority": "critical",
+              "dependencies": ["DB-001", "AUTH-001"],
+              "assignedAgent": "frontend-architect-specialist OR frontend-design skill",
+              "assignedTo": null,
+              "startedAt": null,
+              "completedAt": null,
+              "estimatedHours": 8.0,
+              "actualHours": null,
+              "notes": [
+                "6 widgets: Orders, QC, Materials, Invoices, MDR Docs, Activity",
+                "Real-time stats aggregation",
+                "Visual indicators (green/yellow/red)"
+              ],
+              "blockers": []
+            },
+            {
+              "taskId": "DASH-002",
+              "file": "src/lib/services/dashboard-service.ts",
+              "description": "Dashboard statistics aggregation service",
+              "estimatedLines": 200,
+              "status": "pending",
+              "priority": "high",
+              "dependencies": ["DB-001"],
+              "assignedAgent": "backend-development-specialist",
+              "assignedTo": null,
+              "startedAt": null,
+              "completedAt": null,
+              "estimatedHours": 4.0,
+              "actualHours": null,
+              "notes": [
+                "Aggregate stats from multiple tables",
+                "Optimize queries for performance"
+              ],
+              "blockers": []
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "phaseId": 2,
+      "phaseName": "MDR Compliance & QC",
+      "status": "not_started",
+      "startDate": null,
+      "targetCompletionDate": "2026-03-08",
+      "actualCompletionDate": null,
+      "estimatedDuration": "4 weeks",
+      "categories": [
+        {
+          "categoryId": "cat-07",
+          "categoryName": "Quality Control Workflow",
+          "totalTasks": 10,
+          "completedTasks": 0,
+          "tasks": [
+            {
+              "taskId": "QC-001",
+              "file": "src/lib/services/qc-service.ts",
+              "description": "QC approval/rejection service with state machine",
+              "estimatedLines": 220,
+              "status": "pending",
+              "priority": "critical",
+              "dependencies": ["WS-003"],
+              "assignedAgent": "backend-development-specialist",
+              "assignedTo": null,
+              "startedAt": null,
+              "completedAt": null,
+              "estimatedHours": 4.0,
+              "actualHours": null,
+              "notes": [
+                "QC checklist validation",
+                "Triggers Annex XIII generation on approval"
+              ],
+              "blockers": []
+            }
+          ]
+        },
+        {
+          "categoryId": "cat-08",
+          "categoryName": "Document Generation (Annex XIII)",
+          "totalTasks": 10,
+          "completedTasks": 0,
+          "tasks": [
+            {
+              "taskId": "DOC-001",
+              "file": "src/lib/pdf/annex-xiii-generator.ts",
+              "description": "EU MDR Annex XIII document generator (CRITICAL)",
+              "estimatedLines": 300,
+              "status": "pending",
+              "priority": "critical",
+              "dependencies": ["QC-001", "DB-001"],
+              "assignedAgent": "Direct Claude Code (EU MDR compliance domain)",
+              "assignedTo": null,
+              "startedAt": null,
+              "completedAt": null,
+              "estimatedHours": 10.0,
+              "actualHours": null,
+              "notes": [
+                "Puppeteer PDF generation",
+                "Handlebars template",
+                "Material traceability inclusion",
+                "10-year retention tracking",
+                "Legal/regulatory requirements"
+              ],
+              "blockers": []
+            },
+            {
+              "taskId": "DOC-002",
+              "file": "src/lib/pdf/templates/annex-xiii.html",
+              "description": "Annex XIII Handlebars template",
+              "estimatedLines": 200,
+              "status": "pending",
+              "priority": "critical",
+              "dependencies": ["DOC-001"],
+              "assignedAgent": "Direct Claude Code",
+              "assignedTo": null,
+              "startedAt": null,
+              "completedAt": null,
+              "estimatedHours": 6.0,
+              "actualHours": null,
+              "notes": [
+                "EU MDR format requirements",
+                "Device identification section",
+                "Material traceability table",
+                "Manufacturer's declaration"
+              ],
+              "blockers": []
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "phaseId": 3,
+      "phaseName": "PWA & Offline Sync",
+      "status": "not_started",
+      "startDate": null,
+      "targetCompletionDate": "2026-03-29",
+      "actualCompletionDate": null,
+      "estimatedDuration": "3 weeks",
+      "categories": []
+    },
+    {
+      "phaseId": 4,
+      "phaseName": "Deployment & DevOps",
+      "status": "not_started",
+      "startDate": null,
+      "targetCompletionDate": "2026-04-12",
+      "actualCompletionDate": null,
+      "estimatedDuration": "2 weeks",
+      "categories": [
+        {
+          "categoryId": "cat-09",
+          "categoryName": "Docker & CI/CD",
+          "totalTasks": 15,
+          "completedTasks": 0,
+          "tasks": [
+            {
+              "taskId": "DEPLOY-001",
+              "file": "docker-compose.yml",
+              "description": "Docker Compose with Next.js + PostgreSQL",
+              "estimatedLines": 50,
+              "status": "pending",
+              "priority": "high",
+              "dependencies": [],
+              "assignedAgent": "devops-deployment-specialist OR cicd-pipeline",
+              "assignedTo": null,
+              "startedAt": null,
+              "completedAt": null,
+              "estimatedHours": 2.0,
+              "actualHours": null,
+              "notes": [],
+              "blockers": []
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "phaseId": 5,
+      "phaseName": "Testing & Documentation",
+      "status": "not_started",
+      "startDate": null,
+      "targetCompletionDate": "2026-04-26",
+      "actualCompletionDate": null,
+      "estimatedDuration": "2 weeks",
+      "categories": [
+        {
+          "categoryId": "cat-10",
+          "categoryName": "E2E Testing",
+          "totalTasks": 20,
+          "completedTasks": 0,
+          "tasks": [
+            {
+              "taskId": "TEST-001",
+              "file": "e2e/create-order.spec.ts",
+              "description": "E2E test for order creation workflow",
+              "estimatedLines": 150,
+              "status": "pending",
+              "priority": "high",
+              "dependencies": ["CONFIG-001"],
+              "assignedAgent": "e2e-test-automator OR comprehensive-testing-pipeline",
+              "assignedTo": null,
+              "startedAt": null,
+              "completedAt": null,
+              "estimatedHours": 3.0,
+              "actualHours": null,
+              "notes": ["Target: 85%+ coverage"],
+              "blockers": []
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "riskRegister": [
+    {
+      "riskId": "RISK-001",
+      "description": "FDI Teeth Selector complexity - may take longer than estimated",
+      "probability": "high",
+      "impact": "high",
+      "mitigation": "Start early, plan for multiple iterations, consider external dental UX expertise",
+      "status": "open"
+    },
+    {
+      "riskId": "RISK-002",
+      "description": "EU MDR compliance - regulatory requirements may change",
+      "probability": "medium",
+      "impact": "high",
+      "mitigation": "Design flexible Annex XIII template, stay updated with EU guidance",
+      "status": "open"
+    },
+    {
+      "riskId": "RISK-003",
+      "description": "Material LOT tracking FIFO logic - edge cases in inventory management",
+      "probability": "medium",
+      "impact": "medium",
+      "mitigation": "Comprehensive unit tests, review with lab technicians",
+      "status": "open"
+    }
+  ],
+  "techDebt": [],
+  "blockers": [],
+  "notes": [
+    "Progress tracker created on 2025-12-25",
+    "Total estimated hours: ~350 hours (based on partial task estimates)",
+    "Critical path: DB Schema → Auth → Worksheets → FDI Selector → QC → Annex XIII",
+    "Most complex tasks: FDI Selector (12h), Annex XIII Generator (10h), Dashboard (8h)"
+  ]
+}
