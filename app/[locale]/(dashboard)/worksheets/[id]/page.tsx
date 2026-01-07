@@ -157,10 +157,12 @@ export default async function WorksheetDetailPage({
                   invoiceStatus={worksheet.invoiceLineItems?.[0]?.invoice?.paymentStatus}
                 />
               )}
-              <Button variant="outline" size="sm">
-                <Printer className="h-4 w-4 mr-2" />
-                {t('worksheet.detailPrintButton')}
-              </Button>
+              <Link href={`/api/documents/worksheet-pdf/${worksheet.id}?locale=sl`} target="_blank">
+                <Button variant="outline" size="sm">
+                  <Printer className="h-4 w-4 mr-2" />
+                  {t('worksheet.detailPrintButton')}
+                </Button>
+              </Link>
             </div>
           </div>
 

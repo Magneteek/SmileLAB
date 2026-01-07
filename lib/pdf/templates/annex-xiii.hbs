@@ -12,7 +12,7 @@
 
     body {
       font-family: 'Arial', 'Helvetica', sans-serif;
-      font-size: 8pt;
+      font-size: 11pt;
       color: #333;
       padding: 15px 30px;
       background: #fff;
@@ -50,7 +50,7 @@
 
     .header-right {
       text-align: right;
-      font-size: 7pt;
+      font-size: 10pt;
       line-height: 1.3;
       color: #333;
     }
@@ -62,21 +62,21 @@
     }
 
     .document-title h1 {
-      font-size: 16pt;
+      font-size: 18pt;
       color: #007289;
       margin-bottom: 5px;
       font-weight: 700;
     }
 
     .document-title h2 {
-      font-size: 11pt;
+      font-size: 13pt;
       color: #64748b;
       font-weight: 400;
       margin-bottom: 10px;
     }
 
     .document-number {
-      font-size: 9pt;
+      font-size: 11pt;
       color: #333;
       font-weight: 600;
     }
@@ -106,7 +106,7 @@
     }
 
     section h3 {
-      font-size: 9pt;
+      font-size: 11pt;
       color: #007289;
       border-bottom: 1.5px solid #007289;
       padding-bottom: 3px;
@@ -127,7 +127,7 @@
 
     .info-table td {
       padding: 4px 6px;
-      font-size: 7.5pt;
+      font-size: 9pt;
       line-height: 1.3;
     }
 
@@ -146,7 +146,7 @@
       width: 100%;
       border-collapse: collapse;
       margin-top: 6px;
-      font-size: 7pt;
+      font-size: 9pt;
     }
 
     .products-materials-table thead {
@@ -158,7 +158,7 @@
       padding: 5px 4px;
       text-align: left;
       font-weight: 600;
-      font-size: 7.5pt;
+      font-size: 9pt;
       border: 1px solid #005666;
     }
 
@@ -180,7 +180,7 @@
     .product-row td {
       padding: 5px 4px;
       border: 1px solid #ddd;
-      font-size: 7.5pt;
+      font-size: 9pt;
     }
 
     /* Material Rows (nested under products) */
@@ -191,7 +191,7 @@
     .material-row td {
       padding: 4px 4px;
       border: 1px solid #ddd;
-      font-size: 7pt;
+      font-size: 9pt;
     }
 
     .material-row td:first-child {
@@ -215,7 +215,7 @@
       display: inline-block;
       padding: 2px 6px;
       border-radius: 3px;
-      font-size: 7pt;
+      font-size: 10pt;
       font-weight: 600;
     }
 
@@ -237,7 +237,7 @@
     .checkmark {
       color: #16a34a;
       font-weight: bold;
-      font-size: 9pt;
+      font-size: 10pt;
     }
 
     .dash {
@@ -250,7 +250,7 @@
       border-left: 4px solid #f59e0b;
       padding: 12px;
       margin: 15px 0;
-      font-size: 8pt;
+      font-size: 9pt;
       line-height: 1.6;
     }
 
@@ -273,7 +273,7 @@
       border-left: 4px solid #0284c7;
       padding: 12px;
       margin: 15px 0;
-      font-size: 8pt;
+      font-size: 9pt;
       line-height: 1.6;
     }
 
@@ -313,12 +313,12 @@
       margin-top: 40px;
       border-top: 2px solid #1e293b;
       padding-top: 5px;
-      font-size: 8pt;
+      font-size: 10pt;
     }
 
     .signature-block p {
       margin: 5px 0;
-      font-size: 9pt;
+      font-size: 10pt;
     }
 
     .signature-block .title {
@@ -331,7 +331,7 @@
       margin-top: 30px;
       padding-top: 15px;
       border-top: 1px solid #ddd;
-      font-size: 8pt;
+      font-size: 11pt;
       color: #333;
       line-height: 1.5;
     }
@@ -341,7 +341,7 @@
       margin-top: 20px;
       padding-top: 12px;
       border-top: 2px solid #007289;
-      font-size: 7pt;
+      font-size: 10pt;
       text-align: center;
       color: #333;
       line-height: 1.6;
@@ -369,7 +369,7 @@
     @page {
       @bottom-right {
         content: counter(page) " / " counter(pages);
-        font-size: 8pt;
+        font-size: 11pt;
         color: #666;
         font-family: 'Arial', sans-serif;
       }
@@ -388,14 +388,14 @@
 
     <!-- Right: EU MDR Document Info (70%) -->
     <div class="header-right">
-      <div style="font-size: 8pt; font-weight: 700; color: #007289; margin-bottom: 2px;">
-        EU MDR ANNEX XIII - Manufacturer's Statement for Custom-Made Devices
+      <div style="font-size: 11pt; font-weight: 700; color: #007289; margin-bottom: 2px;">
+        {{t.documentTitle}}
       </div>
-      <div style="font-size: 9pt; font-weight: 700; color: #D2804D; margin-bottom: 2px;">
+      <div style="font-size: 12pt; font-weight: 700; color: #D2804D; margin-bottom: 2px;">
         {{documentId}}
       </div>
-      <div style="font-size: 6pt; color: #666;">
-        Document Number | Generated: {{generationDate}}
+      <div style="font-size: 9pt; color: #666;">
+        {{t.documentNumberLabel}} {{generationDate}}
       </div>
     </div>
   </div>
@@ -405,38 +405,38 @@
     <!-- Left Column: Section 1 - Device Identification -->
     <div class="grid-column">
       <section>
-        <h3>1. Device Identification</h3>
+        <h3>{{t.section1Title}}</h3>
         <table class="info-table">
           <tr>
-            <td>Worksheet Number:</td>
+            <td>{{t.worksheetNumber}}</td>
             <td><strong>{{worksheetNumber}}</strong></td>
           </tr>
           {{#if orderNumber}}
           <tr>
-            <td>Order Number:</td>
+            <td>{{t.orderNumber}}</td>
             <td>{{orderNumber}}</td>
           </tr>
           {{/if}}
           <tr>
-            <td>Device Description:</td>
+            <td>{{t.deviceDescription}}</td>
             <td>{{deviceDescription}}</td>
           </tr>
           <tr>
-            <td>Intended Use:</td>
+            <td>{{t.intendedUse}}</td>
             <td>{{intendedUse}}</td>
           </tr>
           <tr>
-            <td>Manufacture Date:</td>
+            <td>{{t.manufactureDate}}</td>
             <td>{{manufactureDate}}</td>
           </tr>
           {{#if deliveryDate}}
           <tr>
-            <td>Delivery Date:</td>
+            <td>{{t.deliveryDate}}</td>
             <td>{{deliveryDate}}</td>
           </tr>
           {{/if}}
           <tr>
-            <td>Patient:</td>
+            <td>{{t.patient}}</td>
             <td>{{patientName}}</td>
           </tr>
         </table>
@@ -446,36 +446,36 @@
     <!-- Right Column: Section 2 - Manufacturer Information -->
     <div class="grid-column">
       <section>
-        <h3>2. Manufacturer Information</h3>
+        <h3>{{t.section2Title}}</h3>
         <table class="info-table">
           <tr>
-            <td>Manufacturer Name:</td>
+            <td>{{t.laboratoryName}}</td>
             <td><strong>{{lab.laboratoryName}}</strong></td>
           </tr>
           {{#if lab.laboratoryId}}
           <tr>
-            <td>Laboratory ID:</td>
+            <td>{{t.laboratoryId}}</td>
             <td>{{lab.laboratoryId}}</td>
           </tr>
           {{/if}}
           {{#if lab.laboratoryLicense}}
           <tr>
-            <td>Laboratory License:</td>
+            <td>{{t.laboratoryLicense}}</td>
             <td>{{lab.laboratoryLicense}}</td>
           </tr>
           {{/if}}
           {{#if lab.registrationNumber}}
           <tr>
-            <td>Registration Number:</td>
+            <td>{{t.registrationNumber}}</td>
             <td>{{lab.registrationNumber}}</td>
           </tr>
           {{/if}}
           <tr>
-            <td>Address:</td>
+            <td>{{t.address}}</td>
             <td>{{lab.street}}, {{lab.postalCode}} {{lab.city}}, {{lab.country}}</td>
           </tr>
           <tr>
-            <td>Contact:</td>
+            <td>{{t.email}} / {{t.phone}}</td>
             <td>{{lab.email}} / {{lab.phone}}</td>
           </tr>
         </table>
@@ -483,69 +483,76 @@
     </div>
   </div>
 
-  <!-- Section 3: Device Classification (EU MDR Fields) -->
-  <section>
-    <h3>3. Device Classification</h3>
-    <table class="info-table">
-      <tr>
-        <td>EMDN Code:</td>
-        <td><strong>{{qcInspection.emdnCode}}</strong></td>
-      </tr>
-      <tr>
-        <td>Risk Class:</td>
-        <td><span class="badge badge-info">{{qcInspection.riskClass}}</span></td>
-      </tr>
-    </table>
-  </section>
+  <!-- Sections 3 & 4: Prescriber Information + Device Classification (50-50 Grid) -->
+  <div class="grid-50-50">
+    <!-- Left Column: Section 3 - Prescriber Information -->
+    <div class="grid-column">
+      <section>
+        <h3>{{t.section4Title}}</h3>
+        <table class="info-table">
+          <tr>
+            <td>{{t.dentistName}}</td>
+            <td><strong>{{dentist.name}}</strong></td>
+          </tr>
+          {{#if dentist.licenseNumber}}
+          <tr>
+            <td>{{t.dentistLicense}}</td>
+            <td>{{dentist.licenseNumber}}</td>
+          </tr>
+          {{/if}}
+          <tr>
+            <td>{{t.clinicName}}</td>
+            <td>{{dentist.clinicName}}</td>
+          </tr>
+          {{#if dentist.address}}
+          <tr>
+            <td>{{t.clinicAddress}}</td>
+            <td>{{dentist.address}}, {{dentist.postalCode}} {{dentist.city}}</td>
+          </tr>
+          {{/if}}
+          <tr>
+            <td>{{t.dentistEmail}} / {{t.dentistPhone}}</td>
+            <td>{{dentist.email}} / {{dentist.phone}}</td>
+          </tr>
+        </table>
+      </section>
+    </div>
 
-  <!-- Section 4: Prescriber Information -->
-  <section>
-    <h3>4. Prescriber Information</h3>
-    <table class="info-table">
-      <tr>
-        <td>Dentist Name:</td>
-        <td><strong>{{dentist.name}}</strong></td>
-      </tr>
-      {{#if dentist.licenseNumber}}
-      <tr>
-        <td>License Number:</td>
-        <td>{{dentist.licenseNumber}}</td>
-      </tr>
-      {{/if}}
-      <tr>
-        <td>Clinic Name:</td>
-        <td>{{dentist.clinicName}}</td>
-      </tr>
-      {{#if dentist.address}}
-      <tr>
-        <td>Clinic Address:</td>
-        <td>{{dentist.address}}, {{dentist.postalCode}} {{dentist.city}}</td>
-      </tr>
-      {{/if}}
-      <tr>
-        <td>Contact:</td>
-        <td>{{dentist.email}} / {{dentist.phone}}</td>
-      </tr>
-    </table>
-  </section>
+    <!-- Right Column: Section 4 - Device Classification -->
+    <div class="grid-column">
+      <section>
+        <h3>{{t.section3Title}}</h3>
+        <table class="info-table">
+          <tr>
+            <td>{{t.emdnCode}}</td>
+            <td><strong>{{qcInspection.emdnCode}}</strong></td>
+          </tr>
+          <tr>
+            <td>{{t.riskClassification}}</td>
+            <td><span class="badge badge-info">{{qcInspection.riskClass}}</span></td>
+          </tr>
+        </table>
+      </section>
+    </div>
+  </div>
 
   <!-- Section 5: Products & Material Traceability (CRITICAL) -->
   <section>
-    <h3>5. Products & Material Traceability</h3>
-    <p style="margin-bottom: 10px; font-size: 8pt; color: #475569;">
+    <h3>{{t.section5Title}}</h3>
+    <p style="margin-bottom: 10px; font-size: 11pt; color: #475569;">
       Complete list of all products manufactured and materials used, including LOT numbers for full traceability as required by EU MDR.
     </p>
     <table class="products-materials-table">
       <thead>
         <tr>
-          <th style="width: 12%;">Code/LOT</th>
-          <th style="width: 16%;">Name</th>
-          <th style="width: 14%;">Manufacturer</th>
-          <th class="center" style="width: 8%;">Qty</th>
-          <th style="width: 10%;">Expiry</th>
-          <th class="center" style="width: 8%;">Tooth</th>
-          <th class="center" style="width: 5%;">CE</th>
-          <th class="center" style="width: 7%;">Bio</th>
+          <th style="width: 12%;">{{t.tableHeaderCode}}/{{t.tableHeaderLOT}}</th>
+          <th style="width: 16%;">{{t.tableHeaderName}}</th>
+          <th style="width: 14%;">{{t.tableHeaderManufacturer}}</th>
+          <th class="center" style="width: 8%;">{{t.tableHeaderQty}}</th>
+          <th style="width: 10%;">{{t.tableHeaderExpiry}}</th>
+          <th class="center" style="width: 8%;">{{t.tableHeaderTooth}}</th>
+          <th class="center" style="width: 5%;">{{t.tableHeaderCE}}</th>
+          <th class="center" style="width: 7%;">{{t.tableHeaderBio}}</th>
         </tr>
       </thead>
       <tbody>
@@ -553,7 +560,7 @@
         <!-- Product Header Row -->
         <tr class="product-row">
           <td colspan="8">
-            <strong>📦 PRODUCT:</strong> {{code}} - {{name}} (Qty: {{quantity}}) | Teeth: {{teeth}}
+            <strong>📦 {{../t.product}}:</strong> {{code}} - {{name}} ({{../t.quantityLabel}} {{quantity}}) | {{../t.tableHeaderTeeth}}: {{teeth}}
           </td>
         </tr>
 
@@ -564,7 +571,7 @@
             <td>
               {{code}}<br>
               {{#if lotNumber}}
-                <strong style="font-size: 7pt;">LOT: {{lotNumber}}</strong>
+                <strong style="font-size: 9pt;">{{../../t.lotLabel}}: {{lotNumber}}</strong>
               {{else}}
                 <span class="badge badge-warning">No LOT</span>
               {{/if}}
@@ -597,7 +604,7 @@
         {{#if (hasGeneralMaterials materials)}}
         <tr class="product-row">
           <td colspan="8">
-            <strong>🔧 GENERAL MATERIALS</strong> (Not product-specific)
+            <strong>🔧 {{t.generalMaterials}}</strong> (Not product-specific)
           </td>
         </tr>
         {{#each materials}}
@@ -606,7 +613,7 @@
             <td>
               {{code}}<br>
               {{#if lotNumber}}
-                <strong style="font-size: 7pt;">LOT: {{lotNumber}}</strong>
+                <strong style="font-size: 9pt;">{{../t.lotLabel}}: {{lotNumber}}</strong>
               {{else}}
                 <span class="badge badge-warning">No LOT</span>
               {{/if}}
@@ -640,15 +647,15 @@
 
   <!-- Section 6: Annex I Compliance -->
   <section class="bg-brand-blue">
-    <h3>6. Annex I Compliance</h3>
+    <h3>{{t.section6Title}}</h3>
     {{#if qcInspection.annexIDeviations}}
     <div>
-      <p><strong>Deviations from Annex I Requirements:</strong></p>
+      <p><strong>{{t.annexIDeviations}}</strong></p>
       <p>{{qcInspection.annexIDeviations}}</p>
     </div>
     {{else}}
     <div>
-      <p><strong>✓ FULL COMPLIANCE</strong></p>
+      <p><strong>{{t.noDeviations}}</strong></p>
       <p>This device fully complies with all Annex I general safety and performance requirements of EU MDR 2017/745. No deviations recorded.</p>
     </div>
     {{/if}}
@@ -656,59 +663,37 @@
 
   <!-- Section 7: Declaration of Conformity -->
   <section class="bg-brand-orange">
-    <h3>7. Declaration of Conformity</h3>
+    <h3>{{t.section7Title}}</h3>
     <div>
-      <p>
-        We, <strong>{{lab.laboratoryName}}</strong>, hereby declare that the custom-made dental device
-        described in this document has been manufactured in accordance with:
-      </p>
-      <ul>
-        <li>Regulation (EU) 2017/745 (Medical Device Regulation)</li>
-        <li>Annex XIII requirements for custom-made devices</li>
-        <li>ISO 10993 Biocompatibility standards</li>
-        <li>Applicable harmonized standards and technical specifications</li>
-      </ul>
-      <p style="margin-top: 15px;">
-        <strong>ISO 10993 Biocompatibility:</strong> All materials used in this device comply with
-        ISO 10993 standards for biological evaluation of medical devices.
-      </p>
-      <p>
-        <strong>CE Marking:</strong> All materials used are CE marked where applicable, ensuring
-        compliance with EU safety and performance requirements.
-      </p>
-      <p style="margin-top: 15px;">
-        This device has been manufactured specifically for the patient identified in this statement
-        and is intended solely for use by that patient. The device meets the essential safety and
-        performance requirements applicable to it.
-      </p>
+      <p>{{t.declarationText}}</p>
     </div>
   </section>
 
   <!-- Section 8: Quality Control & Authorization (50-50 Grid) -->
   {{#if qcInspection}}
   <section>
-    <h3>8. Quality Control & Authorization</h3>
+    <h3>{{t.section8Title}}</h3>
 
     <div class="grid-50-50">
       <!-- Left Column: QC Inspection -->
       <div class="grid-column">
-        <h4 style="font-size: 8pt; font-weight: 600; color: #007289; margin-bottom: 6px; background-color: #f1f5f9; padding: 6px;">Quality Control Inspection</h4>
+        <h4 style="font-size: 11pt; font-weight: 600; color: #007289; margin-bottom: 6px; background-color: #f1f5f9; padding: 6px;">Quality Control Inspection</h4>
         <table class="info-table">
           <tr>
-            <td>QC Inspector:</td>
+            <td>{{t.qcInspector}}</td>
             <td>{{qcInspection.inspectorName}}</td>
           </tr>
           <tr>
-            <td>Inspection Date:</td>
+            <td>{{t.inspectionDate}}</td>
             <td>{{qcInspection.inspectionDate}}</td>
           </tr>
           <tr>
-            <td>Result:</td>
+            <td>{{t.qcResult}}</td>
             <td><span class="badge badge-success">{{qcInspection.result}}</span></td>
           </tr>
           {{#if qcInspection.notes}}
           <tr>
-            <td>Notes:</td>
+            <td>{{t.qcNotes}}</td>
             <td>{{qcInspection.notes}}</td>
           </tr>
           {{/if}}
@@ -717,25 +702,25 @@
 
       <!-- Right Column: Responsible Person -->
       <div class="grid-column">
-        <h4 style="font-size: 8pt; font-weight: 600; color: #007289; margin-bottom: 6px; background-color: #f1f5f9; padding: 6px;">Responsible Person (EU MDR Article 15)</h4>
+        <h4 style="font-size: 11pt; font-weight: 600; color: #007289; margin-bottom: 6px; background-color: #f1f5f9; padding: 6px;">Responsible Person (EU MDR Article 15)</h4>
         <table class="info-table">
           <tr>
-            <td>Responsible Person:</td>
+            <td>{{t.responsiblePerson}}</td>
             <td><strong>{{lab.responsiblePersonName}}</strong></td>
           </tr>
           <tr>
-            <td>Title:</td>
+            <td>{{t.responsiblePersonTitle}}</td>
             <td>{{lab.responsiblePersonTitle}}</td>
           </tr>
           {{#if lab.responsiblePersonLicense}}
           <tr>
-            <td>License:</td>
+            <td>{{t.responsiblePersonLicense}}</td>
             <td>{{lab.responsiblePersonLicense}}</td>
           </tr>
           {{/if}}
           {{#if lab.responsiblePersonEmail}}
           <tr>
-            <td>Contact:</td>
+            <td>{{t.responsiblePersonEmail}} / {{t.responsiblePersonPhone}}</td>
             <td>{{lab.responsiblePersonEmail}} / {{lab.responsiblePersonPhone}}</td>
           </tr>
           {{/if}}
@@ -750,7 +735,7 @@
     <!-- Left Column: Authorized Signature -->
     <div class="grid-column">
       <div style="text-align: center; padding: 10px; border: 1px solid #ddd; border-radius: 4px; background-color: #f9fafb;">
-        <p style="font-weight: 600; font-size: 8pt; color: #007289; margin-bottom: 10px;">Authorized Signature - Responsible Person</p>
+        <p style="font-weight: 600; font-size: 11pt; color: #007289; margin-bottom: 10px;">{{t.responsiblePersonSignature}}</p>
         {{#if lab.signaturePath}}
         <div style="margin: 15px 0;">
           <img src="{{lab.signaturePath}}" alt="Signature" style="max-width: 200px; max-height: 80px; width: auto; height: auto;">
@@ -758,32 +743,32 @@
         {{else}}
         <div style="height: 60px;"></div>
         {{/if}}
-        <div style="border-top: 2px solid #1e293b; padding-top: 5px; margin-top: 10px; font-size: 8pt;">
+        <div style="border-top: 2px solid #1e293b; padding-top: 5px; margin-top: 10px; font-size: 11pt;">
           {{lab.responsiblePersonName}}
         </div>
-        <p style="font-size: 7.5pt; margin: 3px 0;">{{lab.responsiblePersonTitle}}</p>
+        <p style="font-size: 11pt; margin: 3px 0;">{{lab.responsiblePersonTitle}}</p>
         {{#if lab.responsiblePersonLicense}}
-        <p style="font-size: 7pt; color: #666;">License: {{lab.responsiblePersonLicense}}</p>
+        <p style="font-size: 11pt; color: #666;">{{t.responsiblePersonLicense}}: {{lab.responsiblePersonLicense}}</p>
         {{/if}}
-        <p style="font-size: 7.5pt; margin-top: 5px;">Date: {{generationDate}}</p>
+        <p style="font-size: 11pt; margin-top: 5px;">{{t.generatedDate}}: {{generationDate}}</p>
       </div>
     </div>
 
     <!-- Right Column: Retention + Document Metadata -->
     <div class="grid-column">
       <!-- Retention Notice -->
-      <div style="background: #fee2e2; border-left: 4px solid #dc2626; padding: 10px; margin-bottom: 10px; font-size: 7.5pt; color: #991b1b; font-weight: 600;">
-        ⚠️ RETENTION REQUIREMENT: This document must be retained until <strong>{{retentionUntil}}</strong>
+      <div style="background: #fee2e2; border-left: 4px solid #dc2626; padding: 10px; margin-bottom: 10px; font-size: 10.5pt; color: #991b1b; font-weight: 600;">
+        ⚠️ {{t.retentionPeriod}}: {{t.retentionUntil}} <strong>{{retentionUntil}}</strong>
         (10 years from generation date) in accordance with EU MDR Article 10(8) requirements.
       </div>
 
       <!-- Document Metadata -->
-      <div style="padding: 10px; border: 1px solid #ddd; border-radius: 4px; background-color: #f9fafb; font-size: 7.5pt;">
+      <div style="padding: 10px; border: 1px solid #ddd; border-radius: 4px; background-color: #f9fafb; font-size: 10.5pt;">
         <p style="margin-bottom: 5px;"><strong>Document Type:</strong> EU MDR Annex XIII Manufacturer's Statement</p>
-        <p style="margin-bottom: 5px;"><strong>Generated:</strong> {{generationDate}} by {{generatedBy}}</p>
+        <p style="margin-bottom: 5px;"><strong>{{t.generatedBy}}:</strong> {{generationDate}} by {{generatedBy}}</p>
         <p style="margin-bottom: 5px;"><strong>Document ID:</strong> {{documentId}}</p>
         {{#if qcInspection.documentVersion}}
-        <p><strong>Version:</strong> {{qcInspection.documentVersion}}</p>
+        <p><strong>{{t.documentVersion}}:</strong> {{qcInspection.documentVersion}}</p>
         {{/if}}
       </div>
     </div>
@@ -791,10 +776,9 @@
 
   <!-- Bottom Footer - Same as Invoice -->
   <div class="bottom-footer">
-    <strong>Sedež podjetja:</strong> {{lab.laboratoryName}}, {{lab.street}}, {{lab.postalCode}} {{lab.city}}, {{lab.country}}<br>
-    {{#if lab.registrationNumber}}<strong>Matična številka:</strong> {{lab.registrationNumber}} | {{/if}}
-    {{#if lab.taxId}}<strong>ID za DDV:</strong> {{lab.taxId}}<br>{{/if}}
-    <strong>Osnovni kapital:</strong> 7.500 EUR | <strong>Družba je vpisana pri Okrožnem sodišču Ljubljana.</strong>
+    {{t.footerLine1}}<br>
+    {{t.footerLine2}}<br>
+    {{t.footerLine3}}
   </div>
 </body>
 </html>

@@ -11,7 +11,6 @@ import puppeteer from 'puppeteer';
 import handlebars from 'handlebars';
 import { promises as fs } from 'fs';
 import path from 'path';
-import type { Document, DocumentType } from '@prisma/client';
 
 // ============================================================================
 // INTERFACES
@@ -105,6 +104,9 @@ interface AnnexXIIIData {
     annexIDeviations?: string | null;
     documentVersion: string;
   };
+
+  // Translations
+  t: Record<string, string>;
 }
 
 // ============================================================================
@@ -116,11 +118,13 @@ interface AnnexXIIIData {
  *
  * @param worksheetId - Worksheet ID
  * @param userId - User generating the document
+ * @param locale - Locale for translations (default: 'en')
  * @returns Created Document record
  */
 export async function generateAnnexXIII(
   worksheetId: string,
-  userId: string
+  userId: string,
+  locale: string = 'en'
 ): Promise<Document> {
   try {
     console.log(`[Annex XIII] Starting generation for worksheet ${worksheetId}`);
@@ -143,8 +147,15 @@ export async function generateAnnexXIII(
       throw new Error('User not found');
     }
 
+    // Load translations from JSON files using require for reliability
+    const messagesPath = path.join(process.cwd(), 'messages', `${locale}.json`);
+    const messagesContent = await fs.readFile(messagesPath, 'utf-8');
+    const messages = JSON.parse(messagesContent);
+    const translations = messages.annexPdf || {};
+    console.log(`[Annex XIII] Translations loaded for locale: ${locale}`, Object.keys(translations).length, 'keys');
+
     // Prepare template data
-    const data = await prepareTemplateData(worksheet, labConfig, user.name);
+    const data = await prepareTemplateData(worksheet, labConfig, user.name, translations);
     console.log(`[Annex XIII] Template data prepared with ${data.materials.length} materials`);
 
     // Compile Handlebars template
@@ -295,7 +306,8 @@ async function imageToBase64(filePath: string): Promise<string | null> {
 async function prepareTemplateData(
   worksheet: any,
   labConfig: any,
-  generatedBy: string
+  generatedBy: string,
+  translations: Record<string, string>
 ): Promise<AnnexXIIIData> {
   const now = new Date();
   const retentionUntil = new Date();
@@ -449,6 +461,7 @@ async function prepareTemplateData(
     products,
     materials: allMaterials,
     qcInspection,
+    t: translations,
   };
 }
 

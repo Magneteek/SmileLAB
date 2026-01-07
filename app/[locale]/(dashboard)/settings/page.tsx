@@ -134,7 +134,7 @@ export default function SettingsPage() {
   const [deletingBankId, setDeletingBankId] = useState<string | null>(null);
 
   const form = useForm<LabConfigFormData>({
-    resolver: zodResolver(labConfigSchema),
+    resolver: zodResolver(labConfigSchema) as any,
     defaultValues: {
       laboratoryName: '',
       laboratoryId: '',
@@ -557,7 +557,7 @@ export default function SettingsPage() {
 
                 <FormField
                   control={form.control}
-                  name="streetAddress"
+                  name="street"
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>{t('streetAddress')}</FormLabel>
@@ -767,7 +767,13 @@ export default function SettingsPage() {
                       {form.watch('logoPath') ? (
                         <div className="space-y-3">
                           <img
-                            src={form.watch('logoPath')?.replace(/^\/en\//, '/') || ''}
+                            src={(() => {
+                              const path = form.watch('logoPath');
+                              if (!path) return '';
+                              // Remove locale prefix if present, ensure leading slash
+                              const cleanPath = path.replace(/^\/[a-z]{2}\//, '/');
+                              return cleanPath.startsWith('/') ? cleanPath : `/${cleanPath}`;
+                            })()}
                             alt="Laboratory Logo"
                             className="max-h-32 mx-auto"
                             onError={(e) => {
@@ -868,7 +874,13 @@ export default function SettingsPage() {
                       {form.watch('signaturePath') ? (
                         <div className="space-y-3">
                           <img
-                            src={form.watch('signaturePath')?.replace(/^\/en\//, '/') || ''}
+                            src={(() => {
+                              const path = form.watch('signaturePath');
+                              if (!path) return '';
+                              // Remove locale prefix if present, ensure leading slash
+                              const cleanPath = path.replace(/^\/[a-z]{2}\//, '/');
+                              return cleanPath.startsWith('/') ? cleanPath : `/${cleanPath}`;
+                            })()}
                             alt="Signature"
                             className="max-h-32 mx-auto"
                             onError={(e) => {

@@ -33,7 +33,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 // Note: Validation messages are kept in English as they're shown in the console/dev tools
 // User-facing validation errors are shown via FormMessage component using translation keys
@@ -41,9 +41,10 @@ const productFormSchema = z.object({
   code: z
     .string()
     .min(1, 'Product code is required')
-    .regex(/^[A-Z]{2,3}-\d{3}$/, 'Invalid format (e.g., CR-001, BRI-002)'),
+    .max(50, 'Product code too long')
+    .regex(/^[A-Z0-9-]+$/, 'Code must be uppercase letters, numbers, and hyphens only'),
   name: z.string().min(1, 'Product name is required').max(200),
-  description: z.string().max(1000).optional(),
+  description: z.string().max(1000).optional().or(z.literal('')),
   category: z.nativeEnum(ProductCategory),
   currentPrice: z
     .number()
@@ -70,24 +71,51 @@ export default function ProductForm({
   const [submitting, setSubmitting] = useState(false);
   const isEdit = !!product;
 
+  console.log('[ProductForm] Rendering with product:', product);
+  console.log('[ProductForm] Category from product:', product?.category);
+  console.log('[ProductForm] Unit from product:', product?.unit);
+
+  const defaultValues = {
+    code: product?.code || '',
+    name: product?.name || '',
+    description: product?.description || '',
+    category: product?.category || ProductCategory.CROWN,
+    currentPrice: product ? parseFloat(product.currentPrice.toString()) : 0,
+    unit: product?.unit || 'piece',
+    active: product?.active !== undefined ? product.active : true,
+  };
+
+  console.log('[ProductForm] Default values:', defaultValues);
+
   const form = useForm<ProductFormValues>({
     resolver: zodResolver(productFormSchema),
-    defaultValues: {
-      code: product?.code || '',
-      name: product?.name || '',
-      description: product?.description || '',
-      category: product?.category || ProductCategory.CROWN,
-      currentPrice: product ? parseFloat(product.currentPrice.toString()) : 0,
-      unit: product?.unit || 'piece',
-      active: product?.active !== undefined ? product.active : true,
-    },
+    defaultValues,
   });
 
+  // Reset form when product data changes (important for edit mode when data loads asynchronously)
+  useEffect(() => {
+    if (product) {
+      console.log('[ProductForm] Product changed, resetting form with:', product);
+      form.reset({
+        code: product.code || '',
+        name: product.name || '',
+        description: product.description || '',
+        category: product.category || ProductCategory.CROWN,
+        currentPrice: parseFloat(product.currentPrice.toString()),
+        unit: product.unit || 'piece',
+        active: product.active !== undefined ? product.active : true,
+      });
+    }
+  }, [product, form]);
+
   const onSubmit = async (data: ProductFormValues) => {
+    console.log('[ProductForm] Submitting:', { isEdit, productId: product?.id, data });
     setSubmitting(true);
     try {
       const url = isEdit ? `/api/products/${product.id}` : '/api/products';
       const method = isEdit ? 'PATCH' : 'POST';
+
+      console.log('[ProductForm] Fetching:', { url, method });
 
       const response = await fetch(url, {
         method,
@@ -97,10 +125,15 @@ export default function ProductForm({
         body: JSON.stringify(data),
       });
 
+      console.log('[ProductForm] Response status:', response.status);
+
       if (!response.ok) {
         const error = await response.json();
+        console.error('[ProductForm] Error response:', error);
+
         if (error.details) {
           // Validation errors
+          console.log('[ProductForm] Validation errors:', error.details);
           error.details.forEach((detail: any) => {
             form.setError(detail.path[0] as any, {
               message: detail.message,
@@ -113,9 +146,10 @@ export default function ProductForm({
       }
 
       const savedProduct = await response.json();
+      console.log('[ProductForm] Save successful:', savedProduct.id);
       onSuccess(savedProduct.id);
     } catch (error) {
-      console.error('Error saving product:', error);
+      console.error('[ProductForm] Exception:', error);
       alert('Failed to save product');
     } finally {
       setSubmitting(false);
@@ -214,7 +248,7 @@ export default function ProductForm({
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
-                    {(['CROWN', 'BRIDGE', 'FILLING', 'IMPLANT', 'DENTURE', 'INLAY', 'ONLAY', 'VENEER', 'ORTHODONTICS', 'OTHER'] as ProductCategory[]).map((category) => (
+                    {(['CROWN', 'BRIDGE', 'FILLING', 'IMPLANT', 'DENTURE', 'INLAY', 'ONLAY', 'VENEER', 'SPLINT', 'PROVISIONAL', 'TEMPLATE', 'ABUTMENT', 'SERVICE', 'REPAIR', 'MODEL'] as ProductCategory[]).map((category) => (
                       <SelectItem key={category} value={category}>
                         {t(`category${category}` as any)}
                       </SelectItem>

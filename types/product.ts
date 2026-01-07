@@ -95,8 +95,13 @@ export const PRODUCT_CATEGORY_LABELS: Record<ProductCategory, string> = {
   INLAY: 'Inlay',
   ONLAY: 'Onlay',
   VENEER: 'Veneer',
-  ORTHODONTICS: 'Orthodontics',
-  OTHER: 'Other',
+  SPLINT: 'Splint',
+  PROVISIONAL: 'Provisional',
+  TEMPLATE: 'Template',
+  ABUTMENT: 'Abutment',
+  SERVICE: 'Service',
+  REPAIR: 'Repair',
+  MODEL: 'Model',
 };
 
 export const PRODUCT_CATEGORY_COLORS: Record<ProductCategory, string> = {
@@ -108,8 +113,13 @@ export const PRODUCT_CATEGORY_COLORS: Record<ProductCategory, string> = {
   INLAY: 'bg-indigo-100 text-indigo-800',
   ONLAY: 'bg-pink-100 text-pink-800',
   VENEER: 'bg-teal-100 text-teal-800',
-  ORTHODONTICS: 'bg-orange-100 text-orange-800',
-  OTHER: 'bg-gray-100 text-gray-800',
+  SPLINT: 'bg-orange-100 text-orange-800',
+  PROVISIONAL: 'bg-amber-100 text-amber-800',
+  TEMPLATE: 'bg-lime-100 text-lime-800',
+  ABUTMENT: 'bg-cyan-100 text-cyan-800',
+  SERVICE: 'bg-slate-100 text-slate-800',
+  REPAIR: 'bg-rose-100 text-rose-800',
+  MODEL: 'bg-gray-100 text-gray-800',
 };
 
 // ============================================================================

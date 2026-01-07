@@ -17,17 +17,10 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import Link from 'next/link';
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {
@@ -37,27 +30,15 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
-import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import {
   Plus,
   Search,
-  MoreVertical,
-  Edit,
-  Trash2,
   Upload,
   Download,
   AlertCircle,
-  Loader2,
 } from 'lucide-react';
+import ProductsTable from '@/components/pricing/ProductsTable';
 
 // ============================================================================
 // TYPES
@@ -87,6 +68,7 @@ interface Product {
 
 export default function PricingListPage() {
   const router = useRouter();
+  const { data: session } = useSession();
   const t = useTranslations('pricing');
 
   // State
@@ -96,6 +78,9 @@ export default function PricingListPage() {
   const [error, setError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [categoryFilter, setCategoryFilter] = useState<string>('all');
+  const [refreshTrigger, setRefreshTrigger] = useState(0);
+
+  const isAdmin = session?.user?.role === 'ADMIN';
 
   // Fetch products
   useEffect(() => {
@@ -119,7 +104,7 @@ export default function PricingListPage() {
     };
 
     fetchProducts();
-  }, []);
+  }, [refreshTrigger]);
 
   // Filter products based on search and category
   useEffect(() => {
@@ -147,26 +132,9 @@ export default function PricingListPage() {
   // Get unique categories
   const categories = Array.from(new Set(products.map((p) => p.category).filter(Boolean)));
 
-  // Handle delete product
-  const handleDelete = async (productId: string) => {
-    if (!confirm('Are you sure you want to delete this product?')) {
-      return;
-    }
-
-    try {
-      const response = await fetch(`/api/products/${productId}`, {
-        method: 'DELETE',
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to delete product');
-      }
-
-      // Remove from local state
-      setProducts((prev) => prev.filter((p) => p.id !== productId));
-    } catch (err: any) {
-      alert(err.message || 'Failed to delete product');
-    }
+  // Handle refresh after bulk operations
+  const handleRefresh = () => {
+    setRefreshTrigger(prev => prev + 1);
   };
 
   return (
@@ -251,104 +219,13 @@ export default function PricingListPage() {
 
       {/* Products Table */}
       <Card>
-        <CardContent className="p-0">
-          {isLoading ? (
-            <div className="flex items-center justify-center py-12">
-              <Loader2 className="h-8 w-8 animate-spin text-gray-400" />
-              <span className="ml-3 text-gray-600">{t('loadingProducts')}</span>
-            </div>
-          ) : filteredProducts.length === 0 ? (
-            <div className="text-center py-12">
-              <p className="text-gray-500">
-                {searchQuery || categoryFilter !== 'all'
-                  ? t('noProductsFound')
-                  : t('tryAdjustingFilters')}
-              </p>
-              {!searchQuery && categoryFilter === 'all' && (
-                <Link href="/pricing/new">
-                  <Button className="mt-4">
-                    <Plus className="h-4 w-4 mr-2" />
-                    {t('addProduct')}
-                  </Button>
-                </Link>
-              )}
-            </div>
-          ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>{t('tableHeaderCode')}</TableHead>
-                  <TableHead>{t('tableHeaderName')}</TableHead>
-                  <TableHead>{t('tableHeaderCategory')}</TableHead>
-                  <TableHead className="text-right">{t('tableHeaderPrice')}</TableHead>
-                  <TableHead>{t('tableHeaderUnit')}</TableHead>
-                  <TableHead>{t('tableHeaderStatus')}</TableHead>
-                  <TableHead className="text-right">{t('tableHeaderActions')}</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {filteredProducts.map((product) => (
-                  <TableRow key={product.id}>
-                    <TableCell className="font-mono text-sm">
-                      {product.code}
-                    </TableCell>
-                    <TableCell>
-                      <div>
-                        <div className="font-medium">{product.name}</div>
-                        {product.description && (
-                          <div className="text-sm text-gray-500 line-clamp-1">
-                            {product.description}
-                          </div>
-                        )}
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      {product.category && (
-                        <Badge variant="secondary">{t(`category${product.category}` as any)}</Badge>
-                      )}
-                    </TableCell>
-                    <TableCell className="text-right font-medium">
-                      €{Number(product.currentPrice).toFixed(2)}
-                    </TableCell>
-                    <TableCell className="text-sm text-gray-600">
-                      {product.unit}
-                    </TableCell>
-                    <TableCell>
-                      <Badge variant={product.active ? 'default' : 'secondary'}>
-                        {product.active ? t('active') : t('inactive')}
-                      </Badge>
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" size="sm">
-                            <MoreVertical className="h-4 w-4" />
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          <DropdownMenuLabel>{t('actionsMenu')}</DropdownMenuLabel>
-                          <DropdownMenuSeparator />
-                          <DropdownMenuItem
-                            onClick={() => router.push(`/pricing/${product.id}/edit`)}
-                          >
-                            <Edit className="h-4 w-4 mr-2" />
-                            {t('edit')}
-                          </DropdownMenuItem>
-                          <DropdownMenuItem
-                            onClick={() => handleDelete(product.id)}
-                            className="text-red-600"
-                          >
-                            <Trash2 className="h-4 w-4 mr-2" />
-                            {t('delete')}
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          )}
+        <CardContent className="p-6">
+          <ProductsTable
+            products={filteredProducts}
+            loading={isLoading}
+            isAdmin={isAdmin}
+            onRefresh={handleRefresh}
+          />
         </CardContent>
       </Card>
     </div>

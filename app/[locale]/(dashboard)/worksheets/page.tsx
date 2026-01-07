@@ -25,16 +25,8 @@ import { redirect } from 'next/navigation';
 import { getWorksheets } from '@/src/lib/services/worksheet-service';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table';
-import { WorksheetStatusBadge } from '@/src/components/worksheets/WorksheetStatusBadge';
-import { Plus, FileText, Eye, Edit } from 'lucide-react';
+import { WorksheetsTable } from '@/components/worksheets/WorksheetsTable';
+import { Plus } from 'lucide-react';
 import type { WorksheetStatus } from '@/src/types/worksheet';
 
 // ============================================================================
@@ -158,94 +150,7 @@ export default async function WorksheetsPage({
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="rounded-lg border overflow-hidden">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>{t('worksheet.tableActions')}</TableHead>
-                  <TableHead>{t('worksheet.tableWorksheetNumber')}</TableHead>
-                  <TableHead>{t('worksheet.tableDentist')}</TableHead>
-                  <TableHead>{t('worksheet.tablePatient')}</TableHead>
-                  <TableHead>{t('worksheet.tableProducts')}</TableHead>
-                  <TableHead>{t('worksheet.tableMaterials')}</TableHead>
-                  <TableHead>{t('worksheet.tableStatus')}</TableHead>
-                  <TableHead>{t('worksheet.tableCreated')}</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {worksheets.length === 0 ? (
-                  <TableRow>
-                    <TableCell colSpan={8} className="text-center py-8 text-gray-500">
-                      <FileText className="h-12 w-12 mx-auto mb-2 opacity-50" />
-                      <p>{t('worksheet.noWorksheets')}</p>
-                      <p className="text-sm mt-1">{t('worksheet.noWorksheetsDesc')}</p>
-                    </TableCell>
-                  </TableRow>
-                ) : (
-                  worksheets.map((worksheet: any) => (
-                    <TableRow key={worksheet.id}>
-                      <TableCell>
-                        <Link href={`/worksheets/${worksheet.id}`}>
-                          <Button variant="ghost" size="sm">
-                            <Eye className="h-4 w-4" />
-                          </Button>
-                        </Link>
-                      </TableCell>
-                      <TableCell className="font-medium">
-                        <Link
-                          href={`/worksheets/${worksheet.id}`}
-                          className="text-blue-600 hover:text-blue-800 hover:underline"
-                        >
-                          {worksheet.worksheetNumber}
-                        </Link>
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex flex-col">
-                          <span className="font-medium">{worksheet.dentistName}</span>
-                          <span className="text-sm text-gray-600">{worksheet.clinicName}</span>
-                        </div>
-                      </TableCell>
-                      <TableCell>{worksheet.patientName || '—'}</TableCell>
-                      <TableCell className="max-w-xs">
-                        <p className="text-sm truncate" title={worksheet.productNames}>
-                          {worksheet.productNames || '—'}
-                        </p>
-                      </TableCell>
-                      <TableCell className="max-w-xs">
-                        {worksheet.materialsWithLots && worksheet.materialsWithLots.length > 0 ? (
-                          <div className="text-sm space-y-0.5">
-                            {worksheet.materialsWithLots.slice(0, 2).map((mat: any, idx: number) => (
-                              <div key={idx} className="truncate" title={`${mat.materialName}${mat.lotNumber ? ` - ${t('worksheet.lotLabel')}: ${mat.lotNumber}` : ''}`}>
-                                {mat.materialName}
-                                {mat.lotNumber && (
-                                  <span className="text-xs text-gray-600 ml-1">
-                                    ({t('worksheet.lotLabel')}: {mat.lotNumber})
-                                  </span>
-                                )}
-                              </div>
-                            ))}
-                            {worksheet.materialsWithLots.length > 2 && (
-                              <p className="text-xs text-gray-500">
-                                {t('worksheet.moreCount', { count: worksheet.materialsWithLots.length - 2 })}
-                              </p>
-                            )}
-                          </div>
-                        ) : (
-                          <span className="text-sm text-gray-500">—</span>
-                        )}
-                      </TableCell>
-                      <TableCell>
-                        <WorksheetStatusBadge status={worksheet.status} size="sm" />
-                      </TableCell>
-                      <TableCell>
-                        {new Date(worksheet.createdAt).toLocaleDateString()}
-                      </TableCell>
-                    </TableRow>
-                  ))
-                )}
-              </TableBody>
-            </Table>
-          </div>
+          <WorksheetsTable worksheets={worksheets} />
 
           {/* Pagination */}
           {pagination.totalPages > 1 && (

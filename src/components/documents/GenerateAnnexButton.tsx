@@ -2,9 +2,16 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { FileText } from 'lucide-react';
+import { FileText, Languages } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 
 interface GenerateAnnexButtonProps {
   worksheetId: string;
@@ -12,6 +19,7 @@ interface GenerateAnnexButtonProps {
 
 export function GenerateAnnexButton({ worksheetId }: GenerateAnnexButtonProps) {
   const [isGenerating, setIsGenerating] = useState(false);
+  const [selectedLocale, setSelectedLocale] = useState<string>('en');
   const router = useRouter();
   const { toast } = useToast();
 
@@ -21,6 +29,10 @@ export function GenerateAnnexButton({ worksheetId }: GenerateAnnexButtonProps) {
 
       const response = await fetch(`/api/documents/annex-xiii/${worksheetId}`, {
         method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ locale: selectedLocale }),
       });
 
       if (!response.ok) {
@@ -50,14 +62,26 @@ export function GenerateAnnexButton({ worksheetId }: GenerateAnnexButtonProps) {
   };
 
   return (
-    <Button
-      onClick={handleGenerate}
-      disabled={isGenerating}
-      size="sm"
-      variant="outline"
-    >
-      <FileText className="h-4 w-4 mr-2" />
-      {isGenerating ? 'Generating...' : 'Generate Annex XIII'}
-    </Button>
+    <div className="flex items-center gap-2">
+      <Select value={selectedLocale} onValueChange={setSelectedLocale}>
+        <SelectTrigger className="w-[140px] h-9">
+          <Languages className="h-4 w-4 mr-2" />
+          <SelectValue />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem value="en">English (EN)</SelectItem>
+          <SelectItem value="sl">Slovenščina (SL)</SelectItem>
+        </SelectContent>
+      </Select>
+      <Button
+        onClick={handleGenerate}
+        disabled={isGenerating}
+        size="sm"
+        variant="outline"
+      >
+        <FileText className="h-4 w-4 mr-2" />
+        {isGenerating ? 'Generating...' : 'Generate'}
+      </Button>
+    </div>
   );
 }

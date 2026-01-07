@@ -10,19 +10,22 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { DocumentsOverview } from '@/lib/services/dashboard-service';
 import { FileText, CheckCircle, Clock, AlertTriangle } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 
 interface DocumentsWidgetProps {
   data: DocumentsOverview;
 }
 
 export function DocumentsWidget({ data }: DocumentsWidgetProps) {
+  const t = useTranslations('dashboardWidgets');
+
   return (
     <Card>
       <CardHeader>
         <div className="flex items-center justify-between">
           <div>
-            <CardTitle className="text-lg">MDR Documents</CardTitle>
-            <CardDescription>Compliance and retention status</CardDescription>
+            <CardTitle className="text-lg">{t('mdrDocumentsTitle')}</CardTitle>
+            <CardDescription>{t('mdrDocumentsDescription')}</CardDescription>
           </div>
           <FileText className="h-8 w-8 text-muted-foreground" />
         </div>
@@ -31,11 +34,11 @@ export function DocumentsWidget({ data }: DocumentsWidgetProps) {
         {/* Summary Stats */}
         <div className="grid grid-cols-2 gap-4">
           <div className="space-y-1">
-            <p className="text-sm text-muted-foreground">Total Documents</p>
+            <p className="text-sm text-muted-foreground">{t('totalDocuments')}</p>
             <p className="text-2xl font-bold">{data.total}</p>
           </div>
           <div className="space-y-1">
-            <p className="text-sm text-muted-foreground">Generated</p>
+            <p className="text-sm text-muted-foreground">{t('generated')}</p>
             <p className="text-2xl font-bold text-green-600">{data.generated}</p>
           </div>
         </div>
@@ -43,13 +46,13 @@ export function DocumentsWidget({ data }: DocumentsWidgetProps) {
         {/* Status Breakdown */}
         <div className="space-y-2 border-t pt-4">
           <p className="text-sm font-medium text-muted-foreground mb-3">
-            Document Status
+            {t('documentStatus')}
           </p>
 
           <div className="flex items-center justify-between p-3 border rounded-lg">
             <div className="flex items-center gap-2">
               <CheckCircle className="h-4 w-4 text-green-600" />
-              <span className="text-sm font-medium">Generated</span>
+              <span className="text-sm font-medium">{t('generated')}</span>
             </div>
             <Badge className="bg-green-500">{data.generated}</Badge>
           </div>
@@ -57,7 +60,7 @@ export function DocumentsWidget({ data }: DocumentsWidgetProps) {
           <div className="flex items-center justify-between p-3 border rounded-lg">
             <div className="flex items-center gap-2">
               <Clock className="h-4 w-4 text-blue-600" />
-              <span className="text-sm font-medium">Pending</span>
+              <span className="text-sm font-medium">{t('pending')}</span>
             </div>
             <Badge className="bg-blue-500">{data.pending}</Badge>
           </div>
@@ -67,7 +70,7 @@ export function DocumentsWidget({ data }: DocumentsWidgetProps) {
               <div className="flex items-center gap-2">
                 <AlertTriangle className="h-4 w-4 text-yellow-600" />
                 <span className="text-sm font-medium text-yellow-900">
-                  Retention Expiring
+                  {t('retentionExpiring')}
                 </span>
               </div>
               <Badge className="bg-yellow-500">{data.retentionExpiring}</Badge>
@@ -79,7 +82,7 @@ export function DocumentsWidget({ data }: DocumentsWidgetProps) {
         <div className="border-t pt-4">
           <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
             <p className="text-xs font-medium text-blue-900">
-              ℹ️ All documents retained for 10 years per EU MDR Annex XIII
+              {t('documentsRetained10Years')}
             </p>
           </div>
         </div>
@@ -89,10 +92,10 @@ export function DocumentsWidget({ data }: DocumentsWidgetProps) {
           <div className="border-t pt-4">
             <div className="p-4 bg-gray-50 border rounded-lg text-center">
               <p className="text-sm text-muted-foreground">
-                No documents generated yet
+                {t('noDocumentsGenerated')}
               </p>
               <p className="text-xs text-muted-foreground mt-1">
-                Documents will appear after QC approval
+                {t('documentsAfterQC')}
               </p>
             </div>
           </div>

@@ -26,6 +26,9 @@ import { DocumentsWidget } from '@/components/dashboard/DocumentsWidget';
 import { RecentActivityWidget } from '@/components/dashboard/RecentActivityWidget';
 import { Card, CardContent } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Button } from '@/components/ui/button';
+import Link from 'next/link';
+import { Plus, FileText, Package, Receipt } from 'lucide-react';
 
 // ============================================================================
 // LOADING COMPONENTS
@@ -90,6 +93,36 @@ export default async function DashboardPage() {
         </p>
       </div>
 
+      {/* Quick Actions */}
+      <div className="flex flex-wrap gap-3">
+        <Button asChild variant="default" size="sm">
+          <Link href="/orders/new">
+            <Plus className="mr-2 h-4 w-4" />
+            {t('dashboard.createOrder')}
+          </Link>
+        </Button>
+        <Button asChild variant="outline" size="sm">
+          <Link href="/worksheets/new">
+            <FileText className="mr-2 h-4 w-4" />
+            {t('dashboard.createWorksheet')}
+          </Link>
+        </Button>
+        <Button asChild variant="outline" size="sm">
+          <Link href="/materials">
+            <Package className="mr-2 h-4 w-4" />
+            {t('dashboard.manageMaterials')}
+          </Link>
+        </Button>
+        {isAdmin && (
+          <Button asChild variant="outline" size="sm">
+            <Link href="/invoices">
+              <Receipt className="mr-2 h-4 w-4" />
+              {t('dashboard.viewInvoices')}
+            </Link>
+          </Button>
+        )}
+      </div>
+
       {/* Widgets Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {/* Orders Overview */}
@@ -123,43 +156,6 @@ export default async function DashboardPage() {
         <Suspense fallback={<WidgetSkeleton />}>
           <RecentActivityWidget data={stats.recentActivity} />
         </Suspense>
-      </div>
-
-      {/* Quick Actions */}
-      <div className="mt-8 p-6 border rounded-lg bg-muted/50">
-        <h2 className="text-lg font-semibold mb-4">{t('dashboard.quickActions')}</h2>
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-          <a
-            href="/orders/new"
-            className="p-4 border rounded-lg hover:bg-background transition-colors text-center"
-          >
-            <p className="font-medium">{t('dashboard.createOrder')}</p>
-            <p className="text-sm text-muted-foreground mt-1">{t('dashboard.createOrderDesc')}</p>
-          </a>
-          <a
-            href="/worksheets/new"
-            className="p-4 border rounded-lg hover:bg-background transition-colors text-center"
-          >
-            <p className="font-medium">{t('dashboard.createWorksheet')}</p>
-            <p className="text-sm text-muted-foreground mt-1">{t('dashboard.createWorksheetDesc')}</p>
-          </a>
-          <a
-            href="/materials"
-            className="p-4 border rounded-lg hover:bg-background transition-colors text-center"
-          >
-            <p className="font-medium">{t('dashboard.manageMaterials')}</p>
-            <p className="text-sm text-muted-foreground mt-1">{t('dashboard.manageMaterialsDesc')}</p>
-          </a>
-          {isAdmin && (
-            <a
-              href="/invoices"
-              className="p-4 border rounded-lg hover:bg-background transition-colors text-center"
-            >
-              <p className="font-medium">{t('dashboard.viewInvoices')}</p>
-              <p className="text-sm text-muted-foreground mt-1">{t('dashboard.viewInvoicesDesc')}</p>
-            </a>
-          )}
-        </div>
       </div>
     </div>
   );

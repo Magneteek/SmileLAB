@@ -33,6 +33,8 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Eye, MoreVertical, Edit, Archive, CheckCircle2, XCircle, Trash2, ToggleLeft, ToggleRight } from 'lucide-react';
+import { SortableTableHeader } from '@/components/shared/SortableTableHeader';
+import { useTableSort } from '@/lib/hooks/useTableSort';
 
 interface MaterialsTableProps {
   materials: MaterialWithLots[];
@@ -74,6 +76,13 @@ export function MaterialsTable({
   const [search, setSearch] = useState('');
   const [filterType, setFilterType] = useState<MaterialType | 'all'>('all');
   const [filterActive, setFilterActive] = useState<boolean | 'all'>('all');
+
+  // Sorting
+  const { sortedData: sortedMaterials, sortKey, sortDirection, handleSort } = useTableSort({
+    data: materials,
+    initialSortKey: 'code',
+    initialSortDirection: 'asc',
+  });
 
   // Calculate total available quantity for each material
   const getTotalAvailableQuantity = (lots: MaterialWithLots['lots']): number => {
@@ -161,26 +170,69 @@ export function MaterialsTable({
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>{t('material.tableHeaderCode')}</TableHead>
-              <TableHead>{t('material.tableHeaderName')}</TableHead>
-              <TableHead>{t('material.tableHeaderType')}</TableHead>
-              <TableHead>{t('material.tableHeaderManufacturer')}</TableHead>
-              <TableHead className="text-center">{t('material.tableHeaderCE')}</TableHead>
+              <SortableTableHeader
+                sortKey="code"
+                currentSortKey={sortKey}
+                currentSortDirection={sortDirection}
+                onSort={handleSort}
+              >
+                {t('material.tableHeaderCode')}
+              </SortableTableHeader>
+              <SortableTableHeader
+                sortKey="name"
+                currentSortKey={sortKey}
+                currentSortDirection={sortDirection}
+                onSort={handleSort}
+              >
+                {t('material.tableHeaderName')}
+              </SortableTableHeader>
+              <SortableTableHeader
+                sortKey="type"
+                currentSortKey={sortKey}
+                currentSortDirection={sortDirection}
+                onSort={handleSort}
+              >
+                {t('material.tableHeaderType')}
+              </SortableTableHeader>
+              <SortableTableHeader
+                sortKey="manufacturer"
+                currentSortKey={sortKey}
+                currentSortDirection={sortDirection}
+                onSort={handleSort}
+              >
+                {t('material.tableHeaderManufacturer')}
+              </SortableTableHeader>
+              <SortableTableHeader
+                sortKey="ceMarked"
+                currentSortKey={sortKey}
+                currentSortDirection={sortDirection}
+                onSort={handleSort}
+                align="center"
+              >
+                {t('material.tableHeaderCE')}
+              </SortableTableHeader>
               <TableHead className="text-right">{t('material.tableHeaderLOTs')}</TableHead>
               <TableHead className="text-right">{t('material.tableHeaderAvailableQty')}</TableHead>
-              <TableHead>{t('material.tableHeaderStatus')}</TableHead>
+              <SortableTableHeader
+                sortKey="active"
+                currentSortKey={sortKey}
+                currentSortDirection={sortDirection}
+                onSort={handleSort}
+              >
+                {t('material.tableHeaderStatus')}
+              </SortableTableHeader>
               <TableHead className="text-right">{t('material.tableHeaderActions')}</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
-            {materials.length === 0 ? (
+            {sortedMaterials.length === 0 ? (
               <TableRow>
                 <TableCell colSpan={9} className="text-center text-muted-foreground">
                   {t('material.tableEmpty')}
                 </TableCell>
               </TableRow>
             ) : (
-              materials.map((material) => {
+              sortedMaterials.map((material) => {
                 const totalQty = getTotalAvailableQuantity(material.lots);
                 const availableLots = getAvailableLotsCount(material.lots);
                 const stockLevel = getStockLevelStatus(totalQty);

@@ -3,7 +3,8 @@
  *
  * GET /api/products/[id] - Get single product
  * PUT /api/products/[id] - Update product
- * DELETE /api/products/[id] - Delete product (soft delete)
+ * PATCH /api/products/[id] - Update product (partial)
+ * DELETE /api/products/[id] - Delete product (hard delete)
  */
 
 import { NextRequest, NextResponse } from 'next/server';
@@ -119,7 +120,19 @@ export async function PUT(
 }
 
 // ============================================================================
-// DELETE /api/products/[id] - Delete product (soft delete)
+// PATCH /api/products/[id] - Update product (partial) - alias to PUT
+// ============================================================================
+
+export async function PATCH(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  // PATCH is an alias to PUT for partial updates
+  return PUT(request, { params });
+}
+
+// ============================================================================
+// DELETE /api/products/[id] - Delete product (hard delete)
 // ============================================================================
 
 export async function DELETE(

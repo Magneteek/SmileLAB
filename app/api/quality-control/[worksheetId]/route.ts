@@ -405,11 +405,11 @@ export async function POST(
           annexDocument = existingAnnex;
         } else {
           console.log(
-            `[QC] Generating Annex XIII for worksheet ${worksheet.worksheetNumber}...`
+            `[QC] Generating Annex XIII for worksheet ${worksheet.worksheetNumber} in SL (Slovenian)...`
           );
 
-          // Generate Annex XIII document
-          annexDocument = await generateAnnexXIII(worksheetId, session.user.id);
+          // Generate Annex XIII document in Slovenian (default language)
+          annexDocument = await generateAnnexXIII(worksheetId, session.user.id, 'sl');
 
           console.log(
             `[QC] ✅ Annex XIII generated successfully: ${annexDocument.id}`

@@ -40,6 +40,20 @@ export async function POST(
 
     const { worksheetId } = await params;
 
+    // Parse request body to get locale
+    let locale = 'en'; // Default to English
+    try {
+      const body = await req.json();
+      if (body.locale && ['en', 'sl'].includes(body.locale)) {
+        locale = body.locale;
+      }
+    } catch (error) {
+      // If no body or invalid JSON, use default locale
+      console.log('[API] No locale specified in request body, using default: en');
+    }
+
+    console.log(`[API] Generating Annex XIII with locale: ${locale}`);
+
     // Verify worksheet exists
     const worksheet = await prisma.workSheet.findUnique({
       where: { id: worksheetId },
@@ -88,10 +102,10 @@ export async function POST(
       );
     }
 
-    console.log(`[API] Generating Annex XIII for worksheet ${worksheet.worksheetNumber}`);
+    console.log(`[API] Generating Annex XIII for worksheet ${worksheet.worksheetNumber} in ${locale.toUpperCase()}`);
 
-    // Generate Annex XIII PDF
-    const document = await generateAnnexXIII(worksheetId, session.user.id);
+    // Generate Annex XIII PDF with specified locale
+    const document = await generateAnnexXIII(worksheetId, session.user.id, locale);
 
     console.log(`[API] Annex XIII generated successfully: ${document.id}`);
 

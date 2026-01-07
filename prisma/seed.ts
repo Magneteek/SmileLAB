@@ -18,58 +18,37 @@ async function main() {
   console.log('🌱 Starting database seed...\n');
 
   // ============================================================================
-  // USERS
+  // USERS - PRODUCTION
   // ============================================================================
   console.log('👥 Creating users...');
 
-  const adminPassword = await hash('admin123', 10);
-  const userPassword = await hash('user123', 10);
+  // PRODUCTION PASSWORDS - Change these after first login!
+  const adminPassword = await hash('DentroAdm1n2026', 12);
+  const techPassword = await hash('Dentro3D', 12);
 
   const admin = await prisma.user.upsert({
-    where: { email: 'admin@smilelab.si' },
+    where: { email: 'info@dentro.si' },
     update: {},
     create: {
-      email: 'admin@smilelab.si',
-      name: 'Admin User',
+      email: 'info@dentro.si',
+      name: 'Admin',
       password: adminPassword,
       role: Role.ADMIN,
     },
   });
 
   const technician = await prisma.user.upsert({
-    where: { email: 'tech@smilelab.si' },
+    where: { email: '3d@dentro.si' },
     update: {},
     create: {
-      email: 'tech@smilelab.si',
-      name: 'Ana Kovač',
-      password: userPassword,
+      email: '3d@dentro.si',
+      name: 'Technician',
+      password: techPassword,
       role: Role.TECHNICIAN,
     },
   });
 
-  const qcInspector = await prisma.user.upsert({
-    where: { email: 'qc@smilelab.si' },
-    update: {},
-    create: {
-      email: 'qc@smilelab.si',
-      name: 'Marko Novak',
-      password: userPassword,
-      role: Role.QC_INSPECTOR,
-    },
-  });
-
-  const invoicing = await prisma.user.upsert({
-    where: { email: 'invoice@smilelab.si' },
-    update: {},
-    create: {
-      email: 'invoice@smilelab.si',
-      name: 'Nina Horvat',
-      password: userPassword,
-      role: Role.INVOICING,
-    },
-  });
-
-  console.log(`✅ Created ${4} users\n`);
+  console.log(`✅ Created ${2} production users\n`);
 
   // ============================================================================
   // DENTISTS
@@ -553,7 +532,7 @@ async function main() {
   // ============================================================================
   console.log('✅ Database seed completed successfully!\n');
   console.log('📊 Summary:');
-  console.log(`   - Users: 4 (1 admin, 1 tech, 1 QC, 1 invoicing)`);
+  console.log(`   - Users: 2 (1 admin, 1 technician)`);
   console.log(`   - Dentists: 3`);
   console.log(`   - Patients: 3`);
   console.log(`   - Products: ${products.length}`);
@@ -562,11 +541,10 @@ async function main() {
   console.log(`   - System Config: 8 settings`);
   console.log(`   - Lab Configuration: 1 with 2 bank accounts\n`);
 
-  console.log('🔑 Login credentials:');
-  console.log('   Admin:       admin@smilelab.si / admin123');
-  console.log('   Technician:  tech@smilelab.si / user123');
-  console.log('   QC Inspector: qc@smilelab.si / user123');
-  console.log('   Invoicing:   invoice@smilelab.si / user123\n');
+  console.log('🔑 PRODUCTION Login Credentials:');
+  console.log('   Admin:       info@dentro.si / DentroAdm1n2026');
+  console.log('   Technician:  3d@dentro.si / Dentro3D');
+  console.log('\n⚠️  IMPORTANT: Change these passwords immediately after first login!\n');
 }
 
 main()

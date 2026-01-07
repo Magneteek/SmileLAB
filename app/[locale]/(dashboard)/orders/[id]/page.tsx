@@ -8,6 +8,7 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { useTranslations } from 'next-intl';
 import Link from 'next/link';
 import { OrderForm } from '@/components/orders/OrderForm';
 import { Button } from '@/components/ui/button';
@@ -37,8 +38,7 @@ const statusColors: Record<OrderStatus, string> = {
   CANCELLED: 'bg-red-500',
 };
 
-// Priority labels
-const priorityLabels = ['Normal', 'High', 'Urgent'];
+// Priority colors
 const priorityColors = ['text-gray-600', 'text-orange-600', 'text-red-600'];
 
 // Format date
@@ -66,6 +66,7 @@ function formatDateTime(date: Date | string | null): string {
 
 export default function OrderDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const router = useRouter();
+  const t = useTranslations('orderDetail');
   const [orderId, setOrderId] = useState<string | null>(null);
   const [order, setOrder] = useState<OrderDetailResponse | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -75,6 +76,9 @@ export default function OrderDetailPage({ params }: { params: Promise<{ id: stri
   // Delete dialog
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+
+  // Priority labels (using translations)
+  const priorityLabels = [t('priorityNormal'), t('priorityHigh'), t('priorityUrgent')];
 
   // Unwrap params
   useEffect(() => {
@@ -147,7 +151,7 @@ export default function OrderDetailPage({ params }: { params: Promise<{ id: stri
     return (
       <div className="flex items-center justify-center py-12">
         <Loader2 className="h-8 w-8 animate-spin" />
-        <span className="ml-2">Loading order...</span>
+        <span className="ml-2">{t('loadingOrder')}</span>
       </div>
     );
   }
@@ -161,10 +165,10 @@ export default function OrderDetailPage({ params }: { params: Promise<{ id: stri
               <ArrowLeft className="h-4 w-4" />
             </Link>
           </Button>
-          <h1 className="text-3xl font-bold tracking-tight">Order Not Found</h1>
+          <h1 className="text-3xl font-bold tracking-tight">{t('orderNotFound')}</h1>
         </div>
         <Alert variant="destructive">
-          <AlertDescription>{error || 'Order not found'}</AlertDescription>
+          <AlertDescription>{error || t('orderNotFound')}</AlertDescription>
         </Alert>
       </div>
     );
@@ -185,7 +189,7 @@ export default function OrderDetailPage({ params }: { params: Promise<{ id: stri
               Order {order.orderNumber}
             </h1>
             <p className="text-muted-foreground">
-              View and manage order details
+              {t('viewManageDetails')}
             </p>
           </div>
         </div>
@@ -194,14 +198,14 @@ export default function OrderDetailPage({ params }: { params: Promise<{ id: stri
             <>
               <Button variant="outline" onClick={() => setIsEditMode(true)}>
                 <Edit className="mr-2 h-4 w-4" />
-                Edit
+                {t('editButton')}
               </Button>
               <Button
                 variant="destructive"
                 onClick={() => setDeleteDialogOpen(true)}
               >
                 <Trash2 className="mr-2 h-4 w-4" />
-                Delete
+                {t('deleteButton')}
               </Button>
             </>
           )}
@@ -219,9 +223,9 @@ export default function OrderDetailPage({ params }: { params: Promise<{ id: stri
       {isEditMode ? (
         <Card>
           <CardHeader>
-            <CardTitle>Edit Order</CardTitle>
+            <CardTitle>{t('editOrderTitle')}</CardTitle>
             <CardDescription>
-              Update order details. Order number cannot be changed.
+              {t('editOrderDescription')}
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -252,51 +256,51 @@ export default function OrderDetailPage({ params }: { params: Promise<{ id: stri
           {/* Order Information */}
           <Card>
             <CardHeader>
-              <CardTitle>Order Information</CardTitle>
+              <CardTitle>{t('orderInformationTitle')}</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-3 md:grid-cols-6 gap-4 mb-4">
                 <div>
-                  <p className="text-sm font-medium text-muted-foreground">Order #</p>
+                  <p className="text-sm font-medium text-muted-foreground">{t('orderNumberLabel')}</p>
                   <p className="font-semibold">{order.orderNumber}</p>
                 </div>
                 <div>
-                  <p className="text-sm font-medium text-muted-foreground">Status</p>
+                  <p className="text-sm font-medium text-muted-foreground">{t('statusLabel')}</p>
                   <Badge className={`${statusColors[order.status]} mt-1`} variant="default">
                     {order.status.replace(/_/g, ' ')}
                   </Badge>
                 </div>
                 <div>
-                  <p className="text-sm font-medium text-muted-foreground">Patient</p>
+                  <p className="text-sm font-medium text-muted-foreground">{t('patientLabel')}</p>
                   <p>{order.patientName || '-'}</p>
                 </div>
                 <div>
-                  <p className="text-sm font-medium text-muted-foreground">Order Date</p>
+                  <p className="text-sm font-medium text-muted-foreground">{t('orderDateLabel')}</p>
                   <p>{formatDate(order.orderDate)}</p>
                 </div>
                 <div>
-                  <p className="text-sm font-medium text-muted-foreground">Due Date</p>
+                  <p className="text-sm font-medium text-muted-foreground">{t('dueDateLabel')}</p>
                   <p className={order.dueDate && new Date(order.dueDate) < new Date() ? 'text-red-600 font-semibold' : ''}>
                     {formatDate(order.dueDate)}
                   </p>
                 </div>
                 <div>
-                  <p className="text-sm font-medium text-muted-foreground">Priority</p>
+                  <p className="text-sm font-medium text-muted-foreground">{t('priorityLabel')}</p>
                   <p className={`font-medium ${priorityColors[order.priority]}`}>
                     {priorityLabels[order.priority]}
                   </p>
                 </div>
                 <div>
-                  <p className="text-sm font-medium text-muted-foreground">Impression Type</p>
+                  <p className="text-sm font-medium text-muted-foreground">{t('impressionTypeLabel')}</p>
                   <p className="font-medium">
-                    {(order as any).impressionType === 'DIGITAL_SCAN' ? '📱 Digital Scan' : '📝 Physical Imprint'}
+                    {(order as any).impressionType === 'DIGITAL_SCAN' ? t('digitalScan') : t('physicalImprint')}
                   </p>
                 </div>
               </div>
 
               {order.notes && (
                 <div className="border-t pt-3">
-                  <p className="text-sm font-medium text-muted-foreground mb-1">Notes</p>
+                  <p className="text-sm font-medium text-muted-foreground mb-1">{t('notesLabel')}</p>
                   <p className="text-sm whitespace-pre-wrap">{order.notes}</p>
                 </div>
               )}
@@ -306,24 +310,24 @@ export default function OrderDetailPage({ params }: { params: Promise<{ id: stri
           {/* Dentist Information */}
           <Card>
             <CardHeader>
-              <CardTitle>Dentist Information</CardTitle>
+              <CardTitle>{t('dentistInformationTitle')}</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-4 gap-4">
                 <div>
-                  <p className="text-sm font-medium text-muted-foreground">Clinic</p>
+                  <p className="text-sm font-medium text-muted-foreground">{t('clinicLabel')}</p>
                   <p className="font-semibold">{order.dentist.clinicName}</p>
                 </div>
                 <div>
-                  <p className="text-sm font-medium text-muted-foreground">Dentist</p>
+                  <p className="text-sm font-medium text-muted-foreground">{t('dentistLabel')}</p>
                   <p>{order.dentist.dentistName}</p>
                 </div>
                 <div>
-                  <p className="text-sm font-medium text-muted-foreground">Email</p>
+                  <p className="text-sm font-medium text-muted-foreground">{t('emailLabel')}</p>
                   <p className="text-sm">{order.dentist.email}</p>
                 </div>
                 <div>
-                  <p className="text-sm font-medium text-muted-foreground">Phone</p>
+                  <p className="text-sm font-medium text-muted-foreground">{t('phoneLabel')}</p>
                   <p>{order.dentist.phone}</p>
                 </div>
               </div>
@@ -333,7 +337,7 @@ export default function OrderDetailPage({ params }: { params: Promise<{ id: stri
           {/* Worksheet Information */}
           <Card>
             <CardHeader>
-              <CardTitle>Worksheet</CardTitle>
+              <CardTitle>{t('worksheetTitle')}</CardTitle>
             </CardHeader>
             <CardContent>
               {(order as any).worksheets && (order as any).worksheets.length > 0 ? (
@@ -341,7 +345,7 @@ export default function OrderDetailPage({ params }: { params: Promise<{ id: stri
                   <div className="flex items-center justify-between">
                     <div className="flex-1">
                       <p className="text-sm font-medium text-muted-foreground">
-                        Worksheet Number
+                        {t('worksheetNumberLabel')}
                       </p>
                       <p className="text-lg font-semibold">
                         {(order as any).worksheets[0].worksheetNumber}
@@ -352,21 +356,21 @@ export default function OrderDetailPage({ params }: { params: Promise<{ id: stri
                         )}
                       </p>
                       <div className="text-sm text-muted-foreground mt-1">
-                        Status: <Badge className="ml-1">{(order as any).worksheets[0].status}</Badge>
+                        {t('statusLabel')}: <Badge className="ml-1">{(order as any).worksheets[0].status}</Badge>
                       </div>
                     </div>
                     <div className="flex gap-2">
                       <Button asChild variant="outline">
                         <Link href={`/worksheets/${(order as any).worksheets[0].id}`}>
                           <FileText className="mr-2 h-4 w-4" />
-                          View Worksheet
+                          {t('viewWorksheetButton')}
                         </Link>
                       </Button>
                       {(order as any).worksheets[0].status === 'VOIDED' && (
                         <Button asChild>
                           <Link href={`/worksheets/new?orderId=${order.id}`}>
                             <FileText className="mr-2 h-4 w-4" />
-                            Create Revision Worksheet
+                            {t('createRevisionButton')}
                           </Link>
                         </Button>
                       )}
@@ -374,7 +378,7 @@ export default function OrderDetailPage({ params }: { params: Promise<{ id: stri
                         <Button
                           variant="destructive"
                           onClick={async () => {
-                            if (confirm('Delete this cancelled worksheet? This will allow you to create a new worksheet (next revision).')) {
+                            if (confirm(t('deleteWorksheetConfirm'))) {
                               try {
                                 const response = await fetch(`/api/worksheets/${(order as any).worksheets[0].id}`, {
                                   method: 'DELETE',
@@ -392,7 +396,7 @@ export default function OrderDetailPage({ params }: { params: Promise<{ id: stri
                           }}
                         >
                           <Trash2 className="mr-2 h-4 w-4" />
-                          Delete Cancelled
+                          {t('deleteWorksheetButton')}
                         </Button>
                       )}
                     </div>
@@ -400,10 +404,10 @@ export default function OrderDetailPage({ params }: { params: Promise<{ id: stri
                 </div>
               ) : (
                 <div className="text-center py-6 text-muted-foreground">
-                  <p>No worksheet created for this order yet.</p>
+                  <p>{t('noWorksheetMessage')}</p>
                   <Button className="mt-4" asChild>
                     <Link href={`/worksheets/new?orderId=${order.id}`}>
-                      Create Worksheet
+                      {t('createWorksheetButton')}
                     </Link>
                   </Button>
                 </div>
@@ -414,16 +418,16 @@ export default function OrderDetailPage({ params }: { params: Promise<{ id: stri
           {/* Metadata */}
           <Card>
             <CardHeader>
-              <CardTitle>Metadata</CardTitle>
+              <CardTitle>{t('metadataTitle')}</CardTitle>
             </CardHeader>
             <CardContent className="space-y-2 text-sm">
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <p className="text-muted-foreground">Created At</p>
+                  <p className="text-muted-foreground">{t('createdAtLabel')}</p>
                   <p>{formatDateTime(order.createdAt)}</p>
                 </div>
                 <div>
-                  <p className="text-muted-foreground">Last Updated</p>
+                  <p className="text-muted-foreground">{t('lastUpdatedLabel')}</p>
                   <p>{formatDateTime(order.updatedAt)}</p>
                 </div>
               </div>
@@ -436,10 +440,9 @@ export default function OrderDetailPage({ params }: { params: Promise<{ id: stri
       <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Delete Order</DialogTitle>
+            <DialogTitle>{t('deleteDialogTitle')}</DialogTitle>
             <DialogDescription>
-              Are you sure you want to delete order {order.orderNumber}? This
-              action cannot be undone.
+              {t('deleteDialogDescription', { orderNumber: order.orderNumber })}
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
@@ -448,7 +451,7 @@ export default function OrderDetailPage({ params }: { params: Promise<{ id: stri
               onClick={() => setDeleteDialogOpen(false)}
               disabled={isDeleting}
             >
-              Cancel
+              {t('cancelButton')}
             </Button>
             <Button
               variant="destructive"
@@ -456,7 +459,7 @@ export default function OrderDetailPage({ params }: { params: Promise<{ id: stri
               disabled={isDeleting}
             >
               {isDeleting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              Delete
+              {t('deleteButton')}
             </Button>
           </DialogFooter>
         </DialogContent>

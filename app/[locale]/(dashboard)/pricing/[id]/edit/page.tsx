@@ -41,6 +41,8 @@ export default function EditProductPage() {
         }
 
         const data = await response.json();
+        console.log('[EditProductPage] Fetched product:', data);
+        console.log('[EditProductPage] Category:', data.category, 'Unit:', data.unit);
         setProduct(data);
       } catch (err: any) {
         console.error('Failed to fetch product:', err);

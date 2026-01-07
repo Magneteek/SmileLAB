@@ -77,34 +77,6 @@ export default function LoginPage() {
     }
   };
 
-  const quickLogin = async (email: string, password: string, role: string) => {
-    setIsLoading(true);
-    setError(null);
-
-    try {
-      const result = await signIn('credentials', {
-        email,
-        password,
-        redirect: false,
-      });
-
-      if (result?.error) {
-        setError(t('auth.errorQuickLoginFailed', { role }));
-        setIsLoading(false);
-        return;
-      }
-
-      if (result?.ok) {
-        router.push(`/${locale}/dashboard`);
-        router.refresh();
-      }
-    } catch (error) {
-      console.error('Login error:', error);
-      setError(t('auth.errorLoginFailed'));
-      setIsLoading(false);
-    }
-  };
-
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-gray-100 p-4">
       <div className="w-full max-w-md space-y-6">
@@ -191,63 +163,6 @@ export default function LoginPage() {
                 </Button>
               </form>
             </Form>
-          </CardContent>
-        </Card>
-
-        {/* Quick Login (Development Only) */}
-        <Card className="border-dashed border-2 border-gray-300">
-          <CardHeader>
-            <CardTitle className="text-sm">{t('auth.quickLoginTitle')}</CardTitle>
-            <CardDescription className="text-xs">
-              {t('auth.quickLoginSubtitle')}
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-2 gap-2">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => quickLogin('admin@smilelab.si', 'admin123', 'ADMIN')}
-                disabled={isLoading}
-                className="flex flex-col items-start h-auto py-2"
-              >
-                <span className="font-semibold text-xs">{t('auth.roleAdmin')}</span>
-                <span className="text-xs text-gray-500">{t('auth.roleAdminDesc')}</span>
-              </Button>
-
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => quickLogin('tech@smilelab.si', 'user123', 'TECHNICIAN')}
-                disabled={isLoading}
-                className="flex flex-col items-start h-auto py-2"
-              >
-                <span className="font-semibold text-xs">{t('auth.roleTechnician')}</span>
-                <span className="text-xs text-gray-500">{t('auth.roleTechnicianDesc')}</span>
-              </Button>
-
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => quickLogin('qc@smilelab.si', 'user123', 'QC_INSPECTOR')}
-                disabled={isLoading}
-                className="flex flex-col items-start h-auto py-2"
-              >
-                <span className="font-semibold text-xs">{t('auth.roleQC')}</span>
-                <span className="text-xs text-gray-500">{t('auth.roleQCDesc')}</span>
-              </Button>
-
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => quickLogin('invoice@smilelab.si', 'user123', 'INVOICING')}
-                disabled={isLoading}
-                className="flex flex-col items-start h-auto py-2"
-              >
-                <span className="font-semibold text-xs">{t('auth.roleInvoicing')}</span>
-                <span className="text-xs text-gray-500">{t('auth.roleInvoicingDesc')}</span>
-              </Button>
-            </div>
           </CardContent>
         </Card>
 

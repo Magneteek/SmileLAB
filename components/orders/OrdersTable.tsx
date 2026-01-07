@@ -6,7 +6,6 @@
  * Data table for displaying orders with sorting, filtering, and actions
  */
 
-import { useState } from 'react';
 import Link from 'next/link';
 import { useTranslations } from 'next-intl';
 import { OrderWithRelations } from '@/types/order';
@@ -30,6 +29,8 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { MoreHorizontal, Eye, Edit, Trash2 } from 'lucide-react';
+import { SortableTableHeader } from '@/components/shared/SortableTableHeader';
+import { useTableSort } from '@/lib/hooks/useTableSort';
 
 interface OrdersTableProps {
   orders: OrderWithRelations[];
@@ -74,42 +75,11 @@ function formatDate(date: Date | string | null): string {
 
 export function OrdersTable({ orders, onDelete }: OrdersTableProps) {
   const t = useTranslations();
-  const [sortBy, setSortBy] = useState<'orderNumber' | 'orderDate' | 'dueDate'>(
-    'orderDate'
-  );
-  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
 
-  const handleSort = (
-    field: 'orderNumber' | 'orderDate' | 'dueDate'
-  ) => {
-    if (sortBy === field) {
-      setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
-    } else {
-      setSortBy(field);
-      setSortOrder('asc');
-    }
-  };
-
-  const sortedOrders = [...orders].sort((a, b) => {
-    let aValue: string | number | Date;
-    let bValue: string | number | Date;
-
-    if (sortBy === 'orderNumber') {
-      aValue = a.orderNumber;
-      bValue = b.orderNumber;
-    } else if (sortBy === 'orderDate') {
-      aValue = new Date(a.orderDate).getTime();
-      bValue = new Date(b.orderDate).getTime();
-    } else {
-      aValue = a.dueDate ? new Date(a.dueDate).getTime() : 0;
-      bValue = b.dueDate ? new Date(b.dueDate).getTime() : 0;
-    }
-
-    if (sortOrder === 'asc') {
-      return aValue > bValue ? 1 : -1;
-    } else {
-      return aValue < bValue ? 1 : -1;
-    }
+  const { sortedData: sortedOrders, sortKey, sortDirection, handleSort } = useTableSort({
+    data: orders,
+    initialSortKey: 'orderDate',
+    initialSortDirection: 'desc',
   });
 
   return (
@@ -117,36 +87,54 @@ export function OrdersTable({ orders, onDelete }: OrdersTableProps) {
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead
-              className="cursor-pointer hover:bg-muted/50"
-              onClick={() => handleSort('orderNumber')}
+            <SortableTableHeader
+              sortKey="orderNumber"
+              currentSortKey={sortKey}
+              currentSortDirection={sortDirection}
+              onSort={handleSort}
             >
               {t('order.tableOrderNumber')}
-              {sortBy === 'orderNumber' && (
-                <span className="ml-2">{sortOrder === 'asc' ? '↑' : '↓'}</span>
-              )}
-            </TableHead>
-            <TableHead>{t('order.tableDentist')}</TableHead>
-            <TableHead>{t('order.tablePatient')}</TableHead>
-            <TableHead>{t('order.tableStatus')}</TableHead>
-            <TableHead
-              className="cursor-pointer hover:bg-muted/50"
-              onClick={() => handleSort('orderDate')}
+            </SortableTableHeader>
+            <SortableTableHeader
+              sortKey="dentist.clinicName"
+              currentSortKey={sortKey}
+              currentSortDirection={sortDirection}
+              onSort={handleSort}
+            >
+              {t('order.tableDentist')}
+            </SortableTableHeader>
+            <SortableTableHeader
+              sortKey="patientName"
+              currentSortKey={sortKey}
+              currentSortDirection={sortDirection}
+              onSort={handleSort}
+            >
+              {t('order.tablePatient')}
+            </SortableTableHeader>
+            <SortableTableHeader
+              sortKey="status"
+              currentSortKey={sortKey}
+              currentSortDirection={sortDirection}
+              onSort={handleSort}
+            >
+              {t('order.tableStatus')}
+            </SortableTableHeader>
+            <SortableTableHeader
+              sortKey="orderDate"
+              currentSortKey={sortKey}
+              currentSortDirection={sortDirection}
+              onSort={handleSort}
             >
               {t('order.tableOrderDate')}
-              {sortBy === 'orderDate' && (
-                <span className="ml-2">{sortOrder === 'asc' ? '↑' : '↓'}</span>
-              )}
-            </TableHead>
-            <TableHead
-              className="cursor-pointer hover:bg-muted/50"
-              onClick={() => handleSort('dueDate')}
+            </SortableTableHeader>
+            <SortableTableHeader
+              sortKey="dueDate"
+              currentSortKey={sortKey}
+              currentSortDirection={sortDirection}
+              onSort={handleSort}
             >
               {t('order.tableDueDate')}
-              {sortBy === 'dueDate' && (
-                <span className="ml-2">{sortOrder === 'asc' ? '↑' : '↓'}</span>
-              )}
-            </TableHead>
+            </SortableTableHeader>
             <TableHead>{t('order.tableWorksheet')}</TableHead>
             <TableHead className="text-right">{t('order.tableActions')}</TableHead>
           </TableRow>

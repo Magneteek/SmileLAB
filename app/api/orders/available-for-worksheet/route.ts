@@ -26,17 +26,19 @@ export async function GET(request: NextRequest) {
     }
 
     // Get orders that can have new worksheets created:
-    // 1. PENDING status (no worksheet yet)
-    // 2. Any status where the latest worksheet is VOIDED (allows creating revision worksheets)
+    // 1. PENDING orders without worksheets (normal case)
+    // 2. Orders with VOIDED worksheets regardless of status (revision case)
     const orders = await prisma.order.findMany({
       where: {
         deletedAt: null,
         OR: [
-          { status: 'PENDING' }, // No worksheet yet
+          // Case 1: PENDING orders (normal worksheet creation)
+          { status: 'PENDING' },
+          // Case 2: Orders with at least one VOIDED worksheet (revision worksheet)
           {
             worksheets: {
               some: {
-                status: 'VOIDED', // Has voided worksheet, can create revision
+                status: 'VOIDED',
                 deletedAt: null,
               },
             },
@@ -62,12 +64,21 @@ export async function GET(request: NextRequest) {
       },
     });
 
-    // Format for dropdown display
-    const formattedOrders = orders.map((order: any) => {
-      const hasVoidedWorksheet = order.worksheets?.[0]?.status === 'VOIDED';
-      const nextRevision = hasVoidedWorksheet ? order.worksheets[0].revision + 1 : 1;
-      const suffix = hasVoidedWorksheet ? ` (Create Rev ${nextRevision})` : '';
+    // Filter to only include orders that can actually have a new worksheet:
+    // - Orders without any worksheets (normal case)
+    // - Orders where the latest worksheet is VOIDED (revision case)
+    const availableOrders = orders.filter((order: any) => {
+      const latestWorksheet = order.worksheets[0];
+      // No worksheet exists - can create new one
+      if (!latestWorksheet) return true;
+      // Latest worksheet is VOIDED - can create revision
+      if (latestWorksheet.status === 'VOIDED') return true;
+      // Has active worksheet - cannot create new one
+      return false;
+    });
 
+    // Format for dropdown display
+    const formattedOrders = availableOrders.map((order: any) => {
       return {
         id: order.id,
         orderNumber: order.orderNumber,
@@ -79,7 +90,7 @@ export async function GET(request: NextRequest) {
         orderDate: order.orderDate,
         dueDate: order.dueDate,
         priority: order.priority,
-        displayLabel: `${order.orderNumber} - ${order.dentist.clinicName} - ${order.patientName || 'No patient'}${suffix}`,
+        displayLabel: `${order.orderNumber} - ${order.dentist.clinicName} - ${order.patientName || 'No patient'}`,
       };
     });
 

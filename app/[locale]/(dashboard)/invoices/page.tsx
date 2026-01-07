@@ -61,6 +61,8 @@ import {
 } from 'lucide-react';
 import { PaymentStatus, type InvoiceSummary } from '@/src/types/invoice';
 import { formatDate } from '@/lib/utils';
+import { SortableTableHeader } from '@/components/shared/SortableTableHeader';
+import { useTableSort } from '@/lib/hooks/useTableSort';
 
 // ============================================================================
 // TYPES
@@ -162,6 +164,13 @@ export default function InvoicesPage() {
   const [paymentStatus, setPaymentStatus] = useState<string>('all');
   const [search, setSearch] = useState('');
   const [showOverdueOnly, setShowOverdueOnly] = useState(false);
+
+  // Sorting
+  const { sortedData: sortedInvoices, sortKey, sortDirection, handleSort } = useTableSort({
+    data: invoices?.data || [],
+    initialSortKey: 'invoiceDate',
+    initialSortDirection: 'desc',
+  });
 
   // Fetch invoices
   useEffect(() => {
@@ -348,26 +357,83 @@ export default function InvoicesPage() {
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead>{t('invoice.table.invoiceNumber')}</TableHead>
-                      <TableHead>{t('invoice.table.worksheet')}</TableHead>
-                      <TableHead>{t('invoice.table.dentist')}</TableHead>
-                      <TableHead>{t('invoice.table.patient')}</TableHead>
-                      <TableHead>{t('invoice.table.invoiceDate')}</TableHead>
-                      <TableHead>{t('invoice.table.dueDate')}</TableHead>
-                      <TableHead className="text-right">{t('invoice.table.amount')}</TableHead>
-                      <TableHead>{t('invoice.table.status')}</TableHead>
+                      <SortableTableHeader
+                        sortKey="invoiceNumber"
+                        currentSortKey={sortKey}
+                        currentSortDirection={sortDirection}
+                        onSort={handleSort}
+                      >
+                        {t('invoice.table.invoiceNumber')}
+                      </SortableTableHeader>
+                      <SortableTableHeader
+                        sortKey="worksheetNumbers"
+                        currentSortKey={sortKey}
+                        currentSortDirection={sortDirection}
+                        onSort={handleSort}
+                      >
+                        {t('invoice.table.worksheet')}
+                      </SortableTableHeader>
+                      <SortableTableHeader
+                        sortKey="dentistName"
+                        currentSortKey={sortKey}
+                        currentSortDirection={sortDirection}
+                        onSort={handleSort}
+                      >
+                        {t('invoice.table.dentist')}
+                      </SortableTableHeader>
+                      <SortableTableHeader
+                        sortKey="patientName"
+                        currentSortKey={sortKey}
+                        currentSortDirection={sortDirection}
+                        onSort={handleSort}
+                      >
+                        {t('invoice.table.patient')}
+                      </SortableTableHeader>
+                      <SortableTableHeader
+                        sortKey="invoiceDate"
+                        currentSortKey={sortKey}
+                        currentSortDirection={sortDirection}
+                        onSort={handleSort}
+                      >
+                        {t('invoice.table.invoiceDate')}
+                      </SortableTableHeader>
+                      <SortableTableHeader
+                        sortKey="dueDate"
+                        currentSortKey={sortKey}
+                        currentSortDirection={sortDirection}
+                        onSort={handleSort}
+                      >
+                        {t('invoice.table.dueDate')}
+                      </SortableTableHeader>
+                      <SortableTableHeader
+                        sortKey="totalAmount"
+                        currentSortKey={sortKey}
+                        currentSortDirection={sortDirection}
+                        onSort={handleSort}
+                        align="right"
+                      >
+                        {t('invoice.table.amount')}
+                      </SortableTableHeader>
+                      <SortableTableHeader
+                        sortKey="paymentStatus"
+                        currentSortKey={sortKey}
+                        currentSortDirection={sortDirection}
+                        onSort={handleSort}
+                      >
+                        {t('invoice.table.status')}
+                      </SortableTableHeader>
                       <TableHead className="text-right">{t('invoice.table.actions')}</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {invoices.data.length === 0 ? (
+                    {sortedInvoices.length === 0 ? (
                       <TableRow>
                         <TableCell colSpan={9} className="text-center text-muted-foreground">
                           {t('invoice.noInvoicesFound')}
                         </TableCell>
                       </TableRow>
                     ) : (
-                      invoices.data.map((invoice) => (
+                      sortedInvoices.map((invoice) => (
                         <TableRow key={invoice.id}>
                           <TableCell className="font-medium">
                             {invoice.isDraft ? (
