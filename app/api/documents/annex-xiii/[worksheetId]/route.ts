@@ -221,7 +221,7 @@ export async function GET(
     // Return PDF file
     const filename = document.fileName || `Annex-XIII-${document.worksheet?.worksheetNumber || 'Unknown'}.pdf`;
 
-    return new NextResponse(fileBuffer, {
+    return new NextResponse(new Uint8Array(fileBuffer), {
       status: 200,
       headers: {
         'Content-Type': 'application/pdf',

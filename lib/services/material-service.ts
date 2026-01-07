@@ -908,28 +908,23 @@ export async function getLotTraceability(
     worksheetId: wm.worksheet.id,
     worksheetNumber: wm.worksheet.worksheetNumber,
     manufactureDate: wm.worksheet.manufactureDate,
-    quantityUsed: wm.quantityUsed,
+    quantityUsed: wm.quantityPlanned,
     dentist: {
       clinicName: wm.worksheet.dentist.clinicName,
       dentistName: wm.worksheet.dentist.dentistName,
     },
-    patient: wm.worksheet.patient
-      ? {
-          firstName: wm.worksheet.patient.firstName,
-          lastName: wm.worksheet.patient.lastName,
-        }
-      : null,
+    patientName: wm.worksheet.patientName,
   }));
 
   const totalQuantityUsed = lot.worksheetMaterials.reduce(
-    (sum, wm) => sum.add(wm.quantityUsed),
+    (sum, wm) => sum.add(wm.quantityPlanned),
     new Decimal(0)
   );
 
   const uniquePatients = new Set(
     lot.worksheetMaterials
-      .filter((wm) => wm.worksheet.patient)
-      .map((wm) => wm.worksheet.patientId)
+      .filter((wm) => wm.worksheet.patientName)
+      .map((wm) => wm.worksheet.patientName)
   );
 
   const dates = lot.worksheetMaterials
@@ -982,10 +977,10 @@ export async function getWorksheetMaterials(
       materialName: wm.material.name,
       materialType: wm.material.type,
       manufacturer: wm.material.manufacturer,
-      lotNumber: wm.materialLot.lotNumber,
-      lotArrivalDate: wm.materialLot.arrivalDate,
-      lotExpiryDate: wm.materialLot.expiryDate,
-      quantityUsed: wm.quantityUsed,
+      lotNumber: wm.materialLot?.lotNumber ?? null,
+      lotArrivalDate: wm.materialLot?.arrivalDate ?? null,
+      lotExpiryDate: wm.materialLot?.expiryDate ?? null,
+      quantityUsed: wm.quantityPlanned,
       biocompatible: wm.material.biocompatible,
       ceMarked: wm.material.ceMarked,
       ceNumber: wm.material.ceNumber,

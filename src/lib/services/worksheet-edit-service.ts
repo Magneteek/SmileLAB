@@ -214,13 +214,9 @@ export async function editWorksheetWithAudit(
           })),
           reasonForChange:
             currentWorksheet.status !== 'DRAFT' ? reasonForChange : undefined,
-        }),
-        details: JSON.stringify({
           status: currentWorksheet.status,
           worksheetNumber: currentWorksheet.worksheetNumber,
           fieldsChanged: changes.map((c) => c.field),
-          reasonForChange:
-            currentWorksheet.status !== 'DRAFT' ? reasonForChange : undefined,
         }),
       },
     });

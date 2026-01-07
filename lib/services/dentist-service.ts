@@ -900,7 +900,7 @@ export async function getDentistInvoices(
     ...invoice,
     totalAmount: Number(invoice.totalAmount),
     taxAmount: Number(invoice.taxAmount),
-    netAmount: Number(invoice.netAmount),
+    subtotal: Number(invoice.subtotal),
   }));
 
   return {

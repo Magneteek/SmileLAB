@@ -7,17 +7,18 @@
  * Run with: npx tsx scripts/fix-canceled-invoice-worksheets.ts
  */
 
-import { PrismaClient } from '@prisma/client';
+import { PrismaClient, WorksheetStatus } from '@prisma/client';
 
 const prisma = new PrismaClient();
 
 async function main() {
   console.log('🔍 Finding worksheets with canceled invoices...\n');
 
-  // Find all worksheets that are INVOICED but only have CANCELLED invoices
+  // Find all worksheets that are DELIVERED but only have CANCELLED invoices
+  // Note: INVOICED status was removed from schema, now using DELIVERED
   const affectedWorksheets = await prisma.workSheet.findMany({
     where: {
-      status: 'INVOICED',
+      status: WorksheetStatus.DELIVERED,
     },
     include: {
       invoiceLineItems: {
@@ -71,7 +72,7 @@ async function main() {
       },
     },
     data: {
-      status: 'QC_APPROVED',
+      status: WorksheetStatus.QC_APPROVED,
       updatedAt: new Date(),
     },
   });

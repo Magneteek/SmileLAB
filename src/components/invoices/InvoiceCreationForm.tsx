@@ -625,7 +625,7 @@ export function InvoiceCreationForm() {
                                           .map((worksheet) => (
                                             <SelectItem key={worksheet.id} value={worksheet.id}>
                                               <span className="text-xs">
-                                                {t('invoices.forWorksheet', { number: worksheet.worksheetNumber, patient: worksheet.patientName })}
+                                                {t('invoices.forWorksheet', { number: worksheet.worksheetNumber, patient: worksheet.patientName || '-' })}
                                               </span>
                                             </SelectItem>
                                           ))}
@@ -752,7 +752,7 @@ export function InvoiceCreationForm() {
               {format(invoiceDate, 'PPP')}
             </PopoverTrigger>
             <PopoverContent className="w-auto p-0">
-              <Calendar mode="single" selected={invoiceDate} onSelect={(date) => date && setInvoiceDate(date)} />
+              <Calendar mode="single" selected={invoiceDate} onSelect={(date) => date && setInvoiceDate(date as Date)} />
             </PopoverContent>
           </Popover>
           <p className="text-xs text-gray-500">
@@ -768,7 +768,7 @@ export function InvoiceCreationForm() {
               {dueDate ? format(dueDate, 'PPP') : t('invoices.selectDueDatePlaceholder')}
             </PopoverTrigger>
             <PopoverContent className="w-auto p-0">
-              <Calendar mode="single" selected={dueDate} onSelect={setDueDate} />
+              <Calendar mode="single" selected={dueDate} onSelect={(date) => setDueDate(date as Date | undefined)} />
             </PopoverContent>
           </Popover>
         </div>
@@ -784,7 +784,7 @@ export function InvoiceCreationForm() {
               {format(serviceDate, 'PPP')}
             </PopoverTrigger>
             <PopoverContent className="w-auto p-0">
-              <Calendar mode="single" selected={serviceDate} onSelect={(date) => date && setServiceDate(date)} />
+              <Calendar mode="single" selected={serviceDate} onSelect={(date) => date && setServiceDate(date as Date)} />
             </PopoverContent>
           </Popover>
           <p className="text-xs text-gray-500">

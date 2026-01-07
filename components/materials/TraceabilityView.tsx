@@ -166,12 +166,10 @@ export function TraceabilityView({ lotNumber }: TraceabilityViewProps) {
                             <p className="text-muted-foreground">{trace.dentist.dentistName}</p>
                           </div>
                         </div>
-                        {trace.patient && (
+                        {trace.patientName && (
                           <div className="flex items-center gap-2">
                             <User className="h-4 w-4 text-muted-foreground flex-shrink-0" />
-                            <p>
-                              {trace.patient.firstName} {trace.patient.lastName}
-                            </p>
+                            <p>{trace.patientName}</p>
                           </div>
                         )}
                       </div>

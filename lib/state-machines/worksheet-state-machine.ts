@@ -11,8 +11,7 @@
  * - ADMIN: Full access to all transitions
  */
 
-import type { WorksheetStatus } from '@/src/types/worksheet';
-import type { Role } from '@prisma/client';
+import { WorksheetStatus, Role } from '@prisma/client';
 
 interface TransitionValidation {
   allowed: boolean;
@@ -29,14 +28,14 @@ export function canTransition(
 ): TransitionValidation {
   // Define allowed transitions
   const transitions: Record<WorksheetStatus, WorksheetStatus[]> = {
-    DRAFT: ['IN_PRODUCTION', 'CANCELLED'],
-    IN_PRODUCTION: ['QC_PENDING', 'CANCELLED'],
-    QC_PENDING: ['QC_APPROVED', 'QC_REJECTED', 'CANCELLED'],
-    QC_APPROVED: ['DELIVERED', 'CANCELLED'],
-    QC_REJECTED: ['IN_PRODUCTION', 'CANCELLED'],
-    DELIVERED: [],
-    CANCELLED: [],
-    VOIDED: [],
+    [WorksheetStatus.DRAFT]: [WorksheetStatus.IN_PRODUCTION, WorksheetStatus.CANCELLED],
+    [WorksheetStatus.IN_PRODUCTION]: [WorksheetStatus.QC_PENDING, WorksheetStatus.CANCELLED],
+    [WorksheetStatus.QC_PENDING]: [WorksheetStatus.QC_APPROVED, WorksheetStatus.QC_REJECTED, WorksheetStatus.CANCELLED],
+    [WorksheetStatus.QC_APPROVED]: [WorksheetStatus.DELIVERED, WorksheetStatus.CANCELLED],
+    [WorksheetStatus.QC_REJECTED]: [WorksheetStatus.IN_PRODUCTION, WorksheetStatus.CANCELLED],
+    [WorksheetStatus.DELIVERED]: [],
+    [WorksheetStatus.CANCELLED]: [],
+    [WorksheetStatus.VOIDED]: [],
   };
 
   // Check if transition is valid in state machine

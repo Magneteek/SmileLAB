@@ -19,6 +19,7 @@ import type {
   Document,
   Invoice
 } from '@prisma/client';
+import { WorksheetStatus } from '@prisma/client';
 
 // ============================================================================
 // ENUMS
@@ -26,22 +27,14 @@ import type {
 
 /**
  * Worksheet status following state machine workflow
+ * Re-exported from Prisma client for type consistency
  * DRAFT → IN_PRODUCTION → QC_PENDING → QC_APPROVED → DELIVERED (auto-set when invoice created)
  *
  * Special statuses:
  * - CANCELLED: Worksheet cancelled before completion (can be deleted)
  * - VOIDED: Completed worksheet voided due to error (preserved for audit, needs revision)
  */
-export enum WorksheetStatus {
-  DRAFT = 'DRAFT',
-  IN_PRODUCTION = 'IN_PRODUCTION',
-  QC_PENDING = 'QC_PENDING',
-  QC_APPROVED = 'QC_APPROVED',
-  QC_REJECTED = 'QC_REJECTED',
-  DELIVERED = 'DELIVERED',
-  CANCELLED = 'CANCELLED',
-  VOIDED = 'VOIDED'
-}
+export { WorksheetStatus };
 
 /**
  * Work types for dental procedures
@@ -67,6 +60,7 @@ export enum WorkType {
  */
 export interface CreateWorksheetDto {
   orderId: string;
+  patientName?: string;
   deviceDescription?: string;
   intendedUse?: string;
   technicalNotes?: string;

@@ -444,7 +444,8 @@ async function generatePDF(html: string): Promise<Buffer> {
       },
     });
 
-    return pdfBuffer;
+    // Convert Uint8Array to Buffer for compatibility
+    return Buffer.from(pdfBuffer);
   } catch (error) {
     console.error('[Invoice PDF] PDF generation failed:', error);
     throw new Error('Failed to generate PDF');
@@ -511,4 +512,4 @@ function formatDate(date: Date): string {
 // EXPORTS
 // ============================================================================
 
-export { generateInvoicePDF, type InvoiceData };
+export type { InvoiceData };

@@ -174,7 +174,8 @@ export function WorkTypeSelector({
                 style={{
                   backgroundColor: WORK_TYPE_COLORS[workType],
                   color: '#FFFFFF',
-                  ringColor: WORK_TYPE_COLORS[workType],
+                  // Note: ring styling handled via Tailwind classes
+                  ['--tw-ring-color' as string]: WORK_TYPE_COLORS[workType],
                 }}
                 aria-label={`${getWorkTypeLabel(workType)} ${
                   selectedType === workType ? '(selected)' : ''

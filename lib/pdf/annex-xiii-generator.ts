@@ -11,6 +11,7 @@ import puppeteer from 'puppeteer';
 import handlebars from 'handlebars';
 import { promises as fs } from 'fs';
 import path from 'path';
+import type { Document as PrismaDocument, DocumentType } from '@prisma/client';
 
 // ============================================================================
 // INTERFACES
@@ -125,7 +126,7 @@ export async function generateAnnexXIII(
   worksheetId: string,
   userId: string,
   locale: string = 'en'
-): Promise<Document> {
+): Promise<PrismaDocument> {
   try {
     console.log(`[Annex XIII] Starting generation for worksheet ${worksheetId}`);
 
@@ -512,7 +513,7 @@ async function generatePDF(html: string): Promise<Buffer> {
       waitUntil: 'networkidle0',
     });
 
-    const pdfBuffer = await page.pdf({
+    const pdfResult = await page.pdf({
       format: 'A4',
       printBackground: true,
       margin: {
@@ -523,7 +524,8 @@ async function generatePDF(html: string): Promise<Buffer> {
       },
     });
 
-    return pdfBuffer;
+    // Convert Uint8Array to Buffer for compatibility
+    return Buffer.from(pdfResult);
   } catch (error) {
     console.error('[Annex XIII] PDF generation failed:', error);
     throw new Error('Failed to generate PDF');
@@ -541,7 +543,7 @@ async function saveDocument(
   worksheetId: string,
   pdfBuffer: Buffer,
   userId: string
-): Promise<Document> {
+): Promise<PrismaDocument> {
   const fs = require('fs').promises;
   const path = require('path');
 
@@ -632,4 +634,4 @@ function formatDate(date: Date): string {
 // EXPORTS
 // ============================================================================
 
-export { generateAnnexXIII, type AnnexXIIIData };
+export type { AnnexXIIIData };

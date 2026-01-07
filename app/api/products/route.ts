@@ -20,7 +20,7 @@ const createProductSchema = z.object({
   code: z.string().min(1, 'Product code is required').max(50),
   name: z.string().min(1, 'Product name is required').max(200),
   description: z.string().max(500).optional().nullable(),
-  category: z.nativeEnum(ProductCategory, { errorMap: () => ({ message: 'Invalid category' }) }),
+  category: z.nativeEnum(ProductCategory, { message: 'Invalid category' }),
   currentPrice: z.number().positive('Price must be positive'),
   unit: z.string().min(1, 'Unit is required').max(20),
   active: z.boolean().optional(),
@@ -87,7 +87,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         {
           error: 'Validation failed',
-          details: validationResult.error.errors,
+          details: validationResult.error.issues,
         },
         { status: 400 }
       );

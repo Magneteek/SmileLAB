@@ -44,15 +44,16 @@ export enum LineItemType {
  * DTO for creating a line item
  */
 export interface CreateLineItemDto {
-  worksheetId?: string;      // Optional - for worksheet product lines
+  id?: string | null;               // Optional - undefined for new items
+  worksheetId?: string | null;      // Optional - for worksheet product lines
   description: string;
   quantity: number;
   unitPrice: number;
-  lineType?: LineItemType;   // Defaults to PRODUCT
-  productCode?: string;
-  productName?: string;
-  notes?: string;
-  position?: number;
+  lineType?: 'product' | 'shipping' | 'discount' | 'adjustment' | 'custom' | null;   // Defaults to PRODUCT
+  productCode?: string | null;
+  productName?: string | null;
+  notes?: string | null;
+  position?: number | null;
 }
 
 /**
@@ -135,21 +136,24 @@ export interface InvoiceFilters {
 
 /**
  * Invoice line item with relations
+ * Note: worksheet can be full WorkSheet or partial with just required fields
  */
 export interface InvoiceLineItemWithRelations extends InvoiceLineItem {
-  worksheet?: WorkSheet & {
+  worksheet: {
+    id: string;
     worksheetNumber: string;
-    order: {
+    patientName?: string | null;
+    order?: {
       dentist: Dentist;
     };
-  };
+  } | null;
 }
 
 /**
  * Invoice with all related entities (full data)
  */
 export interface InvoiceWithRelations extends Invoice {
-  dentist?: Dentist;
+  dentist: Dentist | null;
   lineItems: InvoiceLineItemWithRelations[];
   createdBy: User;
   emailLogs: EmailLog[];

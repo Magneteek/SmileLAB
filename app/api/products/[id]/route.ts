@@ -22,7 +22,7 @@ const updateProductSchema = z.object({
   code: z.string().min(1).max(50).optional(),
   name: z.string().min(1).max(200).optional(),
   description: z.string().max(500).optional().nullable(),
-  category: z.nativeEnum(ProductCategory, { errorMap: () => ({ message: 'Invalid category' }) }).optional(),
+  category: z.nativeEnum(ProductCategory, { message: 'Invalid category' }).optional(),
   currentPrice: z.number().positive('Price must be positive').optional(),
   unit: z.string().min(1).max(20).optional(),
   active: z.boolean().optional(),
@@ -88,7 +88,7 @@ export async function PUT(
       return NextResponse.json(
         {
           error: 'Validation failed',
-          details: validationResult.error.errors,
+          details: validationResult.error.issues,
         },
         { status: 400 }
       );

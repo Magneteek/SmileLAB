@@ -27,7 +27,7 @@
 
 import { Badge } from '@/components/ui/badge';
 import { useTranslations } from 'next-intl';
-import type { WorksheetStatus } from '@/types/worksheet';
+import type { WorksheetStatus } from '@/src/types/worksheet';
 import {
   FileEdit,
   Hammer,
@@ -186,16 +186,21 @@ export function WorksheetStatusBadge({
 
 /**
  * Get status label without rendering badge
+ * Returns the translation key that can be used with t()
  */
 export function getStatusLabel(status: WorksheetStatus | string): string {
-  return STATUS_CONFIG[status]?.label || status;
+  return STATUS_CONFIG[status]?.translationKey || status;
 }
 
 /**
  * Get status description
+ * Returns a simple description string (status name formatted)
  */
 export function getStatusDescription(status: WorksheetStatus | string): string {
-  return STATUS_CONFIG[status]?.description || 'Unknown status';
+  // Format the status key into a readable description
+  const config = STATUS_CONFIG[status];
+  if (!config) return 'Unknown status';
+  return status.replace(/_/g, ' ').toLowerCase().replace(/\b\w/g, c => c.toUpperCase());
 }
 
 /**

@@ -466,7 +466,7 @@ export function InvoiceEditForm({ invoice }: InvoiceEditFormProps) {
               <Calendar
                 mode="single"
                 selected={invoiceDate}
-                onSelect={(date) => date && setInvoiceDate(date)}
+                onSelect={(date) => date && setInvoiceDate(date as Date)}
               />
             </PopoverContent>
           </Popover>
@@ -483,7 +483,7 @@ export function InvoiceEditForm({ invoice }: InvoiceEditFormProps) {
               {dueDate ? format(dueDate, 'PPP') : 'Select due date'}
             </PopoverTrigger>
             <PopoverContent className="w-auto p-0">
-              <Calendar mode="single" selected={dueDate} onSelect={setDueDate} />
+              <Calendar mode="single" selected={dueDate} onSelect={(date) => setDueDate(date as Date | undefined)} />
             </PopoverContent>
           </Popover>
         </div>
@@ -502,7 +502,7 @@ export function InvoiceEditForm({ invoice }: InvoiceEditFormProps) {
               <Calendar
                 mode="single"
                 selected={serviceDate}
-                onSelect={(date) => date && setServiceDate(date)}
+                onSelect={(date) => date && setServiceDate(date as Date)}
               />
             </PopoverContent>
           </Popover>

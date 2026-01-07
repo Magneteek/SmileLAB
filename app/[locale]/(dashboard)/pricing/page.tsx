@@ -39,6 +39,7 @@ import {
   AlertCircle,
 } from 'lucide-react';
 import ProductsTable from '@/components/pricing/ProductsTable';
+import { ProductImportDialog } from '@/components/pricing/ProductImportDialog';
 
 // ============================================================================
 // TYPES
@@ -57,6 +58,7 @@ interface Product {
   active: boolean;
   createdAt: string;
   updatedAt: string;
+  deletedAt: string | null;
   _count?: {
     priceHistory: number;
   };
@@ -79,8 +81,23 @@ export default function PricingListPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [categoryFilter, setCategoryFilter] = useState<string>('all');
   const [refreshTrigger, setRefreshTrigger] = useState(0);
+  const [importDialogOpen, setImportDialogOpen] = useState(false);
 
   const isAdmin = session?.user?.role === 'ADMIN';
+
+  // Handle export
+  const handleExport = async () => {
+    try {
+      window.location.href = '/api/products/export';
+    } catch (err) {
+      setError('Export failed');
+    }
+  };
+
+  // Handle import complete
+  const handleImportComplete = () => {
+    setRefreshTrigger(prev => prev + 1);
+  };
 
   // Fetch products
   useEffect(() => {
@@ -148,11 +165,11 @@ export default function PricingListPage() {
           </p>
         </div>
         <div className="flex gap-2">
-          <Button variant="outline" size="sm">
+          <Button variant="outline" size="sm" onClick={() => setImportDialogOpen(true)}>
             <Upload className="h-4 w-4 mr-2" />
             {t('import')}
           </Button>
-          <Button variant="outline" size="sm">
+          <Button variant="outline" size="sm" onClick={handleExport}>
             <Download className="h-4 w-4 mr-2" />
             {t('export')}
           </Button>
@@ -228,6 +245,13 @@ export default function PricingListPage() {
           />
         </CardContent>
       </Card>
+
+      {/* Import Dialog */}
+      <ProductImportDialog
+        open={importDialogOpen}
+        onOpenChange={setImportDialogOpen}
+        onImportComplete={handleImportComplete}
+      />
     </div>
   );
 }

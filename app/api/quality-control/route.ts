@@ -98,8 +98,7 @@ export async function GET(request: NextRequest) {
                 dentist: {
                   select: {
                     id: true,
-                    firstName: true,
-                    lastName: true,
+                    dentistName: true,
                     clinicName: true,
                   },
                 },

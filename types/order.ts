@@ -4,7 +4,7 @@
  * TypeScript interfaces for Order management system
  */
 
-import { Order, OrderStatus, Dentist, User, WorkSheet } from '@prisma/client';
+import { Order, OrderStatus, Dentist, Role, WorkSheet } from '@prisma/client';
 
 // Worksheet with patient name for order list
 export interface WorksheetWithPatient {
@@ -14,10 +14,18 @@ export interface WorksheetWithPatient {
   patientName?: string | null;
 }
 
+// Partial user type for order relations (only selected fields)
+interface OrderUser {
+  id: string;
+  name: string;
+  email: string;
+  role: Role;
+}
+
 // Order with relations
 export interface OrderWithRelations extends Order {
   dentist: Dentist;
-  createdBy: User;
+  createdBy: OrderUser;
   worksheet?: WorksheetWithPatient | null;
 }
 

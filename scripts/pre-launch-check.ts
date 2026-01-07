@@ -97,7 +97,8 @@ async function preLaunchCheck() {
     let allTablesExist = true;
     for (const { table, model } of tableChecks) {
       try {
-        await model.findFirst();
+        // Use type assertion to call findFirst on different Prisma models
+        await (model as any).findFirst();
         console.log(`   ✅ Table '${table}' exists`);
       } catch (error) {
         console.log(`   ❌ Table '${table}' missing or inaccessible`);

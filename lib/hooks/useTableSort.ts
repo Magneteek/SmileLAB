@@ -11,8 +11,8 @@ import { SortDirection } from '@/components/shared/SortableTableHeader';
 
 interface UseTableSortProps<T> {
   data: T[];
-  initialSortKey?: string;
-  initialSortDirection?: SortDirection;
+  initialSortKey?: string | null;
+  initialSortDirection?: SortDirection | null;
 }
 
 export function useTableSort<T extends Record<string, any>>({

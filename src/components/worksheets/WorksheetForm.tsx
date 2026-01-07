@@ -69,7 +69,7 @@ import type {
   WorksheetWithRelations,
   CreateWorksheetDto,
   WorksheetStatus,
-} from '@/types/worksheet';
+} from '@/src/types/worksheet';
 import { AlertCircle, Loader2 } from 'lucide-react';
 
 // ============================================================================
@@ -235,7 +235,7 @@ export function WorksheetForm({
       code: p.product.code,
       name: p.product.name,
       unit: p.product.unit,
-      materials: p.productMaterials?.map((pm) => ({
+      materials: (p as any).productMaterials?.map((pm: any) => ({
         materialId: pm.materialId,
         materialLotId: pm.materialLotId || undefined,
         quantityUsed: Number(pm.quantityUsed),
@@ -253,8 +253,8 @@ export function WorksheetForm({
       code: m.material.code,
       name: m.material.name,
       unit: m.material.unit,
-      availableStock: m.material.lots?.reduce((sum, lot) => sum + Number(lot.quantityAvailable), 0) || 0,
-      lots: m.material.lots || [],
+      availableStock: (m.material as any).lots?.reduce((sum: number, lot: any) => sum + Number(lot.quantityAvailable), 0) || 0,
+      lots: (m.material as any).lots || [],
     })) || []
   );
 
@@ -539,7 +539,7 @@ export function WorksheetForm({
 
       // Step 2: Assign teeth (always call to ensure "replace all" behavior)
       // If teeth array is empty, this will delete all existing teeth
-      await assignTeeth(currentWorksheetId, data.teeth);
+      await assignTeeth(currentWorksheetId, data.teeth as any);
 
       // Step 3: Assign products (always call to ensure "replace all" behavior)
       // If products array is empty, this will delete all existing products
@@ -581,7 +581,7 @@ export function WorksheetForm({
         }
       } else if (activeTab === 'teeth' && worksheetId) {
         // Always call to ensure "replace all" - empty array will delete all teeth
-        await assignTeeth(worksheetId, data.teeth);
+        await assignTeeth(worksheetId, data.teeth as any);
       } else if (activeTab === 'products' && worksheetId) {
         // Always call to ensure "replace all" - empty array will delete all products
         await assignProducts(worksheetId, data.products);
@@ -660,7 +660,7 @@ export function WorksheetForm({
               {mode === 'create'
                 ? t('worksheet.formCreateDescription')
                 : isReadOnly
-                ? t('worksheet.formEditDescriptionReadOnly', { status: worksheet?.status })
+                ? t('worksheet.formEditDescriptionReadOnly', { status: worksheet?.status || 'DRAFT' })
                 : t('worksheet.formEditDescription')}
             </CardDescription>
           </CardHeader>

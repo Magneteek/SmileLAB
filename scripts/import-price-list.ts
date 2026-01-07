@@ -182,8 +182,8 @@ async function importPriceList(csvPath: string) {
           },
         });
 
-        // Add price history entry if price changed
-        if (existing.currentPrice !== product.price) {
+        // Add price history entry if price changed (convert Decimal to number)
+        if (Number(existing.currentPrice) !== product.price) {
           await prisma.productPriceHistory.create({
             data: {
               productId: existing.id,

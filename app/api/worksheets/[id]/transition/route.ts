@@ -99,7 +99,7 @@ export async function POST(
     // Validate transition using state machine
     const validation = canTransition(
       currentStatus,
-      newStatus,
+      newStatus as WorksheetStatus,
       session.user.role
     );
 
@@ -120,7 +120,7 @@ export async function POST(
     // Perform transition
     const updatedWorksheet = await transitionWorksheetStatus(
       worksheetId,
-      { newStatus, notes },
+      { newStatus: newStatus as WorksheetStatus, notes },
       session.user.id,
       session.user.role
     );
@@ -128,13 +128,24 @@ export async function POST(
     // Update order status based on worksheet transition
     const { prisma } = await import('@/lib/prisma');
 
-    // If worksheet is cancelled, return order to PENDING (not CANCELLED)
-    // The order should only be CANCELLED if user cancels the order itself
-    const orderStatus = newStatus === 'CANCELLED' ? 'PENDING' : newStatus;
+    // Map WorksheetStatus to OrderStatus (they have different values)
+    // WorksheetStatus: DRAFT, IN_PRODUCTION, QC_PENDING, QC_APPROVED, QC_REJECTED, DELIVERED, CANCELLED, VOIDED
+    // OrderStatus: PENDING, IN_PRODUCTION, QC_PENDING, QC_APPROVED, INVOICED, DELIVERED, CANCELLED
+    const worksheetToOrderStatus: Record<string, string> = {
+      'DRAFT': 'PENDING',
+      'IN_PRODUCTION': 'IN_PRODUCTION',
+      'QC_PENDING': 'QC_PENDING',
+      'QC_APPROVED': 'QC_APPROVED',
+      'QC_REJECTED': 'IN_PRODUCTION', // Go back to production on rejection
+      'DELIVERED': 'DELIVERED',
+      'CANCELLED': 'PENDING', // Return to pending, don't cancel order
+      'VOIDED': 'PENDING', // Return to pending if voided
+    };
+    const orderStatus = worksheetToOrderStatus[newStatus] || 'PENDING';
 
     await prisma.order.update({
       where: { id: worksheet.orderId },
-      data: { status: orderStatus },
+      data: { status: orderStatus as any }, // Cast needed due to enum mismatch
     });
 
     // Build response message based on transition

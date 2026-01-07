@@ -641,7 +641,8 @@ async function generateInvoiceNumber(invoiceDate: Date): Promise<string> {
   }
 
   // Extract number from latest invoice (e.g., "RAC-2025-042" -> 42)
-  const numberPart = latestInvoice.invoiceNumber.replace(yearPrefix, '');
+  // invoiceNumber is guaranteed non-null due to query filter
+  const numberPart = latestInvoice.invoiceNumber!.replace(yearPrefix, '');
   const latestNumber = parseInt(numberPart, 10);
 
   // Increment and format with leading zeros
@@ -857,7 +858,7 @@ export async function listInvoices(
       totalAmount: invoice.totalAmount.toNumber(),
       paymentStatus: invoice.paymentStatus as any,
       isDraft: invoice.isDraft,
-      overdue: isOverdue,
+      overdue: isOverdue || false,
       createdAt: invoice.createdAt,
     };
   });

@@ -74,6 +74,8 @@ async function getWorksheetForQC(id: string) {
               lotNumber: true,
               expiryDate: true,
               arrivalDate: true,
+              quantityReceived: true,
+              quantityAvailable: true,
             },
           },
         },

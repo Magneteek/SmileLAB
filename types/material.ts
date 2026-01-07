@@ -26,13 +26,10 @@ export interface MaterialLotWithUsage extends MaterialLot {
     worksheet: {
       id: string;
       worksheetNumber: string;
+      patientName: string | null;
       dentist: {
         clinicName: string;
       };
-      patient: {
-        firstName: string;
-        lastName: string;
-      } | null;
     };
   })[];
 }
@@ -194,10 +191,7 @@ export interface TraceabilityData {
       clinicName: string;
       dentistName: string;
     };
-    patient: {
-      firstName: string;
-      lastName: string;
-    } | null;
+    patientName: string | null;
   }[];
   summary: {
     totalQuantityUsed: Decimal;
@@ -219,8 +213,8 @@ export interface WorksheetMaterialsData {
     materialName: string;
     materialType: MaterialType;
     manufacturer: string;
-    lotNumber: string;
-    lotArrivalDate: Date;
+    lotNumber: string | null;
+    lotArrivalDate: Date | null;
     lotExpiryDate: Date | null;
     quantityUsed: Decimal;
     biocompatible: boolean;

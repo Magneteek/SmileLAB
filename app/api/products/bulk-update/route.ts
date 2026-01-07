@@ -41,11 +41,11 @@ export async function POST(request: NextRequest) {
     // Validate request body
     const validationResult = bulkUpdateSchema.safeParse(body);
     if (!validationResult.success) {
-      console.log('[API] Validation failed:', validationResult.error.errors);
+      console.log('[API] Validation failed:', validationResult.error.issues);
       return NextResponse.json(
         {
           error: 'Validation failed',
-          details: validationResult.error.errors,
+          details: validationResult.error.issues,
         },
         { status: 400 }
       );

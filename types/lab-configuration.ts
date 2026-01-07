@@ -49,6 +49,7 @@ export interface CreateLabConfigurationDto {
   // Settings
   defaultPaymentTerms?: number;
   defaultTaxRate?: number | Decimal;
+  invoiceLegalTerms?: string;
 }
 
 export interface UpdateLabConfigurationDto extends Partial<CreateLabConfigurationDto> {

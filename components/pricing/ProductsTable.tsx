@@ -9,8 +9,23 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
-import type { Product, ProductCategory } from '@prisma/client';
+import type { ProductCategory } from '@prisma/client';
 import { formatCurrency, PRODUCT_CATEGORY_COLORS } from '@/types/product';
+
+// Serialized Product type (JSON from API - dates as strings)
+interface Product {
+  id: string;
+  code: string;
+  name: string;
+  description: string | null;
+  category: ProductCategory;
+  currentPrice: number;
+  unit: string;
+  active: boolean;
+  createdAt: string;
+  updatedAt: string;
+  deletedAt: string | null;
+}
 import {
   Table,
   TableBody,
@@ -393,7 +408,11 @@ export default function ProductsTable({
           <AlertDialogHeader>
             <AlertDialogTitle>{t('deleteProductTitle')}</AlertDialogTitle>
             <AlertDialogDescription>
-              {t('deleteProductMessage', { name: productToDelete?.name || '', code: productToDelete?.code || '' })}
+              {t.rich('deleteProductMessage', {
+                name: productToDelete?.name || '',
+                code: productToDelete?.code || '',
+                strong: (chunks) => <strong>{chunks}</strong>
+              })}
               <br />
               <br />
               <strong className="text-destructive">{t('deleteWarning')}</strong>

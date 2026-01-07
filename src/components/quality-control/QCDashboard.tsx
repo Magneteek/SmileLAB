@@ -53,6 +53,7 @@ interface WorksheetForQC {
       id: string;
       dentistName: string;
       clinicName: string | null;
+      email: string | null;
     };
   };
   products: Array<{
@@ -79,6 +80,7 @@ interface WorksheetForQC {
   qualityControls: Array<{
     id: string;
     result: string;
+    inspectionDate: Date;
     inspector: {
       id: string;
       name: string;

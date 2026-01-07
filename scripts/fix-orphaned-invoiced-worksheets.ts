@@ -8,17 +8,18 @@
  * Run with: npx tsx scripts/fix-orphaned-invoiced-worksheets.ts
  */
 
-import { PrismaClient } from '@prisma/client';
+import { PrismaClient, WorksheetStatus, OrderStatus } from '@prisma/client';
 
 const prisma = new PrismaClient();
 
 async function main() {
-  console.log('🔍 Finding worksheets stuck in INVOICED status...\n');
+  console.log('🔍 Finding worksheets stuck in DELIVERED status (orphaned)...\n');
 
-  // Find all worksheets that are INVOICED
+  // Find all worksheets that are DELIVERED
+  // Note: INVOICED status was removed from schema, now using DELIVERED
   const invoicedWorksheets = await prisma.workSheet.findMany({
     where: {
-      status: 'INVOICED',
+      status: WorksheetStatus.DELIVERED,
     },
     select: {
       id: true,
@@ -112,7 +113,7 @@ async function main() {
         },
       },
       data: {
-        status: 'QC_APPROVED',
+        status: WorksheetStatus.QC_APPROVED,
         updatedAt: new Date(),
       },
     });
@@ -124,10 +125,10 @@ async function main() {
       const orderResult = await tx.order.updateMany({
         where: {
           id: { in: orderIds },
-          status: 'INVOICED', // Only update if currently INVOICED
+          status: OrderStatus.DELIVERED, // Only update if currently DELIVERED
         },
         data: {
-          status: 'QC_APPROVED',
+          status: OrderStatus.QC_APPROVED,
           updatedAt: new Date(),
         },
       });

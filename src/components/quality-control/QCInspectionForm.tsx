@@ -62,10 +62,9 @@ interface WorksheetForInspection {
   teeth: Array<{
     id: string;
     toothNumber: string;
-    workType: {
-      id: string;
-      name: string;
-    };
+    workType: string;
+    shade: string | null;
+    notes: string | null;
   }>;
   products: Array<{
     id: string;
@@ -96,7 +95,7 @@ interface WorksheetForInspection {
   }>;
   materials: Array<{
     id: string;
-    quantityUsed: number;
+    quantityPlanned: number;
     material: {
       id: string;
       name: string;
@@ -109,6 +108,8 @@ interface WorksheetForInspection {
       lotNumber: string;
       expiryDate: Date | null;
       arrivalDate: Date;
+      quantityReceived: number;
+      quantityAvailable: number;
     } | null;
   }>;
   qualityControls: Array<{
@@ -442,7 +443,7 @@ export function QCInspectionForm({
                   <div className="mt-2 flex flex-wrap gap-2">
                     {worksheet.teeth.map((tooth) => (
                       <Badge key={tooth.id} variant="secondary">
-                        {tooth.toothNumber} - {tooth.workType.name}
+                        {tooth.toothNumber} - {tooth.workType}
                       </Badge>
                     ))}
                   </div>

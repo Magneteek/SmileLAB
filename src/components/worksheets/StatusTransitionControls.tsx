@@ -40,8 +40,7 @@ import {
   AlertCircle,
   Loader2
 } from 'lucide-react';
-import type { WorksheetStatus } from '@/types/worksheet';
-import type { Role } from '@prisma/client';
+import type { WorksheetStatus, Role } from '@prisma/client';
 
 // ============================================================================
 // TYPES

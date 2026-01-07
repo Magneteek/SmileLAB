@@ -169,10 +169,11 @@ export async function getMaterialAlerts(): Promise<MaterialAlerts> {
     // Only count active materials
     if (!lot.material.active) return;
 
-    // Check stock levels
-    if (lot.quantityAvailable <= 0 || lot.status === 'DEPLETED') {
+    // Check stock levels (convert Decimal to number)
+    const quantity = Number(lot.quantityAvailable);
+    if (quantity <= 0 || lot.status === 'DEPLETED') {
       lowStock++;
-    } else if (lot.quantityAvailable < 100) {
+    } else if (quantity < 100) {
       // Consider reorder needed if quantity is low
       reorderNeeded++;
     }
@@ -279,25 +280,29 @@ export async function getInvoicesOverview(): Promise<InvoicesOverview> {
 
   // Calculate statistics
   invoices.forEach((invoice) => {
+    // Convert Decimal to number
+    const amount = Number(invoice.totalAmount);
+
     // Add to total amount
-    stats.totalAmount += invoice.totalAmount;
+    stats.totalAmount += amount;
 
     // Count by payment status
     if (invoice.paymentStatus === 'SENT' || invoice.paymentStatus === 'VIEWED') {
       stats.sent++;
     } else if (invoice.paymentStatus === 'PAID') {
       stats.paid++;
-      stats.paidAmount += invoice.totalAmount;
+      stats.paidAmount += amount;
     }
 
     // Check if overdue (due date passed and not paid/cancelled)
     if (
+      invoice.dueDate &&
       invoice.dueDate < now &&
       invoice.paymentStatus !== 'PAID' &&
       invoice.paymentStatus !== 'CANCELLED'
     ) {
       stats.overdue++;
-      stats.overdueAmount += invoice.totalAmount;
+      stats.overdueAmount += amount;
     }
   });
 

@@ -9,22 +9,23 @@
  * Run with: npx tsx scripts/fix-invoiced-order-status.ts
  */
 
-import { PrismaClient } from '@prisma/client';
+import { PrismaClient, OrderStatus, WorksheetStatus } from '@prisma/client';
 
 const prisma = new PrismaClient();
 
 async function main() {
-  console.log('🔍 Finding orders with invoiced worksheets but QC_APPROVED status...\n');
+  console.log('🔍 Finding orders with delivered worksheets but QC_APPROVED status...\n');
 
   // Find all orders where:
   // 1. Order status is QC_APPROVED
-  // 2. Associated worksheet status is INVOICED
+  // 2. Associated worksheet status is DELIVERED
+  // Note: INVOICED status was removed from schema, now using DELIVERED
   const ordersToFix = await prisma.order.findMany({
     where: {
-      status: 'QC_APPROVED',
+      status: OrderStatus.QC_APPROVED,
       worksheets: {
         some: {
-          status: 'INVOICED',
+          status: WorksheetStatus.DELIVERED,
         },
       },
     },
@@ -49,17 +50,17 @@ async function main() {
   // Show what will be fixed
   console.log('📋 Orders to update:\n');
   ordersToFix.forEach((order, index) => {
-    const invoicedWorksheets = order.worksheets.filter((ws) => ws.status === 'INVOICED');
+    const deliveredWorksheets = order.worksheets.filter((ws) => ws.status === WorksheetStatus.DELIVERED);
     console.log(`${index + 1}. Order #${order.orderNumber}`);
     console.log(`   Current Status: QC_APPROVED`);
     console.log(
-      `   Invoiced Worksheets: ${invoicedWorksheets.map((ws) => ws.worksheetNumber).join(', ')}`
+      `   Delivered Worksheets: ${deliveredWorksheets.map((ws) => ws.worksheetNumber).join(', ')}`
     );
-    console.log(`   Will update to: INVOICED\n`);
+    console.log(`   Will update to: DELIVERED\n`);
   });
 
   // Update orders
-  console.log('🔧 Updating order statuses to INVOICED...\n');
+  console.log('🔧 Updating order statuses to DELIVERED...\n');
 
   const result = await prisma.order.updateMany({
     where: {
@@ -68,20 +69,20 @@ async function main() {
       },
     },
     data: {
-      status: 'INVOICED',
+      status: OrderStatus.DELIVERED,
       updatedAt: new Date(),
     },
   });
 
-  console.log(`✅ Updated ${result.count} order(s) to INVOICED status\n`);
+  console.log(`✅ Updated ${result.count} order(s) to DELIVERED status\n`);
 
   // Show summary
   console.log('📊 Updated orders:');
   ordersToFix.forEach((order, index) => {
-    console.log(`${index + 1}. Order #${order.orderNumber}: QC_APPROVED → INVOICED ✓`);
+    console.log(`${index + 1}. Order #${order.orderNumber}: QC_APPROVED → DELIVERED ✓`);
   });
 
-  console.log('\n✨ Done! Order statuses now match their worksheet invoicing status.');
+  console.log('\n✨ Done! Order statuses now match their worksheet delivered status.');
 }
 
 main()

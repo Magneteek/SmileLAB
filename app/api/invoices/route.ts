@@ -219,6 +219,7 @@ export async function POST(request: NextRequest) {
       const generateData = {
         ...data,
         dueDate: data.dueDate ? new Date(data.dueDate) : undefined,
+        serviceDate: data.serviceDate ? new Date(data.serviceDate) : undefined,
       };
 
       const invoice = await generateInvoice(generateData, session.user.id);
@@ -258,6 +259,7 @@ export async function POST(request: NextRequest) {
         ...data,
         invoiceDate: data.invoiceDate ? new Date(data.invoiceDate) : undefined,
         dueDate: data.dueDate ? new Date(data.dueDate) : undefined,
+        serviceDate: data.serviceDate ? new Date(data.serviceDate) : undefined,
       };
 
       const invoice = await createInvoice(createData, session.user.id);

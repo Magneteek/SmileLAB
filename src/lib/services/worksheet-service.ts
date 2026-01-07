@@ -28,7 +28,7 @@ import {
   WorksheetSummary,
   PaginatedWorksheets,
   MaterialTraceability,
-} from '@/types/worksheet';
+} from '@/src/types/worksheet';
 import {
   canTransition,
   getSideEffectsOnEnter,

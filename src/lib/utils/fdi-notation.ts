@@ -10,7 +10,7 @@
  * Second digit = Position within quadrant
  */
 
-import type { FdiValidationResult } from '@/types/worksheet';
+import type { FdiValidationResult } from '@/src/types/worksheet';
 
 // ============================================================================
 // CONSTANTS

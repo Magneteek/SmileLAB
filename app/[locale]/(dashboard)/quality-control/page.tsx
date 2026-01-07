@@ -35,6 +35,7 @@ async function getQCPendingWorksheets() {
               id: true,
               dentistName: true,
               clinicName: true,
+              email: true,
             },
           },
         },

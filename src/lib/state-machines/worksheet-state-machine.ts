@@ -15,8 +15,8 @@
  * - Audit logs created on every transition
  */
 
-import type { Role } from '@prisma/client';
-import type { WorksheetStatus, StateTransitionValidation } from '@/types/worksheet';
+import { Role, WorksheetStatus } from '@prisma/client';
+import type { StateTransitionValidation } from '@/src/types/worksheet';
 
 // ============================================================================
 // STATE MACHINE CONFIGURATION
@@ -37,47 +37,47 @@ interface StateDefinition {
  * Complete state machine configuration
  */
 export const WorksheetStateMachine: Record<WorksheetStatus, StateDefinition> = {
-  DRAFT: {
-    canTransitionTo: ['IN_PRODUCTION', 'CANCELLED'],
-    requiredRoles: ['ADMIN', 'TECHNICIAN'],
+  [WorksheetStatus.DRAFT]: {
+    canTransitionTo: [WorksheetStatus.IN_PRODUCTION, WorksheetStatus.CANCELLED],
+    requiredRoles: [Role.ADMIN, Role.TECHNICIAN],
     description: 'Initial worksheet creation - can edit all fields',
     onEnter: [],
     onExit: [],
   },
 
-  IN_PRODUCTION: {
-    canTransitionTo: ['QC_PENDING', 'CANCELLED'],
-    requiredRoles: ['ADMIN', 'TECHNICIAN'],
+  [WorksheetStatus.IN_PRODUCTION]: {
+    canTransitionTo: [WorksheetStatus.QC_PENDING, WorksheetStatus.CANCELLED],
+    requiredRoles: [Role.ADMIN, Role.TECHNICIAN],
     description: 'Worksheet being manufactured',
     onEnter: ['consumeMaterials', 'setManufactureDate'], // Side effects
     onExit: [],
   },
 
-  QC_PENDING: {
-    canTransitionTo: ['QC_APPROVED', 'QC_REJECTED'],
-    requiredRoles: ['ADMIN', 'QC_INSPECTOR', 'TECHNICIAN'],
+  [WorksheetStatus.QC_PENDING]: {
+    canTransitionTo: [WorksheetStatus.QC_APPROVED, WorksheetStatus.QC_REJECTED],
+    requiredRoles: [Role.ADMIN, Role.QC_INSPECTOR, Role.TECHNICIAN],
     description: 'Awaiting quality control inspection',
     onEnter: [],
     onExit: [],
   },
 
-  QC_APPROVED: {
-    canTransitionTo: ['DELIVERED'],
-    requiredRoles: ['ADMIN', 'INVOICING', 'TECHNICIAN'],
+  [WorksheetStatus.QC_APPROVED]: {
+    canTransitionTo: [WorksheetStatus.DELIVERED],
+    requiredRoles: [Role.ADMIN, Role.INVOICING, Role.TECHNICIAN],
     description: 'Quality control approved - ready for delivery (auto-set when invoice created)',
     onEnter: ['generateAnnexXIII'], // Side effect: Generate MDR document
     onExit: [],
   },
 
-  QC_REJECTED: {
-    canTransitionTo: ['IN_PRODUCTION', 'CANCELLED'],
-    requiredRoles: ['ADMIN', 'TECHNICIAN'],
+  [WorksheetStatus.QC_REJECTED]: {
+    canTransitionTo: [WorksheetStatus.IN_PRODUCTION, WorksheetStatus.CANCELLED],
+    requiredRoles: [Role.ADMIN, Role.TECHNICIAN],
     description: 'Quality control rejected - requires rework',
     onEnter: [],
     onExit: [],
   },
 
-  DELIVERED: {
+  [WorksheetStatus.DELIVERED]: {
     canTransitionTo: [],
     requiredRoles: [],
     description: 'Final state - worksheet delivered to dentist (set when invoice created/finalized)',
@@ -85,7 +85,7 @@ export const WorksheetStateMachine: Record<WorksheetStatus, StateDefinition> = {
     onExit: [],
   },
 
-  CANCELLED: {
+  [WorksheetStatus.CANCELLED]: {
     canTransitionTo: [],
     requiredRoles: [],
     description: 'Worksheet cancelled - terminal state',
@@ -93,7 +93,7 @@ export const WorksheetStateMachine: Record<WorksheetStatus, StateDefinition> = {
     onExit: [],
   },
 
-  VOIDED: {
+  [WorksheetStatus.VOIDED]: {
     canTransitionTo: [],
     requiredRoles: [],
     description: 'Worksheet voided due to error - preserved for audit trail',

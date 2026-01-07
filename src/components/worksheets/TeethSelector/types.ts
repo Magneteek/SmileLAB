@@ -7,7 +7,7 @@
  * @see {@link /deliverables/research/FDI-NOTATION-SYSTEM-RESEARCH.md} for detailed FDI notation documentation
  */
 
-import { WorkType as GlobalWorkType } from '@/types/worksheet';
+import { WorkType as GlobalWorkType } from '@/src/types/worksheet';
 
 /**
  * FDI Quadrant numbers for permanent teeth (1-4) and primary teeth (5-8)
@@ -152,6 +152,11 @@ export interface ToothSelection {
    * Optional tooth shade/color
    */
   shade?: string;
+
+  /**
+   * Optional tooth shape (e.g., square, triangular, ovoid)
+   */
+  toothShape?: string;
 
   /**
    * Optional notes or additional details
@@ -457,19 +462,7 @@ export type FDINumberValidator = (number: string) => boolean;
  */
 export type WorkTypeValidator = (workType: string) => workType is WorkType;
 
-/**
- * Export all types for convenient importing
- */
-export type {
-  // Re-export for convenience
-  Quadrant,
-  ToothPosition,
-  ToothType,
-  Jaw,
-  Side,
-  ToothMode,
-  WorkType,
-};
+// All types are already exported in their definitions above
 
 // ============================================================================
 // TYPE CONVERSION UTILITIES

@@ -478,7 +478,7 @@ export class ProductService {
   async getCategories() {
     const products = await prisma.product.findMany({
       where: {
-        category: { not: null },
+        deletedAt: null, // Only active products
       },
       select: {
         category: true,
@@ -489,9 +489,7 @@ export class ProductService {
       },
     });
 
-    return products
-      .map((p) => p.category)
-      .filter((c): c is string => c !== null);
+    return products.map((p) => p.category);
   }
 
   /**

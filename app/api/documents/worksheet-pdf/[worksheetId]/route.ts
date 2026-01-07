@@ -87,7 +87,7 @@ export async function GET(
     const pdfBuffer = await generateWorksheetPDF(worksheetId, locale);
 
     // Return PDF as downloadable file
-    return new NextResponse(pdfBuffer, {
+    return new NextResponse(new Uint8Array(pdfBuffer), {
       status: 200,
       headers: {
         'Content-Type': 'application/pdf',

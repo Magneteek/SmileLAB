@@ -102,6 +102,8 @@ export const PRODUCT_CATEGORY_LABELS: Record<ProductCategory, string> = {
   SERVICE: 'Service',
   REPAIR: 'Repair',
   MODEL: 'Model',
+  OTHER: 'Other',
+  ORTHODONTICS: 'Orthodontics',
 };
 
 export const PRODUCT_CATEGORY_COLORS: Record<ProductCategory, string> = {
@@ -120,6 +122,8 @@ export const PRODUCT_CATEGORY_COLORS: Record<ProductCategory, string> = {
   SERVICE: 'bg-slate-100 text-slate-800',
   REPAIR: 'bg-rose-100 text-rose-800',
   MODEL: 'bg-gray-100 text-gray-800',
+  OTHER: 'bg-stone-100 text-stone-800',
+  ORTHODONTICS: 'bg-violet-100 text-violet-800',
 };
 
 // ============================================================================

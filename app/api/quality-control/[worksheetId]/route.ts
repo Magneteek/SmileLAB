@@ -28,24 +28,24 @@ import { generateAnnexXIII } from '@/lib/pdf/annex-xiii-generator';
 const qcSubmissionSchema = z.object({
   // QC Checklist (5 Boolean fields)
   aesthetics: z.boolean({
-    required_error: 'Aesthetics check is required',
+    message: 'Aesthetics check is required',
   }),
   fit: z.boolean({
-    required_error: 'Fit check is required',
+    message: 'Fit check is required',
   }),
   occlusion: z.boolean({
-    required_error: 'Occlusion check is required',
+    message: 'Occlusion check is required',
   }),
   shade: z.boolean({
-    required_error: 'Shade check is required',
+    message: 'Shade check is required',
   }),
   margins: z.boolean({
-    required_error: 'Margins check is required',
+    message: 'Margins check is required',
   }),
 
   // QC Result
   result: z.enum(['APPROVED', 'REJECTED', 'CONDITIONAL'] as const, {
-    required_error: 'QC result is required',
+    message: 'QC result is required',
   }),
 
   // Documentation

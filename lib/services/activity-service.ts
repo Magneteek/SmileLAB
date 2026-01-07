@@ -95,12 +95,17 @@ export async function getActivityLog(
       activityType = 'INVOICE';
     }
 
+    // Build description from action and entityType
+    const description = `${log.action} ${log.entityType}${log.entityId ? ` (${log.entityId.slice(0, 8)}...)` : ''}`;
+
     return {
       id: log.id,
       type: activityType,
-      description: log.description || log.action,
+      action: log.action,
+      description,
+      timestamp: log.timestamp,
+      userId: log.userId,
       userName: log.user?.name || 'System',
-      timestamp: log.timestamp.toISOString(),
     };
   });
 

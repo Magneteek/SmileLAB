@@ -41,7 +41,8 @@ declare module 'next-auth/jwt' {
 }
 
 export const authOptions: NextAuthOptions = {
-  adapter: PrismaAdapter(prisma),
+  // Type assertion needed due to monorepo type conflicts
+  adapter: PrismaAdapter(prisma) as any,
 
   providers: [
     CredentialsProvider({
