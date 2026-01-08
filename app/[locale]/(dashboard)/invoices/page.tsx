@@ -443,23 +443,23 @@ export default function InvoicesPage() {
                             )}
                           </TableCell>
                           <TableCell>
-                            {invoice.worksheetNumbers && invoice.worksheetNumbers.length > 0 ? (
-                              invoice.worksheetNumbers.length === 1 ? (
+                            {invoice.worksheets && invoice.worksheets.length > 0 ? (
+                              invoice.worksheets.length === 1 ? (
                                 <Link
-                                  href={`/worksheets/${invoice.worksheetNumbers[0]}`}
+                                  href={`/worksheets/${invoice.worksheets[0].id}`}
                                   className="text-blue-600 hover:underline"
                                 >
-                                  {invoice.worksheetNumbers[0]}
+                                  {invoice.worksheets[0].number}
                                 </Link>
                               ) : (
                                 <div className="flex flex-col gap-1">
-                                  {invoice.worksheetNumbers.map((wsNum, idx) => (
+                                  {invoice.worksheets.map((ws, idx) => (
                                     <Link
                                       key={idx}
-                                      href={`/worksheets/${wsNum}`}
+                                      href={`/worksheets/${ws.id}`}
                                       className="text-blue-600 hover:underline text-sm"
                                     >
-                                      {wsNum}
+                                      {ws.number}
                                     </Link>
                                   ))}
                                 </div>

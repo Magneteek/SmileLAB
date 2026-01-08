@@ -220,36 +220,24 @@ export default function NewWorksheetPage() {
       {/* Selected Order Details */}
       {selectedOrder && (
         <Card>
-          <CardHeader>
-            <CardTitle>{t('worksheet.selectedOrder')}</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              <div>
-                <p className="text-sm font-medium text-muted-foreground">{t('worksheet.orderNumberLabel')}</p>
-                <p className="font-semibold">{selectedOrder.orderNumber}</p>
+          <CardContent className="py-3">
+            <div className="flex items-baseline gap-4 text-sm">
+              <div className="flex items-baseline gap-1.5">
+                <span className="text-xs text-muted-foreground">{t('worksheet.orderNumberLabel')}</span>
+                <span className="font-semibold">{selectedOrder.orderNumber}</span>
               </div>
-              <div>
-                <p className="text-sm font-medium text-muted-foreground">{t('worksheet.clinicLabel')}</p>
-                <p>{selectedOrder.dentist.clinicName}</p>
+              <div className="flex items-baseline gap-1.5">
+                <span className="text-xs text-muted-foreground">{t('worksheet.clinicLabel')}</span>
+                <span>{selectedOrder.dentist.clinicName}</span>
               </div>
-              <div>
-                <p className="text-sm font-medium text-muted-foreground">{t('worksheet.dentistLabel')}</p>
-                <p>{t('worksheet.doctorPrefix')} {selectedOrder.dentist.dentistName}</p>
+              <div className="flex items-baseline gap-1.5">
+                <span className="text-xs text-muted-foreground">{t('worksheet.dentistLabel')}</span>
+                <span>{t('worksheet.doctorPrefix')} {selectedOrder.dentist.dentistName}</span>
               </div>
-              <div>
-                <p className="text-sm font-medium text-muted-foreground">{t('worksheet.patientLabel')}</p>
-                <p>{selectedOrder.patientName}</p>
+              <div className="flex items-baseline gap-1.5">
+                <span className="text-xs text-muted-foreground">{t('worksheet.patientLabel')}</span>
+                <span>{selectedOrder.patientName}</span>
               </div>
-            </div>
-            <div className="mt-4">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setSelectedOrderId(null)}
-              >
-                {t('worksheet.changeOrder')}
-              </Button>
             </div>
           </CardContent>
         </Card>

@@ -393,12 +393,19 @@ async function prepareTemplateData(
     teeth: worksheet.teeth.map((t: any) => t.toothNumber).join(', ') || 'N/A',
   }));
 
+  // Translate QC result
+  const translateResult = (result: string): string => {
+    const resultKey = `qcResult${result.charAt(0).toUpperCase()}${result.slice(1).toLowerCase()}`;
+    return translations[resultKey] || result;
+  };
+
   // QC inspection data (including new EU MDR fields)
   const qcInspection = worksheet.qualityControls[0]
     ? {
         inspectorName: labConfig.responsiblePersonName,  // Use Annex XIII responsible person from lab config
-        inspectionDate: formatDate(worksheet.qualityControls[0].inspectionDate),
+        inspectionDate: formatDateLocalized(worksheet.qualityControls[0].inspectionDate, translations),
         result: worksheet.qualityControls[0].result,
+        resultTranslated: translateResult(worksheet.qualityControls[0].result),
         notes: worksheet.qualityControls[0].notes,
         // EU MDR Annex XIII Compliance Fields
         emdnCode: worksheet.qualityControls[0].emdnCode || 'Q010206 - Dental Prostheses',
@@ -408,11 +415,36 @@ async function prepareTemplateData(
       }
     : undefined;
 
+  // Format dates with locale awareness
+  const generationDateFormatted = formatDateLocalized(now, translations);
+  const retentionUntilFormatted = formatDateLocalized(retentionUntil, translations);
+
+  // Process translations with placeholders
+  const processedTranslations = { ...translations };
+  if (processedTranslations.declarationIntro) {
+    processedTranslations.declarationIntro = replacePlaceholders(
+      processedTranslations.declarationIntro,
+      { laboratoryName: labConfig.laboratoryName }
+    );
+  }
+  if (processedTranslations.retentionNotice) {
+    processedTranslations.retentionNotice = replacePlaceholders(
+      processedTranslations.retentionNotice,
+      { retentionUntil: retentionUntilFormatted }
+    );
+  }
+  if (processedTranslations.generatedBy) {
+    processedTranslations.generatedBy = replacePlaceholders(
+      processedTranslations.generatedBy,
+      { generatedBy }
+    );
+  }
+
   return {
     documentId: `MDR-${worksheet.worksheetNumber}`,
     worksheetNumber: worksheet.worksheetNumber,
-    generationDate: formatDate(now),
-    retentionUntil: formatDate(retentionUntil),
+    generationDate: generationDateFormatted,
+    retentionUntil: retentionUntilFormatted,
     generatedBy,
 
     lab: {
@@ -442,11 +474,12 @@ async function prepareTemplateData(
     deviceDescription: worksheet.deviceDescription || 'Custom-made dental device',
     intendedUse: worksheet.intendedUse || 'Dental restoration',
     manufactureDate: worksheet.manufactureDate
-      ? formatDate(worksheet.manufactureDate)
-      : formatDate(now),
-    deliveryDate: worksheet.deliveryDate ? formatDate(worksheet.deliveryDate) : null,
+      ? formatDateLocalized(worksheet.manufactureDate, translations)
+      : generationDateFormatted,
+    deliveryDate: worksheet.deliveryDate ? formatDateLocalized(worksheet.deliveryDate, translations) : null,
     patientName: worksheet.patientName || 'Confidential',
-    orderNumber: worksheet.order.orderNumber,
+    // Extract just the numeric part of order number (e.g., "26001" from "Order #26001" or just "26001")
+    orderNumber: worksheet.order.orderNumber.replace(/[^0-9]/g, ''),
 
     dentist: {
       name: worksheet.order.dentist.dentistName,
@@ -462,7 +495,7 @@ async function prepareTemplateData(
     products,
     materials: allMaterials,
     qcInspection,
-    t: translations,
+    t: processedTranslations,
   };
 }
 
@@ -620,7 +653,7 @@ async function saveDocument(
 }
 
 /**
- * Format date for display
+ * Format date for display (English format)
  */
 function formatDate(date: Date): string {
   return new Intl.DateTimeFormat('en-GB', {
@@ -628,6 +661,32 @@ function formatDate(date: Date): string {
     month: 'long',
     year: 'numeric',
   }).format(new Date(date));
+}
+
+/**
+ * Format date for display with locale awareness
+ * Uses Slovenian format (dd. MMMM yyyy) when translations indicate sl locale
+ */
+function formatDateLocalized(date: Date, translations: Record<string, string>): string {
+  // Check if we're in Slovenian locale by checking a translation key
+  const isSlovenian = translations.documentTitle?.includes('PRILOGA') || false;
+
+  return new Intl.DateTimeFormat(isSlovenian ? 'sl-SI' : 'en-GB', {
+    day: '2-digit',
+    month: 'long',
+    year: 'numeric',
+  }).format(new Date(date));
+}
+
+/**
+ * Replace placeholders in translation strings
+ */
+function replacePlaceholders(text: string, replacements: Record<string, string>): string {
+  let result = text;
+  for (const [key, value] of Object.entries(replacements)) {
+    result = result.replace(new RegExp(`\\{${key}\\}`, 'g'), value);
+  }
+  return result;
 }
 
 // ============================================================================

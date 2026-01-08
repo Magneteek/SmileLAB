@@ -30,6 +30,61 @@ import {
 } from '@/types/material';
 
 // ============================================================================
+// CODE AUTO-GENERATION
+// ============================================================================
+
+/**
+ * Material type to 3-letter prefix mapping
+ */
+const MATERIAL_TYPE_PREFIXES: Record<string, string> = {
+  CERAMIC: 'CER',
+  METAL: 'MET',
+  RESIN: 'RES',
+  COMPOSITE: 'COM',
+  PORCELAIN: 'POR',
+  ZIRCONIA: 'ZIR',
+  TITANIUM: 'TIT',
+  ALLOY: 'ALY',
+  ACRYLIC: 'ACR',
+  WAX: 'WAX',
+  OTHER: 'MAT',
+};
+
+/**
+ * Generate next sequential code for a material type
+ * Format: XXX## (e.g., CER01, MET02, ZIR03)
+ */
+export async function generateMaterialCode(type: string): Promise<string> {
+  const prefix = MATERIAL_TYPE_PREFIXES[type] || 'MAT';
+
+  // Find highest existing code with this prefix
+  const existingMaterials = await prisma.material.findMany({
+    where: {
+      code: { startsWith: prefix },
+    },
+    select: { code: true },
+    orderBy: { code: 'desc' },
+  });
+
+  let nextNumber = 1;
+
+  if (existingMaterials.length > 0) {
+    // Extract numbers from existing codes and find max
+    for (const mat of existingMaterials) {
+      const numPart = mat.code.replace(prefix, '');
+      const num = parseInt(numPart, 10);
+      if (!isNaN(num) && num >= nextNumber) {
+        nextNumber = num + 1;
+      }
+    }
+  }
+
+  // Format with leading zero (01-99)
+  const formattedNum = nextNumber.toString().padStart(2, '0');
+  return `${prefix}${formattedNum}`;
+}
+
+// ============================================================================
 // MATERIAL CRUD OPERATIONS
 // ============================================================================
 

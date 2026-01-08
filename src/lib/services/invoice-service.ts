@@ -816,6 +816,7 @@ export async function listInvoices(
           include: {
             worksheet: {
               select: {
+                id: true,
                 worksheetNumber: true,
               },
             },
@@ -838,19 +839,22 @@ export async function listInvoices(
       invoice.dueDate &&
       invoice.dueDate < new Date();
 
-    // Collect unique worksheet numbers from line items
-    const worksheetNumbers = Array.from(
-      new Set(
-        invoice.lineItems
-          .filter(item => item.worksheet)
-          .map(item => item.worksheet!.worksheetNumber)
-      )
-    );
+    // Collect unique worksheet data from line items (id and number for proper linking)
+    const worksheetMap = new Map<string, { id: string; number: string }>();
+    invoice.lineItems
+      .filter(item => item.worksheet)
+      .forEach(item => {
+        const ws = item.worksheet!;
+        worksheetMap.set(ws.id, { id: ws.id, number: ws.worksheetNumber });
+      });
+    const worksheets = Array.from(worksheetMap.values());
+    const worksheetNumbers = worksheets.map(ws => ws.number);
 
     return {
       id: invoice.id,
       invoiceNumber: invoice.invoiceNumber,
       worksheetNumbers,
+      worksheets, // Include both ID and number for proper linking
       dentistName: invoice.dentist?.dentistName || 'Unknown',
       clinicName: invoice.dentist?.clinicName || 'Unknown',
       invoiceDate: invoice.invoiceDate,

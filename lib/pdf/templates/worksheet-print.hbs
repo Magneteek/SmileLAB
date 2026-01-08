@@ -598,65 +598,20 @@
     </div>
   {{/if}}
 
-  <!-- Quality Control -->
+  <!-- Quality Control - Compact Inline -->
   {{#if qualityControl}}
-    <div class="section-header">{{t.qualityControl}}</div>
-    <div class="qc-box {{#if qualityControl.rejected}}rejected{{/if}}">
-      <div style="margin-bottom: 10px;">
-        <strong>{{t.inspector}}:</strong> {{qualityControl.inspector}}<br>
-        <strong>{{t.inspectionDate}}:</strong> {{qualityControl.inspectionDate}}<br>
-        <strong>{{t.result}}:</strong>
-        <span class="badge {{#if qualityControl.approved}}badge-approved{{else}}badge-draft{{/if}}">
-          {{qualityControl.result}}
-        </span>
-      </div>
-
-      <div class="qc-checklist">
-        <div class="qc-item">
-          <span class="checkmark {{#if qualityControl.aesthetics}}pass{{else}}fail{{/if}}">
-            {{#if qualityControl.aesthetics}}✓{{else}}✗{{/if}}
-          </span>
-          {{t.aesthetics}}
-        </div>
-        <div class="qc-item">
-          <span class="checkmark {{#if qualityControl.fit}}pass{{else}}fail{{/if}}">
-            {{#if qualityControl.fit}}✓{{else}}✗{{/if}}
-          </span>
-          {{t.fit}}
-        </div>
-        <div class="qc-item">
-          <span class="checkmark {{#if qualityControl.occlusion}}pass{{else}}fail{{/if}}">
-            {{#if qualityControl.occlusion}}✓{{else}}✗{{/if}}
-          </span>
-          {{t.occlusion}}
-        </div>
-        <div class="qc-item">
-          <span class="checkmark {{#if qualityControl.shade}}pass{{else}}fail{{/if}}">
-            {{#if qualityControl.shade}}✓{{else}}✗{{/if}}
-          </span>
-          {{t.shade}}
-        </div>
-        <div class="qc-item">
-          <span class="checkmark {{#if qualityControl.margins}}pass{{else}}fail{{/if}}">
-            {{#if qualityControl.margins}}✓{{else}}✗{{/if}}
-          </span>
-          {{t.margins}}
-        </div>
-      </div>
-
-      {{#if qualityControl.notes}}
-        <div class="notes-box">
-          <div class="notes-label">{{t.notes}}:</div>
-          {{qualityControl.notes}}
-        </div>
-      {{/if}}
-
-      {{#if qualityControl.actionRequired}}
-        <div class="notes-box">
-          <div class="notes-label">{{t.actionRequired}}:</div>
-          {{qualityControl.actionRequired}}
-        </div>
-      {{/if}}
+    <div style="font-size: 7pt; line-height: 1.3; margin-bottom: 8px; padding: 6px 10px; background: {{#if qualityControl.approved}}#e8f5e9{{else}}#ffebee{{/if}}; border: 1px solid {{#if qualityControl.approved}}#a5d6a7{{else}}#ef9a9a{{/if}}; border-radius: 3px;">
+      <span style="font-weight: 600;">{{t.qualityControl}}:</span>
+      <span style="margin-left: 8px;">{{t.technician}}: {{qualityControl.inspector}}</span>
+      <span style="margin-left: 8px;">{{qualityControl.inspectionDate}}</span>
+      <span style="margin-left: 8px; font-weight: 700; color: {{#if qualityControl.approved}}#2e7d32{{else}}#c62828{{/if}};">{{qualityControl.result}}</span>
+      <span style="margin-left: 8px; color: #666;">
+        {{#if qualityControl.aesthetics}}✓{{else}}✗{{/if}} {{t.aesthetics}}
+        {{#if qualityControl.fit}}✓{{else}}✗{{/if}} {{t.fit}}
+        {{#if qualityControl.occlusion}}✓{{else}}✗{{/if}} {{t.occlusion}}
+        {{#if qualityControl.shade}}✓{{else}}✗{{/if}} {{t.shade}}
+        {{#if qualityControl.margins}}✓{{else}}✗{{/if}} {{t.margins}}
+      </span>
     </div>
   {{/if}}
 

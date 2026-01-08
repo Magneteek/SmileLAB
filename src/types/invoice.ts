@@ -167,7 +167,8 @@ export interface InvoiceSummary {
   invoiceNumber: string | null;
   dentistName: string;
   clinicName: string;
-  worksheetNumbers: string[]; // Multiple worksheets possible
+  worksheetNumbers: string[]; // Multiple worksheets possible (for display)
+  worksheets?: Array<{ id: string; number: string }>; // Worksheet data with IDs for linking
   patientName?: string | null; // Patient name from first worksheet (if any)
   invoiceDate: Date;
   dueDate: Date | null;

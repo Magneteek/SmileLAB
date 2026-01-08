@@ -401,10 +401,18 @@ async function prepareTemplateData(
   if (worksheet.qualityControls && worksheet.qualityControls.length > 0) {
     // Get the most recent QC record (should only be one per worksheet)
     const qc = worksheet.qualityControls[0];
+
+    // Translate QC result
+    const translateResult = (result: string): string => {
+      const resultKey = `qcResult${result.charAt(0).toUpperCase()}${result.slice(1).toLowerCase()}`;
+      return translations[resultKey] || result;
+    };
+
     qualityControlData = {
-      inspector: qc.inspector.name,
+      // Use technician name from lab settings instead of inspector
+      inspector: labConfig.responsiblePersonName,
       inspectionDate: formatDate(qc.inspectionDate),
-      result: qc.result,
+      result: translateResult(qc.result),
       approved: qc.result === 'APPROVED' || qc.result === 'CONDITIONAL',
       rejected: qc.result === 'REJECTED',
       aesthetics: qc.aesthetics,

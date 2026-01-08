@@ -304,7 +304,7 @@ export function OrderForm({
           />
         )}
 
-        <div className="grid grid-cols-2 gap-4">
+        <div className="flex gap-4">
           <FormField
             control={form.control}
             name="dueDate"
@@ -312,7 +312,7 @@ export function OrderForm({
               <FormItem>
                 <FormLabel>{t('order.formDueDateLabel')}</FormLabel>
                 <FormControl>
-                  <Input type="date" {...field} />
+                  <Input type="date" {...field} className="w-[180px]" />
                 </FormControl>
                 <FormDescription>
                   {t('order.formDueDateDescription')}
@@ -333,7 +333,7 @@ export function OrderForm({
                   defaultValue={field.value.toString()}
                 >
                   <FormControl>
-                    <SelectTrigger>
+                    <SelectTrigger className="w-[200px]">
                       <SelectValue placeholder={t('order.formPriorityPlaceholder')} />
                     </SelectTrigger>
                   </FormControl>

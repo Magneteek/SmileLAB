@@ -3,6 +3,7 @@
  *
  * Create or edit product with validation.
  * Uses React Hook Form + Zod for validation.
+ * Auto-generates product code based on category.
  */
 
 'use client';
@@ -34,6 +35,7 @@ import {
 } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
 import { useState, useEffect } from 'react';
+import { Loader2 } from 'lucide-react';
 
 // Note: Validation messages are kept in English as they're shown in the console/dev tools
 // User-facing validation errors are shown via FormMessage component using translation keys
@@ -41,8 +43,7 @@ const productFormSchema = z.object({
   code: z
     .string()
     .min(1, 'Product code is required')
-    .max(50, 'Product code too long')
-    .regex(/^[A-Z0-9-]+$/, 'Code must be uppercase letters, numbers, and hyphens only'),
+    .max(5, 'Product code must be 5 characters or less'),
   name: z.string().min(1, 'Product name is required').max(200),
   description: z.string().max(1000).optional().or(z.literal('')),
   category: z.nativeEnum(ProductCategory),
@@ -69,11 +70,8 @@ export default function ProductForm({
 }: ProductFormProps) {
   const t = useTranslations('pricing');
   const [submitting, setSubmitting] = useState(false);
+  const [isGeneratingCode, setIsGeneratingCode] = useState(false);
   const isEdit = !!product;
-
-  console.log('[ProductForm] Rendering with product:', product);
-  console.log('[ProductForm] Category from product:', product?.category);
-  console.log('[ProductForm] Unit from product:', product?.unit);
 
   const defaultValues = {
     code: product?.code || '',
@@ -85,17 +83,38 @@ export default function ProductForm({
     active: product?.active !== undefined ? product.active : true,
   };
 
-  console.log('[ProductForm] Default values:', defaultValues);
-
   const form = useForm<ProductFormValues>({
     resolver: zodResolver(productFormSchema),
     defaultValues,
   });
 
+  const currentCategory = form.watch('category');
+
+  // Auto-generate code when category changes (only for new products)
+  useEffect(() => {
+    if (isEdit) return; // Don't regenerate for existing products
+
+    const generateCode = async () => {
+      setIsGeneratingCode(true);
+      try {
+        const response = await fetch(`/api/products/generate-code?category=${currentCategory}`);
+        if (response.ok) {
+          const data = await response.json();
+          form.setValue('code', data.code);
+        }
+      } catch (error) {
+        console.error('Failed to generate code:', error);
+      } finally {
+        setIsGeneratingCode(false);
+      }
+    };
+
+    generateCode();
+  }, [currentCategory, isEdit, form]);
+
   // Reset form when product data changes (important for edit mode when data loads asynchronously)
   useEffect(() => {
     if (product) {
-      console.log('[ProductForm] Product changed, resetting form with:', product);
       form.reset({
         code: product.code || '',
         name: product.name || '',
@@ -109,13 +128,10 @@ export default function ProductForm({
   }, [product, form]);
 
   const onSubmit = async (data: ProductFormValues) => {
-    console.log('[ProductForm] Submitting:', { isEdit, productId: product?.id, data });
     setSubmitting(true);
     try {
       const url = isEdit ? `/api/products/${product.id}` : '/api/products';
       const method = isEdit ? 'PATCH' : 'POST';
-
-      console.log('[ProductForm] Fetching:', { url, method });
 
       const response = await fetch(url, {
         method,
@@ -125,15 +141,11 @@ export default function ProductForm({
         body: JSON.stringify(data),
       });
 
-      console.log('[ProductForm] Response status:', response.status);
-
       if (!response.ok) {
         const error = await response.json();
-        console.error('[ProductForm] Error response:', error);
 
         if (error.details) {
           // Validation errors
-          console.log('[ProductForm] Validation errors:', error.details);
           error.details.forEach((detail: any) => {
             form.setError(detail.path[0] as any, {
               message: detail.message,
@@ -146,7 +158,6 @@ export default function ProductForm({
       }
 
       const savedProduct = await response.json();
-      console.log('[ProductForm] Save successful:', savedProduct.id);
       onSuccess(savedProduct.id);
     } catch (error) {
       console.error('[ProductForm] Exception:', error);
@@ -156,40 +167,70 @@ export default function ProductForm({
     }
   };
 
-  // Auto-format code on blur
-  const handleCodeBlur = () => {
-    const currentCode = form.getValues('code');
-    if (currentCode) {
-      form.setValue('code', currentCode.toUpperCase().trim());
-    }
-  };
-
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-        {/* Product Code */}
-        <FormField
-          control={form.control}
-          name="code"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>{t('productCodeLabel')}</FormLabel>
-              <FormControl>
-                <Input
-                  {...field}
-                  placeholder={t('productCodePlaceholder')}
-                  onBlur={handleCodeBlur}
-                  className="font-mono uppercase"
-                  maxLength={7}
-                />
-              </FormControl>
-              <FormDescription>
-                {t('productCodeDescription')}
-              </FormDescription>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+        {/* Category - Now first for auto-code generation */}
+        <div className="grid grid-cols-2 gap-4">
+          <FormField
+            control={form.control}
+            name="category"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>{t('categoryLabel')}</FormLabel>
+                <Select
+                  onValueChange={field.onChange}
+                  defaultValue={field.value}
+                  disabled={isEdit}
+                >
+                  <FormControl>
+                    <SelectTrigger>
+                      <SelectValue placeholder={t('selectCategoryPlaceholder')} />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    {(['CROWN', 'BRIDGE', 'FILLING', 'IMPLANT', 'DENTURE', 'INLAY', 'ONLAY', 'VENEER', 'SPLINT', 'PROVISIONAL', 'TEMPLATE', 'ABUTMENT', 'SERVICE', 'REPAIR', 'MODEL'] as ProductCategory[]).map((category) => (
+                      <SelectItem key={category} value={category}>
+                        {t(`category${category}` as any)}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                {isEdit && (
+                  <FormDescription>{t('categoryCannotChange')}</FormDescription>
+                )}
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          {/* Product Code - Auto-generated */}
+          <FormField
+            control={form.control}
+            name="code"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>{t('productCodeLabel')}</FormLabel>
+                <FormControl>
+                  <div className="relative">
+                    <Input
+                      {...field}
+                      readOnly
+                      className="font-mono uppercase bg-muted"
+                    />
+                    {isGeneratingCode && (
+                      <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 animate-spin text-muted-foreground" />
+                    )}
+                  </div>
+                </FormControl>
+                <FormDescription>
+                  {t('productCodeAutoGenerated')}
+                </FormDescription>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        </div>
 
         {/* Product Name */}
         <FormField
@@ -229,37 +270,8 @@ export default function ProductForm({
           )}
         />
 
-        {/* Category and Price Row */}
+        {/* Price and Unit Row */}
         <div className="grid grid-cols-2 gap-4">
-          {/* Category */}
-          <FormField
-            control={form.control}
-            name="category"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>{t('categoryLabel')}</FormLabel>
-                <Select
-                  onValueChange={field.onChange}
-                  defaultValue={field.value}
-                >
-                  <FormControl>
-                    <SelectTrigger>
-                      <SelectValue placeholder={t('selectCategoryPlaceholder')} />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    {(['CROWN', 'BRIDGE', 'FILLING', 'IMPLANT', 'DENTURE', 'INLAY', 'ONLAY', 'VENEER', 'SPLINT', 'PROVISIONAL', 'TEMPLATE', 'ABUTMENT', 'SERVICE', 'REPAIR', 'MODEL'] as ProductCategory[]).map((category) => (
-                      <SelectItem key={category} value={category}>
-                        {t(`category${category}` as any)}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
           {/* Price */}
           <FormField
             control={form.control}
@@ -284,10 +296,7 @@ export default function ProductForm({
               </FormItem>
             )}
           />
-        </div>
 
-        {/* Unit and Active Row */}
-        <div className="grid grid-cols-2 gap-4">
           {/* Unit */}
           <FormField
             control={form.control}
@@ -316,29 +325,29 @@ export default function ProductForm({
               </FormItem>
             )}
           />
-
-          {/* Active Status */}
-          <FormField
-            control={form.control}
-            name="active"
-            render={({ field }) => (
-              <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
-                <div className="space-y-0.5">
-                  <FormLabel className="text-base">{t('activeLabel')}</FormLabel>
-                  <FormDescription>
-                    {t('activeDescription')}
-                  </FormDescription>
-                </div>
-                <FormControl>
-                  <Switch
-                    checked={field.value}
-                    onCheckedChange={field.onChange}
-                  />
-                </FormControl>
-              </FormItem>
-            )}
-          />
         </div>
+
+        {/* Active Status */}
+        <FormField
+          control={form.control}
+          name="active"
+          render={({ field }) => (
+            <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
+              <div className="space-y-0.5">
+                <FormLabel className="text-base">{t('activeLabel')}</FormLabel>
+                <FormDescription>
+                  {t('activeDescription')}
+                </FormDescription>
+              </div>
+              <FormControl>
+                <Switch
+                  checked={field.value}
+                  onCheckedChange={field.onChange}
+                />
+              </FormControl>
+            </FormItem>
+          )}
+        />
 
         {/* Form Actions */}
         <div className="flex justify-end gap-4">
@@ -350,7 +359,7 @@ export default function ProductForm({
           >
             {t('cancel')}
           </Button>
-          <Button type="submit" disabled={submitting}>
+          <Button type="submit" disabled={submitting || isGeneratingCode}>
             {submitting ? t('saving') : isEdit ? t('updateProduct') : t('createProduct')}
           </Button>
         </div>

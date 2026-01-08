@@ -24,6 +24,69 @@ import {
 } from '@/types/product';
 import { Decimal } from '@prisma/client/runtime/library';
 
+// ============================================================================
+// CODE AUTO-GENERATION
+// ============================================================================
+
+/**
+ * Product category to 3-letter prefix mapping
+ */
+const PRODUCT_CATEGORY_PREFIXES: Record<string, string> = {
+  CROWN: 'CRO',
+  BRIDGE: 'BRI',
+  FILLING: 'FIL',
+  IMPLANT: 'IMP',
+  DENTURE: 'DEN',
+  INLAY: 'INL',
+  ONLAY: 'ONL',
+  VENEER: 'VEN',
+  SPLINT: 'SPL',
+  PROVISIONAL: 'PRV',
+  TEMPLATE: 'TMP',
+  ABUTMENT: 'ABT',
+  SERVICE: 'SVC',
+  REPAIR: 'REP',
+  MODEL: 'MOD',
+};
+
+/**
+ * Generate next sequential code for a product category
+ * Format: XXX## (e.g., CRO01, BRI02, IMP03)
+ */
+export async function generateProductCode(category: string): Promise<string> {
+  const prefix = PRODUCT_CATEGORY_PREFIXES[category] || 'PRD';
+
+  // Find highest existing code with this prefix
+  const existingProducts = await prisma.product.findMany({
+    where: {
+      code: { startsWith: prefix },
+    },
+    select: { code: true },
+    orderBy: { code: 'desc' },
+  });
+
+  let nextNumber = 1;
+
+  if (existingProducts.length > 0) {
+    // Extract numbers from existing codes and find max
+    for (const prod of existingProducts) {
+      const numPart = prod.code.replace(prefix, '');
+      const num = parseInt(numPart, 10);
+      if (!isNaN(num) && num >= nextNumber) {
+        nextNumber = num + 1;
+      }
+    }
+  }
+
+  // Format with leading zero (01-99)
+  const formattedNum = nextNumber.toString().padStart(2, '0');
+  return `${prefix}${formattedNum}`;
+}
+
+// ============================================================================
+// AUDIT LOGGING
+// ============================================================================
+
 /**
  * Create audit log entry
  */

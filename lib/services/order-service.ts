@@ -23,14 +23,13 @@ import {
 
 /**
  * Get next sequential order number from SystemConfig
- * Format: YYXXX (e.g., 25001, 25002, 25003...)
- * YY = last 2 digits of current year
+ * Format: YYXXX (e.g., 26001, 26002, 26003...)
+ * YY = last 2 digits of year
  * XXX = 3-digit sequential number (resets each year)
  */
 async function getNextOrderNumber(): Promise<string> {
   const result = await prisma.$transaction(async (tx) => {
     const currentYear = new Date().getFullYear();
-    const yearSuffix = currentYear.toString().slice(-2); // Last 2 digits (e.g., "25" for 2025)
     const configKey = `next_order_number_${currentYear}`;
 
     // Get or create the year-specific order number config
@@ -58,9 +57,11 @@ async function getNextOrderNumber(): Promise<string> {
       data: { value: nextNumber.toString() },
     });
 
-    // Return formatted: YYXXX (e.g., 25001)
+    // Return formatted: YYXXX (e.g., 26001)
+    // Get last 2 digits of year
+    const yearLastTwoDigits = currentYear.toString().slice(-2);
     const sequentialPart = currentNumber.toString().padStart(3, '0');
-    return `${yearSuffix}${sequentialPart}`;
+    return `${yearLastTwoDigits}${sequentialPart}`;
   });
 
   return result;

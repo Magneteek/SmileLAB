@@ -11,8 +11,8 @@ import { prisma } from '@/lib/prisma';
  * Generate worksheet number for an order
  *
  * Logic:
- * - First worksheet: DN-{orderNumber} (e.g., DN-25003)
- * - Subsequent worksheets (after void): DN-{orderNumber}-R{N} (e.g., DN-25003-R1)
+ * - First worksheet: DN-{orderNumber} (e.g., DN-26001)
+ * - Subsequent worksheets (after void): DN-{orderNumber}-R{N} (e.g., DN-26001-R1)
  *
  * @param orderId - Order ID
  * @returns Worksheet number string
@@ -58,7 +58,7 @@ export async function generateWorksheetNumber(orderId: string): Promise<string> 
 /**
  * Parse worksheet number to extract order number and revision
  *
- * @param worksheetNumber - Worksheet number (e.g., "DN-25003" or "DN-25003-R1")
+ * @param worksheetNumber - Worksheet number (e.g., "DN-26001" or "DN-26001-R1")
  * @returns Object with orderNumber and revision
  */
 export function parseWorksheetNumber(worksheetNumber: string): {
@@ -91,8 +91,8 @@ export function hasRevisionSuffix(worksheetNumber: string): boolean {
 /**
  * Get base worksheet number (without revision suffix)
  *
- * @param worksheetNumber - Worksheet number (e.g., "DN-25003-R1")
- * @returns Base number (e.g., "DN-25003")
+ * @param worksheetNumber - Worksheet number (e.g., "DN-26001-R1")
+ * @returns Base number (e.g., "DN-26001")
  */
 export function getBaseWorksheetNumber(worksheetNumber: string): string {
   const parsed = parseWorksheetNumber(worksheetNumber);

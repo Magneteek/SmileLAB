@@ -113,8 +113,8 @@ export function VoidWorksheetButton({
               <AlertTriangle className="h-5 w-5 text-red-600" />
               {t('worksheet.voidTitle')}
             </DialogTitle>
-            <DialogDescription>
-              {t('worksheet.voidingWorksheet', { number: worksheetNumber })}
+            <div className="text-muted-foreground text-sm">
+              <p>{t('worksheet.voidingWorksheet', { number: worksheetNumber })}</p>
               <ul className="list-disc list-inside mt-2 space-y-1">
                 <li>{t('worksheet.voidBullet1')}</li>
                 <li>{t('worksheet.voidBullet2')}</li>
@@ -124,7 +124,7 @@ export function VoidWorksheetButton({
               <p className="mt-3 text-red-600 font-medium">
                 {t('worksheet.voidWarning')}
               </p>
-            </DialogDescription>
+            </div>
           </DialogHeader>
 
           <div className="space-y-2">

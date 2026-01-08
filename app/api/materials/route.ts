@@ -130,6 +130,14 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Validate code length (max 5 characters)
+    if (body.code.trim().length > 5) {
+      return NextResponse.json(
+        { error: 'Material code must be 5 characters or less' },
+        { status: 400 }
+      );
+    }
+
     // Validate material type
     if (!Object.values(MaterialType).includes(body.type)) {
       return NextResponse.json(
