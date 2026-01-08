@@ -202,44 +202,6 @@ export async function sendEmail(
  * }
  * ```
  */
-/**
- * Convert image file to base64 data URL
- */
-async function imageToBase64(filePath: string): Promise<string | null> {
-  try {
-    console.log(`[Email Service] Converting image to base64: ${filePath}`);
-
-    // Convert public URL path to filesystem path
-    let absolutePath: string;
-    if (filePath.startsWith('/')) {
-      // Remove leading slash and prepend 'public/'
-      absolutePath = path.join(process.cwd(), 'public', filePath.slice(1));
-    } else {
-      absolutePath = path.join(process.cwd(), filePath);
-    }
-
-    console.log(`[Email Service] Reading image from: ${absolutePath}`);
-    const imageBuffer = await fs.readFile(absolutePath);
-    const base64 = imageBuffer.toString('base64');
-
-    const ext = path.extname(filePath).toLowerCase();
-    const mimeTypes: Record<string, string> = {
-      '.png': 'image/png',
-      '.jpg': 'image/jpeg',
-      '.jpeg': 'image/jpeg',
-      '.gif': 'image/gif',
-      '.svg': 'image/svg+xml',
-    };
-    const mimeType = mimeTypes[ext] || 'image/png';
-
-    console.log(`[Email Service] ✅ Image converted successfully (${(base64.length / 1024).toFixed(2)} KB, ${mimeType})`);
-    return `data:${mimeType};base64,${base64}`;
-  } catch (error) {
-    console.error('Failed to convert image to base64:', error);
-    return null;
-  }
-}
-
 export async function sendInvoiceEmail(
   invoiceId: string,
   recipientEmail: string
@@ -278,19 +240,8 @@ export async function sendInvoiceEmail(
     };
   }
 
-  // Convert logo to base64 if it exists
-  let logoBase64: string | null = null;
-  if (labConfig.logoPath) {
-    console.log(`[Email Service] Lab config has logoPath: ${labConfig.logoPath}`);
-    logoBase64 = await imageToBase64(labConfig.logoPath);
-    if (!logoBase64) {
-      console.warn('[Email Service] ⚠️ Logo conversion failed, logo will not appear in email');
-    } else {
-      console.log('[Email Service] ✅ Logo ready for email embedding');
-    }
-  } else {
-    console.log('[Email Service] ⚠️ No logoPath configured in lab settings');
-  }
+  // Logo disabled - using text-only header for email size optimization
+  const logoBase64 = null;
 
   // Get PDF from file system (stored at pdfPath)
   console.log('[Email Service] PDF path available:', invoice.pdfPath ? 'Yes' : 'No');
@@ -322,7 +273,7 @@ export async function sendInvoiceEmail(
 
   console.log('[Email Service] Generating email HTML...');
   // Generate email HTML with lab configuration
-  const emailHtml = generateInvoiceEmailHtml(invoice, labConfig, logoBase64);
+  const emailHtml = generateInvoiceEmailHtml(invoice, labConfig);
 
   console.log('[Email Service] Sending email with PDF attachment...');
   // Send email with PDF attachment
@@ -354,10 +305,9 @@ export async function sendInvoiceEmail(
  *
  * @param invoice - Invoice data with relations
  * @param labConfig - Laboratory configuration with bank accounts
- * @param logoBase64 - Base64 encoded logo image (optional)
  * @returns HTML email body
  */
-function generateInvoiceEmailHtml(invoice: any, labConfig: any, logoBase64: string | null = null): string {
+function generateInvoiceEmailHtml(invoice: any, labConfig: any): string {
   // Get dentist name from invoice.dentist
   const dentistName = invoice.dentist?.name || 'Spoštovani';
   const invoiceNumber = invoice.invoiceNumber;
@@ -391,11 +341,10 @@ function generateInvoiceEmailHtml(invoice: any, labConfig: any, logoBase64: stri
 </head>
 <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #f5f5f5;">
 
-  <!-- Header with Logo and Branding -->
-  <div style="background-color: #007289; padding: 30px 20px; text-align: center; border-radius: 8px 8px 0 0;">
-    ${logoBase64 ? `<img src="${logoBase64}" alt="${labName}" style="max-height: 60px; max-width: 200px; margin-bottom: 15px;" />` : ''}
-    <h1 style="color: white; margin: ${logoBase64 ? '10px' : '0'} 0 5px 0; font-size: 26px; font-weight: 600;">${labName}</h1>
-    <p style="color: rgba(255,255,255,0.9); margin: 0; font-size: 14px;">Zobotehnični laboratorij</p>
+  <!-- Header with Branding -->
+  <div style="background-color: #007289; padding: 35px 20px; text-align: center; border-radius: 8px 8px 0 0;">
+    <h1 style="color: white; margin: 0 0 8px 0; font-size: 24px; font-weight: 600; line-height: 1.3;">DENTRO</h1>
+    <p style="color: rgba(255,255,255,0.95); margin: 0; font-size: 14px; line-height: 1.5;">Zobozdravstvene storitve in svetovanje, d.o.o.</p>
   </div>
 
   <!-- Main Content -->
