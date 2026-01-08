@@ -277,7 +277,7 @@ export async function sendInvoiceEmail(
   return await sendEmail(
     {
       to: recipientEmail,
-      subject: `Invoice ${invoice.invoiceNumber} - €${invoice.totalAmount.toFixed(2)}`,
+      subject: `Račun ${invoice.invoiceNumber} - €${invoice.totalAmount.toFixed(2)}`,
       html: emailHtml,
       attachments: [
         {
@@ -306,7 +306,7 @@ export async function sendInvoiceEmail(
  */
 function generateInvoiceEmailHtml(invoice: any, labConfig: any): string {
   // Get dentist name from invoice.dentist
-  const dentistName = invoice.dentist?.name || 'Valued Customer';
+  const dentistName = invoice.dentist?.name || 'Spoštovani';
   const invoiceNumber = invoice.invoiceNumber;
   const totalAmount = invoice.totalAmount.toFixed(2);
   const dueDate = invoice.dueDate
@@ -315,7 +315,7 @@ function generateInvoiceEmailHtml(invoice: any, labConfig: any): string {
         month: '2-digit',
         day: '2-digit',
       })
-    : 'Upon receipt';
+    : 'Ob prejemu';
 
   // Get lab information
   const labName = labConfig.laboratoryName;
@@ -341,27 +341,27 @@ function generateInvoiceEmailHtml(invoice: any, labConfig: any): string {
   <!-- Header -->
   <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 30px; text-align: center; border-radius: 10px 10px 0 0;">
     <h1 style="color: white; margin: 0; font-size: 28px;">${labName}</h1>
-    <p style="color: rgba(255,255,255,0.9); margin: 5px 0 0 0; font-size: 14px;">Dental Laboratory</p>
+    <p style="color: rgba(255,255,255,0.9); margin: 5px 0 0 0; font-size: 14px;">Zobotehniški laboratorij</p>
   </div>
 
   <!-- Main Content -->
   <div style="background: #f9fafb; padding: 30px; border-radius: 0 0 10px 10px;">
 
-    <p style="font-size: 16px; margin-bottom: 20px;">Dear ${dentistName},</p>
+    <p style="font-size: 16px; margin-bottom: 20px;">Spoštovani ${dentistName},</p>
 
     <p style="font-size: 15px; color: #555; margin-bottom: 25px;">
-      Please find attached invoice <strong>${invoiceNumber}</strong> for the dental work completed for your patient.
+      V prilogi najdete račun <strong>${invoiceNumber}</strong> za opravljeno zobotehnično delo za vašega pacienta.
     </p>
 
     <!-- Invoice Summary Box -->
     <div style="background: white; border-left: 4px solid #667eea; padding: 20px; margin: 25px 0; border-radius: 5px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
       <table style="width: 100%; border-collapse: collapse;">
         <tr>
-          <td style="padding: 8px 0; color: #666; font-size: 14px;">Invoice Number:</td>
+          <td style="padding: 8px 0; color: #666; font-size: 14px;">Številka računa:</td>
           <td style="padding: 8px 0; text-align: right; font-weight: bold; font-size: 14px;">${invoiceNumber}</td>
         </tr>
         <tr>
-          <td style="padding: 8px 0; color: #666; font-size: 14px;">Invoice Date:</td>
+          <td style="padding: 8px 0; color: #666; font-size: 14px;">Datum računa:</td>
           <td style="padding: 8px 0; text-align: right; font-size: 14px;">${new Date(invoice.invoiceDate).toLocaleDateString('sl-SI', {
             year: 'numeric',
             month: '2-digit',
@@ -369,11 +369,11 @@ function generateInvoiceEmailHtml(invoice: any, labConfig: any): string {
           })}</td>
         </tr>
         <tr>
-          <td style="padding: 8px 0; color: #666; font-size: 14px;">Due Date:</td>
+          <td style="padding: 8px 0; color: #666; font-size: 14px;">Rok plačila:</td>
           <td style="padding: 8px 0; text-align: right; font-size: 14px;">${dueDate}</td>
         </tr>
         <tr style="border-top: 2px solid #e5e7eb;">
-          <td style="padding: 12px 0 0 0; color: #667eea; font-weight: bold; font-size: 16px;">Total Amount:</td>
+          <td style="padding: 12px 0 0 0; color: #667eea; font-weight: bold; font-size: 16px;">Skupni znesek:</td>
           <td style="padding: 12px 0 0 0; text-align: right; color: #667eea; font-weight: bold; font-size: 20px;">€${totalAmount}</td>
         </tr>
       </table>
@@ -381,21 +381,21 @@ function generateInvoiceEmailHtml(invoice: any, labConfig: any): string {
 
     <!-- Payment Instructions -->
     <div style="background: #fffbeb; border-left: 4px solid #f59e0b; padding: 15px; margin: 25px 0; border-radius: 5px;">
-      <h3 style="margin: 0 0 10px 0; color: #92400e; font-size: 16px;">Payment Information</h3>
+      <h3 style="margin: 0 0 10px 0; color: #92400e; font-size: 16px;">Podatki za plačilo</h3>
       <p style="margin: 5px 0; font-size: 14px; color: #78350f;">
-        <strong>Bank:</strong> ${bankName}<br>
+        <strong>Banka:</strong> ${bankName}<br>
         <strong>IBAN:</strong> ${iban}<br>
-        <strong>Reference:</strong> ${invoiceNumber}
+        <strong>Sklic:</strong> ${invoiceNumber}
       </p>
     </div>
 
     <!-- Footer Message -->
     <p style="font-size: 14px; color: #555; margin-top: 25px;">
-      If you have any questions regarding this invoice, please don't hesitate to contact us.
+      Če imate kakršnakoli vprašanja glede tega računa, nas prosim kontaktirajte.
     </p>
 
     <p style="font-size: 14px; color: #555; margin-top: 20px;">
-      Best regards,<br>
+      Lep pozdrav,<br>
       <strong>${labName}</strong>
     </p>
 
@@ -405,11 +405,11 @@ function generateInvoiceEmailHtml(invoice: any, labConfig: any): string {
   <div style="text-align: center; margin-top: 30px; padding-top: 20px; border-top: 1px solid #e5e7eb;">
     <p style="font-size: 12px; color: #9ca3af; margin: 5px 0;">
       ${labName}<br>
-      Email: ${labEmail} | Phone: ${labPhone}<br>
-      Address: ${labAddress}
+      E-pošta: ${labEmail} | Telefon: ${labPhone}<br>
+      Naslov: ${labAddress}
     </p>
     <p style="font-size: 11px; color: #d1d5db; margin: 10px 0 0 0;">
-      This is an automated email. Please do not reply directly to this message.
+      To je avtomatsko sporočilo. Prosimo, ne odgovarjajte neposredno na to sporočilo.
     </p>
   </div>
 
