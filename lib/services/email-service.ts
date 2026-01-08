@@ -331,92 +331,52 @@ function generateInvoiceEmailHtml(invoice: any, labConfig: any): string {
   const bankName = primaryBankAccount?.bankName || '[Bank Name]';
   const iban = primaryBankAccount?.iban || 'SI56 XXXX XXXX XXXX XXX';
 
-  return `
-<!DOCTYPE html>
+  return `<!DOCTYPE html>
 <html lang="sl">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Račun ${invoiceNumber}</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Račun ${invoiceNumber}</title>
 </head>
 <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #f5f5f5;">
-
-  <!-- Header with Branding -->
-  <div style="background-color: #007289; padding: 35px 20px; text-align: center; border-radius: 8px 8px 0 0;">
-    <h1 style="color: white; margin: 0 0 8px 0; font-size: 24px; font-weight: 600; line-height: 1.3;">DENTRO</h1>
-    <p style="color: rgba(255,255,255,0.95); margin: 0; font-size: 14px; line-height: 1.5;">Zobozdravstvene storitve in svetovanje, d.o.o.</p>
-  </div>
-
-  <!-- Main Content -->
-  <div style="background: white; padding: 35px 30px; border-radius: 0 0 8px 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
-
-    <p style="font-size: 16px; margin-bottom: 20px; color: #333;">Spoštovani ${dentistName},</p>
-
-    <p style="font-size: 15px; color: #555; margin-bottom: 30px; line-height: 1.6;">
-      V prilogi najdete račun <strong style="color: #007289;">${invoiceNumber}</strong> za opravljeno zobotehnično delo za vašega pacienta.
-    </p>
-
-    <!-- Invoice Summary Box -->
-    <div style="background: #f0f7f9; padding: 25px; margin: 30px 0; border-radius: 6px;">
-      <table style="width: 100%; border-collapse: collapse;">
-        <tr>
-          <td style="padding: 10px 0; color: #666; font-size: 14px;">Številka računa:</td>
-          <td style="padding: 10px 0; text-align: right; font-weight: 600; font-size: 14px; color: #007289;">${invoiceNumber}</td>
-        </tr>
-        <tr>
-          <td style="padding: 10px 0; color: #666; font-size: 14px;">Datum računa:</td>
-          <td style="padding: 10px 0; text-align: right; font-size: 14px;">${new Date(invoice.invoiceDate).toLocaleDateString('sl-SI', {
-            year: 'numeric',
-            month: '2-digit',
-            day: '2-digit',
-          })}</td>
-        </tr>
-        <tr>
-          <td style="padding: 10px 0; color: #666; font-size: 14px;">Rok plačila:</td>
-          <td style="padding: 10px 0; text-align: right; font-size: 14px;">${dueDate}</td>
-        </tr>
-        <tr style="border-top: 2px solid #007289;">
-          <td style="padding: 15px 0 0 0; color: #007289; font-weight: 700; font-size: 16px;">Skupni znesek:</td>
-          <td style="padding: 15px 0 0 0; text-align: right; color: #007289; font-weight: 700; font-size: 22px;">€${totalAmount}</td>
-        </tr>
-      </table>
-    </div>
-
-    <!-- Payment Instructions -->
-    <div style="background: #fff8f0; padding: 20px; margin: 30px 0; border-radius: 6px; border-top: 3px solid #D2804D;">
-      <h3 style="margin: 0 0 12px 0; color: #D2804D; font-size: 16px; font-weight: 600;">Podatki za plačilo</h3>
-      <p style="margin: 0; font-size: 14px; color: #555; line-height: 1.8;">
-        <strong>Banka:</strong> ${bankName}<br>
-        <strong>IBAN:</strong> ${iban}<br>
-        <strong>Sklic:</strong> ${invoiceNumber}
-      </p>
-    </div>
-
-    <!-- Footer Message -->
-    <p style="font-size: 14px; color: #666; margin-top: 30px; line-height: 1.6;">
-      Če imate kakršnakoli vprašanja glede tega računa, nas prosim kontaktirajte.
-    </p>
-
-    <p style="font-size: 14px; color: #333; margin-top: 25px;">
-      Lep pozdrav,<br>
-      <strong style="color: #007289;">${labName}</strong>
-    </p>
-
-  </div>
-
-  <!-- Footer -->
-  <div style="text-align: center; margin-top: 25px; padding: 20px; background: white; border-radius: 6px; box-shadow: 0 1px 4px rgba(0,0,0,0.05);">
-    <p style="font-size: 12px; color: #666; margin: 5px 0; line-height: 1.8;">
-      <strong style="color: #007289;">${labName}</strong><br>
-      E-pošta: <a href="mailto:${labEmail}" style="color: #007289; text-decoration: none;">${labEmail}</a> | Telefon: ${labPhone}<br>
-      Naslov: ${labAddress}
-    </p>
-    <p style="font-size: 11px; color: #999; margin: 15px 0 0 0;">
-      To je avtomatsko sporočilo. Prosimo, ne odgovarjajte neposredno na to sporočilo.
-    </p>
-  </div>
-
+<div style="background-color: #007289; padding: 35px 20px; text-align: center; border-radius: 8px 8px 0 0;">
+<h1 style="color: white; margin: 0 0 8px 0; font-size: 24px; font-weight: 600; line-height: 1.3;">DENTRO</h1>
+<p style="color: rgba(255,255,255,0.95); margin: 0; font-size: 14px; line-height: 1.5;">Zobozdravstvene storitve in svetovanje, d.o.o.</p>
+</div>
+<div style="background: white; padding: 35px 30px; border-radius: 0 0 8px 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+<p style="font-size: 16px; margin-bottom: 20px; color: #333;">Spoštovani ${dentistName},</p>
+<p style="font-size: 15px; color: #555; margin-bottom: 30px; line-height: 1.6;">V prilogi najdete račun <strong style="color: #007289;">${invoiceNumber}</strong> za opravljeno zobotehnično delo za vašega pacienta.</p>
+<div style="background: #f0f7f9; padding: 25px; margin: 30px 0; border-radius: 6px;">
+<table style="width: 100%; border-collapse: collapse;">
+<tr>
+<td style="padding: 10px 0; color: #666; font-size: 14px;">Številka računa:</td>
+<td style="padding: 10px 0; text-align: right; font-weight: 600; font-size: 14px; color: #007289;">${invoiceNumber}</td>
+</tr>
+<tr>
+<td style="padding: 10px 0; color: #666; font-size: 14px;">Datum računa:</td>
+<td style="padding: 10px 0; text-align: right; font-size: 14px;">${new Date(invoice.invoiceDate).toLocaleDateString('sl-SI', { year: 'numeric', month: '2-digit', day: '2-digit' })}</td>
+</tr>
+<tr>
+<td style="padding: 10px 0; color: #666; font-size: 14px;">Rok plačila:</td>
+<td style="padding: 10px 0; text-align: right; font-size: 14px;">${dueDate}</td>
+</tr>
+<tr style="border-top: 2px solid #007289;">
+<td style="padding: 15px 0 0 0; color: #007289; font-weight: 700; font-size: 16px;">Skupni znesek:</td>
+<td style="padding: 15px 0 0 0; text-align: right; color: #007289; font-weight: 700; font-size: 22px;">€${totalAmount}</td>
+</tr>
+</table>
+</div>
+<div style="background: #fff8f0; padding: 20px; margin: 30px 0; border-radius: 6px; border-top: 3px solid #D2804D;">
+<h3 style="margin: 0 0 12px 0; color: #D2804D; font-size: 16px; font-weight: 600;">Podatki za plačilo</h3>
+<p style="margin: 0; font-size: 14px; color: #555; line-height: 1.8;"><strong>Banka:</strong> ${bankName}<br><strong>IBAN:</strong> ${iban}<br><strong>Sklic:</strong> ${invoiceNumber}</p>
+</div>
+<p style="font-size: 14px; color: #666; margin-top: 30px; line-height: 1.6;">Če imate kakršnakoli vprašanja glede tega računa, nas prosim kontaktirajte.</p>
+<p style="font-size: 14px; color: #333; margin-top: 25px;">Lep pozdrav,<br><strong style="color: #007289;">${labName}</strong></p>
+</div>
+<div style="text-align: center; margin-top: 25px; padding: 20px; background: white; border-radius: 6px; box-shadow: 0 1px 4px rgba(0,0,0,0.05);">
+<p style="font-size: 12px; color: #666; margin: 5px 0; line-height: 1.8;"><strong style="color: #007289;">${labName}</strong><br>E-pošta: <a href="mailto:${labEmail}" style="color: #007289; text-decoration: none;">${labEmail}</a> | Telefon: ${labPhone}<br>Naslov: ${labAddress}</p>
+<p style="font-size: 11px; color: #999; margin: 15px 0 0 0;">To je avtomatsko sporočilo. Prosimo, ne odgovarjajte neposredno na to sporočilo.</p>
+</div>
 </body>
-</html>
-  `;
+</html>`;
 }
