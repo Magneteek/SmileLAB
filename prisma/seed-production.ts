@@ -101,62 +101,8 @@ async function main() {
 
   console.log('✅ Created system configuration\n');
 
-  // ============================================================================
-  // LABORATORY CONFIGURATION (for Annex XIII & Invoices)
-  // ============================================================================
-  console.log('🏥 Creating laboratory configuration...');
-
-  const labConfig = await prisma.labConfiguration.create({
-    data: {
-      // Laboratory Information
-      laboratoryName: 'Dentro d.o.o.',
-      laboratoryId: 'SI-LAB-2026-001',
-      laboratoryLicense: 'ZT-SI-12345',
-      registrationNumber: '1234567000',
-      taxId: 'SI12345678',
-      technicianIdNumber: 'ZT-12345',
-
-      // Address
-      street: 'Cesta v Mestni log 1',
-      city: 'Ljubljana',
-      postalCode: '1000',
-      country: 'Slovenia',
-
-      // Contact
-      phone: '+386 1 234 5678',
-      email: 'info@dentro.si',
-      website: 'https://www.dentro.si',
-
-      // Responsible Person
-      responsiblePersonName: 'Admin',
-      responsiblePersonTitle: 'Kvalitetni vodja / Quality Manager',
-      responsiblePersonLicense: 'QM-SI-67890',
-      responsiblePersonEmail: 'info@dentro.si',
-      responsiblePersonPhone: '+386 40 123 456',
-
-      // Settings
-      defaultPaymentTerms: 30,
-      defaultTaxRate: 22.00,
-
-      updatedBy: admin.id,
-    },
-  });
-
-  // Create bank account
-  await prisma.bankAccount.create({
-    data: {
-      labConfigurationId: labConfig.id,
-      bankName: 'NLB d.d. Ljubljana',
-      swiftBic: 'LJBASI2X',
-      iban: 'SI56 0110 0100 0123 456',
-      accountType: 'PRIMARY',
-      isActive: true,
-      isPrimary: true,
-      displayOrder: 0,
-    },
-  });
-
-  console.log('✅ Created laboratory configuration with 1 bank account\n');
+  // Lab configuration will be set up via UI in Settings
+  console.log('ℹ️  Lab configuration can be set up via UI (Settings → Lab Configuration)\n');
 
   // ============================================================================
   // SUMMARY
@@ -164,8 +110,7 @@ async function main() {
   console.log('✅ PRODUCTION database seed completed successfully!\n');
   console.log('📊 Summary:');
   console.log(`   - Users: 2 (1 admin, 1 technician)`);
-  console.log(`   - System Config: 8 settings`);
-  console.log(`   - Lab Configuration: 1 with 1 bank account\n`);
+  console.log(`   - System Config: 8 settings\n`);
 
   console.log('🔑 PRODUCTION Login Credentials:');
   console.log('   Admin:       info@dentro.si / DentroAdm1n2026');
