@@ -77,7 +77,7 @@ async function main() {
 
   // 4. Delete invoice items and invoices
   console.log('Deleting invoice items...');
-  const deletedInvoiceItems = await prisma.invoiceItem.deleteMany({});
+  const deletedInvoiceItems = await prisma.invoiceLineItem.deleteMany({});
   console.log(`✓ Deleted ${deletedInvoiceItems.count} invoice items`);
 
   console.log('Deleting invoices...');
