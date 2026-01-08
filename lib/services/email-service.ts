@@ -202,6 +202,29 @@ export async function sendEmail(
  * }
  * ```
  */
+/**
+ * Convert image file to base64 data URL
+ */
+async function imageToBase64(filePath: string): Promise<string | null> {
+  try {
+    const imageBuffer = await fs.readFile(filePath);
+    const base64 = imageBuffer.toString('base64');
+    const ext = path.extname(filePath).toLowerCase();
+    const mimeTypes: Record<string, string> = {
+      '.png': 'image/png',
+      '.jpg': 'image/jpeg',
+      '.jpeg': 'image/jpeg',
+      '.gif': 'image/gif',
+      '.svg': 'image/svg+xml',
+    };
+    const mimeType = mimeTypes[ext] || 'image/png';
+    return `data:${mimeType};base64,${base64}`;
+  } catch (error) {
+    console.error('Failed to convert image to base64:', error);
+    return null;
+  }
+}
+
 export async function sendInvoiceEmail(
   invoiceId: string,
   recipientEmail: string
@@ -240,6 +263,20 @@ export async function sendInvoiceEmail(
     };
   }
 
+  // Convert logo to base64 if it exists
+  let logoBase64: string | null = null;
+  if (labConfig.logoPath) {
+    console.log(`[Email Service] Lab config has logoPath: ${labConfig.logoPath}`);
+    logoBase64 = await imageToBase64(labConfig.logoPath);
+    if (!logoBase64) {
+      console.warn('[Email Service] ⚠️ Logo conversion failed, logo will not appear in email');
+    } else {
+      console.log('[Email Service] ✅ Logo ready for email embedding');
+    }
+  } else {
+    console.log('[Email Service] ⚠️ No logoPath configured in lab settings');
+  }
+
   // Get PDF from file system (stored at pdfPath)
   console.log('[Email Service] PDF path available:', invoice.pdfPath ? 'Yes' : 'No');
   console.log('[Email Service] PDF path:', invoice.pdfPath);
@@ -270,7 +307,7 @@ export async function sendInvoiceEmail(
 
   console.log('[Email Service] Generating email HTML...');
   // Generate email HTML with lab configuration
-  const emailHtml = generateInvoiceEmailHtml(invoice, labConfig);
+  const emailHtml = generateInvoiceEmailHtml(invoice, labConfig, logoBase64);
 
   console.log('[Email Service] Sending email with PDF attachment...');
   // Send email with PDF attachment
@@ -302,9 +339,10 @@ export async function sendInvoiceEmail(
  *
  * @param invoice - Invoice data with relations
  * @param labConfig - Laboratory configuration with bank accounts
+ * @param logoBase64 - Base64 encoded logo image (optional)
  * @returns HTML email body
  */
-function generateInvoiceEmailHtml(invoice: any, labConfig: any): string {
+function generateInvoiceEmailHtml(invoice: any, labConfig: any, logoBase64: string | null = null): string {
   // Get dentist name from invoice.dentist
   const dentistName = invoice.dentist?.name || 'Spoštovani';
   const invoiceNumber = invoice.invoiceNumber;
@@ -334,55 +372,56 @@ function generateInvoiceEmailHtml(invoice: any, labConfig: any): string {
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Invoice ${invoiceNumber}</title>
+  <title>Račun ${invoiceNumber}</title>
 </head>
-<body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
+<body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #f5f5f5;">
 
-  <!-- Header -->
-  <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 30px; text-align: center; border-radius: 10px 10px 0 0;">
-    <h1 style="color: white; margin: 0; font-size: 28px;">${labName}</h1>
-    <p style="color: rgba(255,255,255,0.9); margin: 5px 0 0 0; font-size: 14px;">Zobotehniški laboratorij</p>
+  <!-- Header with Logo and Branding -->
+  <div style="background-color: #007289; padding: 30px 20px; text-align: center; border-radius: 8px 8px 0 0;">
+    ${logoBase64 ? `<img src="${logoBase64}" alt="${labName}" style="max-height: 60px; max-width: 200px; margin-bottom: 15px;" />` : ''}
+    <h1 style="color: white; margin: ${logoBase64 ? '10px' : '0'} 0 5px 0; font-size: 26px; font-weight: 600;">${labName}</h1>
+    <p style="color: rgba(255,255,255,0.9); margin: 0; font-size: 14px;">Zobotehnični laboratorij</p>
   </div>
 
   <!-- Main Content -->
-  <div style="background: #f9fafb; padding: 30px; border-radius: 0 0 10px 10px;">
+  <div style="background: white; padding: 35px 30px; border-radius: 0 0 8px 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
 
-    <p style="font-size: 16px; margin-bottom: 20px;">Spoštovani ${dentistName},</p>
+    <p style="font-size: 16px; margin-bottom: 20px; color: #333;">Spoštovani ${dentistName},</p>
 
-    <p style="font-size: 15px; color: #555; margin-bottom: 25px;">
-      V prilogi najdete račun <strong>${invoiceNumber}</strong> za opravljeno zobotehnično delo za vašega pacienta.
+    <p style="font-size: 15px; color: #555; margin-bottom: 30px; line-height: 1.6;">
+      V prilogi najdete račun <strong style="color: #007289;">${invoiceNumber}</strong> za opravljeno zobotehnično delo za vašega pacienta.
     </p>
 
     <!-- Invoice Summary Box -->
-    <div style="background: white; border-left: 4px solid #667eea; padding: 20px; margin: 25px 0; border-radius: 5px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+    <div style="background: #f0f7f9; padding: 25px; margin: 30px 0; border-radius: 6px;">
       <table style="width: 100%; border-collapse: collapse;">
         <tr>
-          <td style="padding: 8px 0; color: #666; font-size: 14px;">Številka računa:</td>
-          <td style="padding: 8px 0; text-align: right; font-weight: bold; font-size: 14px;">${invoiceNumber}</td>
+          <td style="padding: 10px 0; color: #666; font-size: 14px;">Številka računa:</td>
+          <td style="padding: 10px 0; text-align: right; font-weight: 600; font-size: 14px; color: #007289;">${invoiceNumber}</td>
         </tr>
         <tr>
-          <td style="padding: 8px 0; color: #666; font-size: 14px;">Datum računa:</td>
-          <td style="padding: 8px 0; text-align: right; font-size: 14px;">${new Date(invoice.invoiceDate).toLocaleDateString('sl-SI', {
+          <td style="padding: 10px 0; color: #666; font-size: 14px;">Datum računa:</td>
+          <td style="padding: 10px 0; text-align: right; font-size: 14px;">${new Date(invoice.invoiceDate).toLocaleDateString('sl-SI', {
             year: 'numeric',
             month: '2-digit',
             day: '2-digit',
           })}</td>
         </tr>
         <tr>
-          <td style="padding: 8px 0; color: #666; font-size: 14px;">Rok plačila:</td>
-          <td style="padding: 8px 0; text-align: right; font-size: 14px;">${dueDate}</td>
+          <td style="padding: 10px 0; color: #666; font-size: 14px;">Rok plačila:</td>
+          <td style="padding: 10px 0; text-align: right; font-size: 14px;">${dueDate}</td>
         </tr>
-        <tr style="border-top: 2px solid #e5e7eb;">
-          <td style="padding: 12px 0 0 0; color: #667eea; font-weight: bold; font-size: 16px;">Skupni znesek:</td>
-          <td style="padding: 12px 0 0 0; text-align: right; color: #667eea; font-weight: bold; font-size: 20px;">€${totalAmount}</td>
+        <tr style="border-top: 2px solid #007289;">
+          <td style="padding: 15px 0 0 0; color: #007289; font-weight: 700; font-size: 16px;">Skupni znesek:</td>
+          <td style="padding: 15px 0 0 0; text-align: right; color: #007289; font-weight: 700; font-size: 22px;">€${totalAmount}</td>
         </tr>
       </table>
     </div>
 
     <!-- Payment Instructions -->
-    <div style="background: #fffbeb; border-left: 4px solid #f59e0b; padding: 15px; margin: 25px 0; border-radius: 5px;">
-      <h3 style="margin: 0 0 10px 0; color: #92400e; font-size: 16px;">Podatki za plačilo</h3>
-      <p style="margin: 5px 0; font-size: 14px; color: #78350f;">
+    <div style="background: #fff8f0; padding: 20px; margin: 30px 0; border-radius: 6px; border-top: 3px solid #D2804D;">
+      <h3 style="margin: 0 0 12px 0; color: #D2804D; font-size: 16px; font-weight: 600;">Podatki za plačilo</h3>
+      <p style="margin: 0; font-size: 14px; color: #555; line-height: 1.8;">
         <strong>Banka:</strong> ${bankName}<br>
         <strong>IBAN:</strong> ${iban}<br>
         <strong>Sklic:</strong> ${invoiceNumber}
@@ -390,25 +429,25 @@ function generateInvoiceEmailHtml(invoice: any, labConfig: any): string {
     </div>
 
     <!-- Footer Message -->
-    <p style="font-size: 14px; color: #555; margin-top: 25px;">
+    <p style="font-size: 14px; color: #666; margin-top: 30px; line-height: 1.6;">
       Če imate kakršnakoli vprašanja glede tega računa, nas prosim kontaktirajte.
     </p>
 
-    <p style="font-size: 14px; color: #555; margin-top: 20px;">
+    <p style="font-size: 14px; color: #333; margin-top: 25px;">
       Lep pozdrav,<br>
-      <strong>${labName}</strong>
+      <strong style="color: #007289;">${labName}</strong>
     </p>
 
   </div>
 
   <!-- Footer -->
-  <div style="text-align: center; margin-top: 30px; padding-top: 20px; border-top: 1px solid #e5e7eb;">
-    <p style="font-size: 12px; color: #9ca3af; margin: 5px 0;">
-      ${labName}<br>
-      E-pošta: ${labEmail} | Telefon: ${labPhone}<br>
+  <div style="text-align: center; margin-top: 25px; padding: 20px; background: white; border-radius: 6px; box-shadow: 0 1px 4px rgba(0,0,0,0.05);">
+    <p style="font-size: 12px; color: #666; margin: 5px 0; line-height: 1.8;">
+      <strong style="color: #007289;">${labName}</strong><br>
+      E-pošta: <a href="mailto:${labEmail}" style="color: #007289; text-decoration: none;">${labEmail}</a> | Telefon: ${labPhone}<br>
       Naslov: ${labAddress}
     </p>
-    <p style="font-size: 11px; color: #d1d5db; margin: 10px 0 0 0;">
+    <p style="font-size: 11px; color: #999; margin: 15px 0 0 0;">
       To je avtomatsko sporočilo. Prosimo, ne odgovarjajte neposredno na to sporočilo.
     </p>
   </div>
