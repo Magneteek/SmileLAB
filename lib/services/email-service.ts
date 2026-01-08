@@ -207,8 +207,21 @@ export async function sendEmail(
  */
 async function imageToBase64(filePath: string): Promise<string | null> {
   try {
-    const imageBuffer = await fs.readFile(filePath);
+    console.log(`[Email Service] Converting image to base64: ${filePath}`);
+
+    // Convert public URL path to filesystem path
+    let absolutePath: string;
+    if (filePath.startsWith('/')) {
+      // Remove leading slash and prepend 'public/'
+      absolutePath = path.join(process.cwd(), 'public', filePath.slice(1));
+    } else {
+      absolutePath = path.join(process.cwd(), filePath);
+    }
+
+    console.log(`[Email Service] Reading image from: ${absolutePath}`);
+    const imageBuffer = await fs.readFile(absolutePath);
     const base64 = imageBuffer.toString('base64');
+
     const ext = path.extname(filePath).toLowerCase();
     const mimeTypes: Record<string, string> = {
       '.png': 'image/png',
@@ -218,6 +231,8 @@ async function imageToBase64(filePath: string): Promise<string | null> {
       '.svg': 'image/svg+xml',
     };
     const mimeType = mimeTypes[ext] || 'image/png';
+
+    console.log(`[Email Service] ✅ Image converted successfully (${(base64.length / 1024).toFixed(2)} KB, ${mimeType})`);
     return `data:${mimeType};base64,${base64}`;
   } catch (error) {
     console.error('Failed to convert image to base64:', error);
