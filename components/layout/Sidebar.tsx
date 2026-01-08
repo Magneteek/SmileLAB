@@ -4,8 +4,11 @@
  * Sidebar Navigation Component
  *
  * Left sidebar navigation for the dashboard
+ * - Desktop (≥1024px): Fixed sidebar
+ * - Mobile/Tablet (<1024px): Drawer menu
  */
 
+import { useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useSession, signOut } from 'next-auth/react';
@@ -24,6 +27,7 @@ import {
   User,
   ChevronDown,
   Receipt,
+  Menu,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
@@ -34,6 +38,13 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from '@/components/ui/sheet';
 import { LanguageSwitcher } from '@/components/LanguageSwitcher';
 
 interface NavItem {
@@ -93,30 +104,29 @@ const testAccounts = [
   { email: 'invoice@smilelab.si', password: 'user123', name: 'Invoicing', role: 'INVOICING' },
 ];
 
-export function Sidebar() {
+/**
+ * Shared Navigation Content Component
+ * Used by both desktop sidebar and mobile drawer
+ */
+function NavigationContent({ onNavigate }: { onNavigate?: () => void }) {
   const pathname = usePathname();
   const { data: session } = useSession();
   const locale = useLocale();
   const t = useTranslations();
 
   const handleLogout = async () => {
-    // Use window.location.origin to get the correct URL with port
     const callbackUrl = `${window.location.origin}/${locale}/login`;
     await signOut({ callbackUrl });
   };
 
   const handleSwitchAccount = async (email: string, password: string) => {
     try {
-      // Sign out first
       await signOut({ redirect: false });
-
-      // Sign in with new account
       const response = await fetch('/api/auth/callback/credentials', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password }),
       });
-
       if (response.ok) {
         window.location.reload();
       }
@@ -126,7 +136,7 @@ export function Sidebar() {
   };
 
   return (
-    <aside className="w-64 bg-gray-900 text-white min-h-screen flex flex-col">
+    <>
       {/* Logo/Header */}
       <div className="p-6 border-b border-gray-800">
         <div className="flex items-center justify-between">
@@ -134,7 +144,6 @@ export function Sidebar() {
             <h1 className="text-xl font-bold">Smilelab MDR</h1>
             <p className="text-xs text-gray-400 mt-1">Dental Lab Management</p>
           </div>
-          {/* Hide language switcher for TECHNICIAN */}
           {session?.user?.role !== 'TECHNICIAN' && <LanguageSwitcher />}
         </div>
       </div>
@@ -144,11 +153,9 @@ export function Sidebar() {
         <ul className="space-y-2">
           {navItems
             .filter((item) => {
-              // For TECHNICIAN, only show: Orders, Worksheets, Quality Control, Materials
               if (session?.user?.role === 'TECHNICIAN') {
                 return ['/orders', '/worksheets', '/quality-control', '/materials'].includes(item.href);
               }
-              // For all other roles, show all items
               return true;
             })
             .map((item) => {
@@ -162,6 +169,7 @@ export function Sidebar() {
                 <li key={item.href}>
                   <Link
                     href={localizedHref}
+                    onClick={onNavigate}
                     className={cn(
                       'flex items-center gap-3 px-4 py-3 rounded-lg transition-colors',
                       isActive
@@ -178,11 +186,12 @@ export function Sidebar() {
         </ul>
       </nav>
 
-      {/* Settings - Pinned at Bottom (Hidden for TECHNICIAN) */}
+      {/* Settings - Pinned at Bottom */}
       {session?.user?.role !== 'TECHNICIAN' && (
         <div className="p-4">
           <Link
             href={`/${locale}/settings`}
+            onClick={onNavigate}
             className={cn(
               'flex items-center gap-3 px-4 py-3 rounded-lg transition-colors',
               pathname === `/${locale}/settings`
@@ -226,7 +235,7 @@ export function Sidebar() {
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
 
-            {/* Account Switcher - Hidden for TECHNICIAN */}
+            {/* Account Switcher */}
             {session?.user?.role !== 'TECHNICIAN' && (
               <>
                 <DropdownMenuLabel className="text-xs text-gray-500">
@@ -249,7 +258,6 @@ export function Sidebar() {
                     )}
                   </DropdownMenuItem>
                 ))}
-
                 <DropdownMenuSeparator />
               </>
             )}
@@ -265,6 +273,41 @@ export function Sidebar() {
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
-    </aside>
+    </>
+  );
+}
+
+export function Sidebar() {
+  const [mobileOpen, setMobileOpen] = useState(false);
+
+  return (
+    <>
+      {/* Mobile/Tablet Header with Hamburger (< lg) */}
+      <div className="lg:hidden fixed top-0 left-0 right-0 z-40 bg-gray-900 border-b border-gray-800">
+        <div className="flex items-center justify-between p-4">
+          <div>
+            <h1 className="text-lg font-bold text-white">Smilelab MDR</h1>
+          </div>
+          <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
+            <SheetTrigger asChild>
+              <Button variant="ghost" size="icon" className="text-white hover:bg-gray-800">
+                <Menu className="h-6 w-6" />
+                <span className="sr-only">Open menu</span>
+              </Button>
+            </SheetTrigger>
+            <SheetContent side="left" className="w-64 p-0 bg-gray-900 text-white border-gray-800">
+              <div className="flex flex-col h-full">
+                <NavigationContent onNavigate={() => setMobileOpen(false)} />
+              </div>
+            </SheetContent>
+          </Sheet>
+        </div>
+      </div>
+
+      {/* Desktop Sidebar (≥ lg) */}
+      <aside className="hidden lg:flex w-64 bg-gray-900 text-white min-h-screen flex-col">
+        <NavigationContent />
+      </aside>
+    </>
   );
 }
