@@ -15,10 +15,10 @@ import { hash } from 'bcryptjs';
 const prisma = new PrismaClient();
 
 async function main() {
-  console.log('🌱 Starting database seed...\n');
+  console.log('🌱 Starting PRODUCTION database seed...\n');
 
   // ============================================================================
-  // USERS - PRODUCTION
+  // USERS - PRODUCTION ONLY
   // ============================================================================
   console.log('👥 Creating users...');
 
@@ -50,10 +50,12 @@ async function main() {
 
   console.log(`✅ Created ${2} production users\n`);
 
+  // Skip sample data - users can add their own dentists, products, etc. via UI
+
   // ============================================================================
-  // DENTISTS
+  // SYSTEM CONFIG
   // ============================================================================
-  console.log('🦷 Creating dentists...');
+  console.log('⚙️  Creating system configuration...');
 
   const dentist1 = await prisma.dentist.create({
     data: {
