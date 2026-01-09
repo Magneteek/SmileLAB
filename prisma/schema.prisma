@@ -20,6 +20,7 @@ enum Role {
   TECHNICIAN // Create worksheets, assign materials
   QC_INSPECTOR // Quality control approval/rejection
   INVOICING // Generate invoices, send emails
+  STAFF // Compliance-only: SOP library access, training acknowledgments
 }
 
 model User {
@@ -35,12 +36,16 @@ model User {
   deletedAt DateTime? // Soft delete support
 
   // Relations
-  createdOrders     Order[]          @relation("CreatedByUser")
-  createdWorksheets WorkSheet[]      @relation("CreatedByUser")
-  qualityControls   QualityControl[]
-  auditLogs         AuditLog[]
-  invoices          Invoice[]        @relation("CreatedByUser")
-  emailLogs         EmailLog[]
+  createdOrders      Order[]             @relation("CreatedByUser")
+  createdWorksheets  WorkSheet[]         @relation("CreatedByUser")
+  qualityControls    QualityControl[]
+  auditLogs          AuditLog[]
+  invoices           Invoice[]           @relation("CreatedByUser")
+  emailLogs          EmailLog[]
+  sopsCreated        SOP[]               @relation("SOPCreator")
+  sopsApproved       SOP[]               @relation("SOPApprover")
+  sopAcknowledgments SOPAcknowledgment[]
+  passwordResets     PasswordReset[]
 
   @@index([email])
   @@index([role])
@@ -64,14 +69,14 @@ model Dentist {
   country       String  @default("Slovenia")
 
   // Business identification
-  taxNumber              String? // VAT/Tax number (e.g., SI12345678)
-  businessRegistration   String? // Company registration number
+  taxNumber            String? // VAT/Tax number (e.g., SI12345678)
+  businessRegistration String? // Company registration number
 
   // Business fields
-  active           Boolean @default(true)
-  paymentTerms     Int     @default(30) // Days
+  active            Boolean @default(true)
+  paymentTerms      Int     @default(30) // Days
   requiresInvoicing Boolean @default(true) // If false, orders auto-complete after QC (for internal work)
-  notes            String? @db.Text
+  notes             String? @db.Text
 
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
@@ -206,7 +211,7 @@ model WorkSheet {
   qcNotes        String? @db.Text
 
   // Void tracking (for audit trail)
-  voidReason String? @db.Text
+  voidReason String?   @db.Text
   voidedAt   DateTime?
   voidedBy   String?
 
@@ -926,8 +931,8 @@ model BankAccount {
   labConfiguration   LabConfiguration @relation(fields: [labConfigurationId], references: [id], onDelete: Cascade)
 
   // Bank Account Information
-  bankName String  // e.g., "NLB d.d."
-  iban     String  // IBAN account number (e.g., "SI56 0110 0100 0123 456")
+  bankName String // e.g., "NLB d.d."
+  iban     String // IBAN account number (e.g., "SI56 0110 0100 0123 456")
   swiftBic String? // SWIFT/BIC code (e.g., "LJBASI2X")
 
   // Account Type
@@ -950,4 +955,118 @@ model BankAccount {
   @@index([isPrimary])
   @@index([displayOrder])
   @@map("bank_accounts")
+}
+
+// ============================================================================
+// SOP & QUALITY MANAGEMENT SYSTEM (QMS)
+// ============================================================================
+
+enum SOPCategory {
+  PRODUCTION // Manufacturing procedures
+  EQUIPMENT // Machine operations
+  MATERIAL // Material handling
+  QUALITY // QC procedures
+  DOCUMENTATION // Record keeping
+  PERSONNEL // Training, HR
+  RISK_MANAGEMENT // Risk assessments
+  OTHER
+}
+
+enum SOPStatus {
+  DRAFT // Being created/edited
+  APPROVED // Active, in use
+  ARCHIVED // Old version
+}
+
+model SOP {
+  id String @id @default(cuid())
+
+  // SOP Identification
+  code     String      @unique // "SOP-001", "SOP-002"
+  title    String
+  category SOPCategory
+
+  // Content (stored as HTML/Markdown)
+  content String @db.Text
+
+  // Optional PDF for printing
+  pdfPath String?
+
+  // Version tracking
+  versionNumber     String // "1.0", "1.1", "2.0"
+  previousVersionId String? // Link to previous version
+
+  // Status
+  status SOPStatus @default(DRAFT)
+
+  // Approval
+  approvedBy   User?     @relation("SOPApprover", fields: [approvedById], references: [id])
+  approvedById String?
+  approvedAt   DateTime?
+
+  // Creator
+  createdBy   User   @relation("SOPCreator", fields: [createdById], references: [id])
+  createdById String
+
+  // Metadata
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // MDR compliance (10-year retention)
+  retentionUntil DateTime?
+
+  // Relations
+  acknowledgments SOPAcknowledgment[]
+
+  @@index([category])
+  @@index([status])
+  @@index([createdById])
+  @@map("sops")
+}
+
+model SOPAcknowledgment {
+  id String @id @default(cuid())
+
+  // SOP being acknowledged
+  sopId String
+  sop   SOP    @relation(fields: [sopId], references: [id], onDelete: Cascade)
+
+  // User acknowledging
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // Acknowledgment details
+  acknowledgedAt DateTime @default(now())
+  ipAddress      String? // Audit trail
+
+  @@unique([sopId, userId])
+  @@index([userId])
+  @@index([sopId])
+  @@map("sop_acknowledgments")
+}
+
+// ============================================================================
+// PASSWORD RESET
+// ============================================================================
+
+model PasswordReset {
+  id String @id @default(cuid())
+
+  // User requesting reset
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // Reset token
+  token     String   @unique
+  expiresAt DateTime
+
+  // Status
+  used   Boolean   @default(false)
+  usedAt DateTime?
+
+  createdAt DateTime @default(now())
+
+  @@index([token])
+  @@index([userId])
+  @@map("password_resets")
 }
