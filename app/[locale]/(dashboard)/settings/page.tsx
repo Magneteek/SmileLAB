@@ -8,8 +8,9 @@
  */
 
 import { useEffect, useState } from 'react';
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { useTranslations } from 'next-intl';
+import { useLocale, useTranslations } from 'next-intl';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import * as z from 'zod';
@@ -38,6 +39,8 @@ import {
   StarOff,
   GripVertical,
   FileEdit,
+  FileText,
+  ArrowRight,
 } from 'lucide-react';
 import {
   Table,
@@ -123,6 +126,7 @@ interface BankAccount {
 
 export default function SettingsPage() {
   const router = useRouter();
+  const locale = useLocale();
   const { toast } = useToast();
   const t = useTranslations('settings');
   const [isLoading, setIsLoading] = useState(false);
@@ -437,14 +441,29 @@ export default function SettingsPage() {
   return (
     <div className="container mx-auto py-8 max-w-6xl">
       {/* Page Header */}
-      <div className="mb-8">
-        <div className="flex items-center gap-3 mb-2">
-          <Building2 className="h-8 w-8 text-blue-600" />
-          <h1 className="text-3xl font-bold">{t('pageTitle')}</h1>
-        </div>
-        <p className="text-gray-600">
+      <div className="mb-6">
+        <h1 className="text-2xl font-bold mb-2">Settings</h1>
+        <p className="text-gray-600 text-sm">
           {t('pageDescription')}
         </p>
+      </div>
+
+      {/* Settings Navigation Tabs */}
+      <div className="flex gap-2 mb-6 border-b">
+        <button
+          className="flex items-center gap-2 px-4 py-2 border-b-2 border-blue-500 text-blue-600 font-medium text-sm"
+        >
+          <Building2 className="h-4 w-4" />
+          {t('pageTitle')}
+        </button>
+        <Link href={`/${locale}/settings/sops`}>
+          <button
+            className="flex items-center gap-2 px-4 py-2 border-b-2 border-transparent hover:border-gray-300 text-gray-600 hover:text-gray-900 font-medium text-sm transition-colors"
+          >
+            <FileText className="h-4 w-4" />
+            {t('sopSection')}
+          </button>
+        </Link>
       </div>
 
       {/* Lab Configuration Form */}
@@ -457,7 +476,7 @@ export default function SettingsPage() {
         </CardHeader>
         <CardContent>
           <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-2">
               {/* Laboratory Information Section */}
               <div className="space-y-4">
                 <h3 className="text-lg font-semibold">{t('sectionLabDetails')}</h3>
@@ -759,7 +778,7 @@ export default function SettingsPage() {
                 <h3 className="text-lg font-semibold">{t('sectionFilesAssets')}</h3>
                 <p className="text-sm text-gray-600">{t('sectionFilesDescription')}</p>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
                   {/* Logo Upload */}
                   <div className="space-y-3">
                     <label className="text-sm font-medium">{t('logo')}</label>
@@ -1017,7 +1036,7 @@ export default function SettingsPage() {
               <div className="space-y-4">
                 <h3 className="text-lg font-semibold">{t('sectionInvoiceLegalTerms')}</h3>
                 <p className="text-sm text-gray-600">
-                  Legal text displayed at the bottom of invoices. Each paragraph will be displayed on a new line.
+                  {t('legalTermsIntro')}
                 </p>
 
                 <FormField
@@ -1034,7 +1053,7 @@ export default function SettingsPage() {
                         />
                       </FormControl>
                       <FormDescription>
-                        This text appears at the bottom of all invoices. Use line breaks to separate paragraphs for better readability.
+                        {t('legalTermsHelp')}
                       </FormDescription>
                       <FormMessage />
                     </FormItem>
@@ -1068,9 +1087,9 @@ export default function SettingsPage() {
         <Card className="border-dashed">
           <CardContent className="pt-6">
             <div className="text-center py-8 text-gray-500">
-              <p className="text-lg font-medium">Bank Accounts</p>
+              <p className="text-lg font-medium">{t('bankAccountsTitle')}</p>
               <p className="text-sm mt-2">
-                Save the laboratory configuration first to manage bank accounts
+                {t('bankAccountsSaveFirst')}
               </p>
             </div>
           </CardContent>
@@ -1084,7 +1103,7 @@ export default function SettingsPage() {
               <div>
                 <CardTitle>{t('bankAccountsTitle')}</CardTitle>
                 <CardDescription>
-                  Manage bank accounts for invoice display. Multiple accounts can be added.
+                  {t('bankAccountsDescription')}
                 </CardDescription>
               </div>
               <Button onClick={handleAddBank}>
@@ -1124,9 +1143,9 @@ export default function SettingsPage() {
                             className="p-0 h-auto"
                           >
                             {account.isPrimary ? (
-                              <Star className="h-5 w-5 fill-yellow-400 text-yellow-400" />
+                              <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
                             ) : (
-                              <StarOff className="h-5 w-5 text-gray-400" />
+                              <StarOff className="h-4 w-4 text-gray-400" />
                             )}
                           </Button>
                         </TableCell>
@@ -1135,7 +1154,7 @@ export default function SettingsPage() {
                         <TableCell>{account.swiftBic || '-'}</TableCell>
                         <TableCell>
                           <span className="inline-flex items-center rounded-md bg-blue-50 px-2 py-1 text-xs font-medium text-blue-700 ring-1 ring-inset ring-blue-700/10">
-                            {account.accountType || 'PRIMARY'}
+                            {account.accountType || '-'}
                           </span>
                         </TableCell>
                         <TableCell className="text-right">
@@ -1171,7 +1190,7 @@ export default function SettingsPage() {
           <DialogHeader>
             <DialogTitle>{editingBank ? t('dialogEditBankTitle') : t('dialogAddBankTitle')}</DialogTitle>
             <DialogDescription>
-              Enter bank account details for invoice display
+              {t('ibanDescription')}
             </DialogDescription>
           </DialogHeader>
 
@@ -1200,9 +1219,6 @@ export default function SettingsPage() {
                     <FormControl>
                       <Input placeholder={t('ibanPlaceholder')} {...field} />
                     </FormControl>
-                    <FormDescription>
-                      International Bank Account Number (e.g., SI56 0110 0100 0123 456)
-                    </FormDescription>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -1256,10 +1272,10 @@ export default function SettingsPage() {
                   variant="outline"
                   onClick={() => setShowBankDialog(false)}
                 >
-                  Cancel
+                  {t('cancel')}
                 </Button>
                 <Button type="submit">
-                  {editingBank ? 'Update' : 'Add'} Account
+                  {editingBank ? t('updateBankAccount') : t('saveBankAccount')}
                 </Button>
               </DialogFooter>
             </form>
@@ -1273,18 +1289,18 @@ export default function SettingsPage() {
           <DialogHeader>
             <DialogTitle>{t('dialogDeleteBankTitle')}</DialogTitle>
             <DialogDescription>
-              Are you sure you want to delete this bank account? This action cannot be undone.
+              {t('dialogDeleteBankMessage')}
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
             <Button variant="outline" onClick={() => setDeletingBankId(null)}>
-              Cancel
+              {t('cancel')}
             </Button>
             <Button
               variant="destructive"
               onClick={() => deletingBankId && handleDeleteBank(deletingBankId)}
             >
-              Delete
+              {t('dialogDeleteBankButton')}
             </Button>
           </DialogFooter>
         </DialogContent>

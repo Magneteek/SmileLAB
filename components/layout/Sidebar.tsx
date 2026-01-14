@@ -28,6 +28,8 @@ import {
   ChevronDown,
   Receipt,
   Menu,
+  BookOpen,
+  FolderOpen,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
@@ -45,6 +47,16 @@ import {
   SheetTitle,
   SheetTrigger,
 } from '@/components/ui/sheet';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 import { LanguageSwitcher } from '@/components/LanguageSwitcher';
 
 interface NavItem {
@@ -80,6 +92,11 @@ const navItems: NavItem[] = [
     icon: Receipt,
   },
   {
+    translationKey: 'nav.documents',
+    href: '/documents',
+    icon: FolderOpen,
+  },
+  {
     translationKey: 'nav.dentists',
     href: '/dentists',
     icon: Users,
@@ -93,6 +110,11 @@ const navItems: NavItem[] = [
     translationKey: 'nav.pricing',
     href: '/pricing',
     icon: DollarSign,
+  },
+  {
+    translationKey: 'nav.sops',
+    href: '/settings/sops',
+    icon: BookOpen,
   },
 ];
 
@@ -113,10 +135,20 @@ function NavigationContent({ onNavigate }: { onNavigate?: () => void }) {
   const { data: session } = useSession();
   const locale = useLocale();
   const t = useTranslations();
+  const [showSignOutDialog, setShowSignOutDialog] = useState(false);
 
   const handleLogout = async () => {
     const callbackUrl = `${window.location.origin}/${locale}/login`;
     await signOut({ callbackUrl });
+  };
+
+  const handleSignOutClick = () => {
+    setShowSignOutDialog(true);
+  };
+
+  const confirmSignOut = async () => {
+    setShowSignOutDialog(false);
+    await handleLogout();
   };
 
   const handleSwitchAccount = async (email: string, password: string) => {
@@ -138,23 +170,23 @@ function NavigationContent({ onNavigate }: { onNavigate?: () => void }) {
   return (
     <>
       {/* Logo/Header */}
-      <div className="p-6 border-b border-gray-800">
+      <div className="p-4 border-b border-gray-800">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-xl font-bold">Smilelab MDR</h1>
-            <p className="text-xs text-gray-400 mt-1">Dental Lab Management</p>
+            <h1 className="text-lg font-bold">Smilelab MDR</h1>
+            <p className="text-[10px] text-gray-400 mt-0.5">Dental Lab Management</p>
           </div>
           {session?.user?.role !== 'TECHNICIAN' && <LanguageSwitcher />}
         </div>
       </div>
 
       {/* Navigation */}
-      <nav className="flex-1 p-4">
-        <ul className="space-y-2">
+      <nav className="flex-1 p-2">
+        <ul className="space-y-1">
           {navItems
             .filter((item) => {
               if (session?.user?.role === 'TECHNICIAN') {
-                return ['/orders', '/worksheets', '/quality-control', '/materials'].includes(item.href);
+                return ['/orders', '/worksheets', '/quality-control', '/materials', '/settings/sops'].includes(item.href);
               }
               return true;
             })
@@ -171,14 +203,14 @@ function NavigationContent({ onNavigate }: { onNavigate?: () => void }) {
                     href={localizedHref}
                     onClick={onNavigate}
                     className={cn(
-                      'flex items-center gap-3 px-4 py-3 rounded-lg transition-colors',
+                      'flex items-center gap-2 px-3 py-2 rounded-lg transition-colors text-sm',
                       isActive
                         ? 'bg-blue-600 text-white'
                         : 'text-gray-300 hover:bg-gray-800 hover:text-white'
                     )}
                   >
-                    <Icon className="h-5 w-5" />
-                    <span className="font-medium">{t(item.translationKey)}</span>
+                    <Icon className="h-4 w-4" />
+                    <span>{t(item.translationKey)}</span>
                   </Link>
                 </li>
               );
@@ -188,42 +220,42 @@ function NavigationContent({ onNavigate }: { onNavigate?: () => void }) {
 
       {/* Settings - Pinned at Bottom */}
       {session?.user?.role !== 'TECHNICIAN' && (
-        <div className="p-4">
+        <div className="p-2">
           <Link
             href={`/${locale}/settings`}
             onClick={onNavigate}
             className={cn(
-              'flex items-center gap-3 px-4 py-3 rounded-lg transition-colors',
+              'flex items-center gap-2 px-3 py-2 rounded-lg transition-colors text-sm',
               pathname === `/${locale}/settings`
                 ? 'bg-blue-600 text-white'
                 : 'text-gray-300 hover:bg-gray-800 hover:text-white'
             )}
           >
-            <Settings className="h-5 w-5" />
-            <span className="font-medium">{t('nav.settings')}</span>
+            <Settings className="h-4 w-4" />
+            <span>{t('nav.settings')}</span>
           </Link>
         </div>
       )}
 
       {/* User Profile & Actions */}
-      <div className="p-4 border-t border-gray-800">
+      <div className="p-2 border-t border-gray-800">
         <DropdownMenu>
           <DropdownMenuTrigger asChild suppressHydrationWarning>
             <Button
               variant="ghost"
-              className="w-full justify-start gap-3 px-4 py-3 h-auto text-gray-300 hover:bg-gray-800 hover:text-white"
+              className="w-full justify-start gap-2 px-3 py-2 h-auto text-gray-300 hover:bg-gray-800 hover:text-white text-sm"
               suppressHydrationWarning
             >
-              <User className="h-5 w-5" />
+              <User className="h-4 w-4" />
               <div className="flex-1 text-left">
-                <p className="font-medium text-sm">
+                <p className="text-sm">
                   {session?.user?.name || 'User'}
                 </p>
-                <p className="text-xs text-gray-400">
+                <p className="text-[10px] text-gray-400">
                   {session?.user?.role || 'Role'}
                 </p>
               </div>
-              <ChevronDown className="h-4 w-4" />
+              <ChevronDown className="h-3 w-3" />
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-56">
@@ -264,7 +296,7 @@ function NavigationContent({ onNavigate }: { onNavigate?: () => void }) {
 
             {/* Logout */}
             <DropdownMenuItem
-              onClick={handleLogout}
+              onClick={handleSignOutClick}
               className="cursor-pointer text-red-600 focus:text-red-600"
             >
               <LogOut className="h-4 w-4 mr-2" />
@@ -273,6 +305,27 @@ function NavigationContent({ onNavigate }: { onNavigate?: () => void }) {
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
+
+      {/* Sign Out Confirmation Dialog */}
+      <AlertDialog open={showSignOutDialog} onOpenChange={setShowSignOutDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>{t('auth.signOutConfirmTitle')}</AlertDialogTitle>
+            <AlertDialogDescription>
+              {t('auth.signOutConfirmMessage')}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>{t('auth.staySignedInButton')}</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={confirmSignOut}
+              className="bg-red-600 hover:bg-red-700 focus:ring-red-600"
+            >
+              {t('auth.signOutButton')}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </>
   );
 }
@@ -295,7 +348,7 @@ export function Sidebar() {
                 <span className="sr-only">Open menu</span>
               </Button>
             </SheetTrigger>
-            <SheetContent side="left" className="w-64 p-0 bg-gray-900 text-white border-gray-800">
+            <SheetContent side="left" className="w-52 p-0 bg-gray-900 text-white border-gray-800">
               <div className="flex flex-col h-full">
                 <NavigationContent onNavigate={() => setMobileOpen(false)} />
               </div>
@@ -305,7 +358,7 @@ export function Sidebar() {
       </div>
 
       {/* Desktop Sidebar (≥ lg) */}
-      <aside className="hidden lg:flex w-64 bg-gray-900 text-white min-h-screen flex-col">
+      <aside className="hidden lg:flex w-52 bg-gray-900 text-white min-h-screen flex-col">
         <NavigationContent />
       </aside>
     </>

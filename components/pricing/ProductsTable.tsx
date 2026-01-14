@@ -453,26 +453,24 @@ export default function ProductsTable({
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Change Status for {selectedCount} Products</AlertDialogTitle>
-            <AlertDialogDescription>
-              <div className="space-y-4 mt-4">
-                <div>
-                  <label className="text-sm font-medium mb-2 block">New Status:</label>
-                  <Select
-                    value={bulkStatus.toString()}
-                    onValueChange={(v) => setBulkStatus(v === 'true')}
-                  >
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="true">Active</SelectItem>
-                      <SelectItem value="false">Inactive</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-            </AlertDialogDescription>
           </AlertDialogHeader>
+          <div className="space-y-4 mt-4 px-6">
+            <div>
+              <label className="text-sm font-medium mb-2 block">New Status:</label>
+              <Select
+                value={bulkStatus.toString()}
+                onValueChange={(v) => setBulkStatus(v === 'true')}
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="true">Active</SelectItem>
+                  <SelectItem value="false">Inactive</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
           <AlertDialogFooter>
             <AlertDialogCancel disabled={bulkProcessing}>Cancel</AlertDialogCancel>
             <AlertDialogAction onClick={handleBulkStatusChange} disabled={bulkProcessing}>
@@ -487,39 +485,37 @@ export default function ProductsTable({
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Change Category for {selectedCount} Products</AlertDialogTitle>
-            <AlertDialogDescription>
-              <div className="space-y-4 mt-4">
-                <div>
-                  <label className="text-sm font-medium mb-2 block">New Category:</label>
-                  <Select
-                    value={bulkCategory}
-                    onValueChange={(v) => setBulkCategory(v as ProductCategory)}
-                  >
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="CROWN">{t('categoryCROWN')}</SelectItem>
-                      <SelectItem value="BRIDGE">{t('categoryBRIDGE')}</SelectItem>
-                      <SelectItem value="FILLING">{t('categoryFILLING')}</SelectItem>
-                      <SelectItem value="IMPLANT">{t('categoryIMPLANT')}</SelectItem>
-                      <SelectItem value="DENTURE">{t('categoryDENTURE')}</SelectItem>
-                      <SelectItem value="INLAY">{t('categoryINLAY')}</SelectItem>
-                      <SelectItem value="ONLAY">{t('categoryONLAY')}</SelectItem>
-                      <SelectItem value="VENEER">{t('categoryVENEER')}</SelectItem>
-                      <SelectItem value="SPLINT">{t('categorySPLINT')}</SelectItem>
-                      <SelectItem value="PROVISIONAL">{t('categoryPROVISIONAL')}</SelectItem>
-                      <SelectItem value="TEMPLATE">{t('categoryTEMPLATE')}</SelectItem>
-                      <SelectItem value="ABUTMENT">{t('categoryABUTMENT')}</SelectItem>
-                      <SelectItem value="SERVICE">{t('categorySERVICE')}</SelectItem>
-                      <SelectItem value="REPAIR">{t('categoryREPAIR')}</SelectItem>
-                      <SelectItem value="MODEL">{t('categoryMODEL')}</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-            </AlertDialogDescription>
           </AlertDialogHeader>
+          <div className="space-y-4 mt-4 px-6">
+            <div>
+              <label className="text-sm font-medium mb-2 block">New Category:</label>
+              <Select
+                value={bulkCategory}
+                onValueChange={(v) => setBulkCategory(v as ProductCategory)}
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="CROWN">{t('categoryCROWN')}</SelectItem>
+                  <SelectItem value="BRIDGE">{t('categoryBRIDGE')}</SelectItem>
+                  <SelectItem value="FILLING">{t('categoryFILLING')}</SelectItem>
+                  <SelectItem value="IMPLANT">{t('categoryIMPLANT')}</SelectItem>
+                  <SelectItem value="DENTURE">{t('categoryDENTURE')}</SelectItem>
+                  <SelectItem value="INLAY">{t('categoryINLAY')}</SelectItem>
+                  <SelectItem value="ONLAY">{t('categoryONLAY')}</SelectItem>
+                  <SelectItem value="VENEER">{t('categoryVENEER')}</SelectItem>
+                  <SelectItem value="SPLINT">{t('categorySPLINT')}</SelectItem>
+                  <SelectItem value="PROVISIONAL">{t('categoryPROVISIONAL')}</SelectItem>
+                  <SelectItem value="TEMPLATE">{t('categoryTEMPLATE')}</SelectItem>
+                  <SelectItem value="ABUTMENT">{t('categoryABUTMENT')}</SelectItem>
+                  <SelectItem value="SERVICE">{t('categorySERVICE')}</SelectItem>
+                  <SelectItem value="REPAIR">{t('categoryREPAIR')}</SelectItem>
+                  <SelectItem value="MODEL">{t('categoryMODEL')}</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
           <AlertDialogFooter>
             <AlertDialogCancel disabled={bulkProcessing}>Cancel</AlertDialogCancel>
             <AlertDialogAction onClick={handleBulkCategoryChange} disabled={bulkProcessing}>
