@@ -36,7 +36,7 @@ import type { WorksheetStatus } from '@/src/types/worksheet';
 
 interface SearchParams {
   page?: string;
-  status?: WorksheetStatus;
+  status?: WorksheetStatus | 'ALL';
   search?: string;
 }
 

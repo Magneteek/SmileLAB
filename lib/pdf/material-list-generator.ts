@@ -26,7 +26,7 @@ interface MaterialLotInfo {
   materialId: string;
   materialName: string;
   manufacturer: string | null;
-  catalogNumber: string | null;
+  code: string | null;
   lotNumber: string;
   arrivalDate: Date;
   expiryDate: Date | null;
@@ -162,7 +162,7 @@ async function fetchMaterialLots(
         select: {
           name: true,
           manufacturer: true,
-          catalogNumber: true,
+          code: true,
           unit: true,
         },
       },
@@ -193,14 +193,14 @@ async function fetchMaterialLots(
       materialId: lot.materialId,
       materialName: lot.material.name,
       manufacturer: lot.material.manufacturer,
-      catalogNumber: lot.material.catalogNumber,
+      code: lot.material.code,
       lotNumber: lot.lotNumber,
       arrivalDate: lot.arrivalDate,
       expiryDate: lot.expiryDate,
-      quantity: lot.quantity,
+      quantity: Number(lot.quantityAvailable),
       unit: lot.material.unit,
       status: lot.status,
-      location: lot.location,
+      location: null,
       daysUntilExpiry,
       isExpiringSoon,
       isExpired,
@@ -341,7 +341,7 @@ function generateInventoryHTML(
         <tr>
           <td><strong>${lot.materialName}</strong></td>
           <td>${lot.manufacturer || 'N/A'}</td>
-          <td>${lot.catalogNumber || 'N/A'}</td>
+          <td>${lot.code || 'N/A'}</td>
           <td style="font-family: monospace;"><strong>${lot.lotNumber}</strong></td>
           <td style="text-align: center;">${formatDate(lot.arrivalDate)}</td>
           <td style="text-align: center; ${expiryStyle}">

@@ -69,8 +69,8 @@ export async function generateQCReportsPDF(
     showDate: true,
   });
 
-  const approvedCount = qcRecords.filter(r => r.result === 'PASS').length;
-  const rejectedCount = qcRecords.filter(r => r.result === 'FAIL').length;
+  const approvedCount = qcRecords.filter(r => r.result === 'APPROVED').length;
+  const rejectedCount = qcRecords.filter(r => r.result === 'REJECTED').length;
 
   let contentHTML = `
     <h1>${t.title || 'Quality Control Report'}</h1>
@@ -119,9 +119,11 @@ export async function generateQCReportsPDF(
   `;
 
   for (const qc of qcRecords) {
-    const resultBadge = qc.result === 'PASS'
-      ? `<span class="badge-success" style="background: #d1fae5; color: #065f46; padding: 2px 6px; border-radius: 3px; font-size: 7pt;">${t.pass || 'PASS'}</span>`
-      : `<span style="background: #fee2e2; color: #991b1b; padding: 2px 6px; border-radius: 3px; font-size: 7pt; font-weight: bold;">${t.fail || 'FAIL'}</span>`;
+    const resultBadge = qc.result === 'APPROVED'
+      ? `<span class="badge-success" style="background: #d1fae5; color: #065f46; padding: 2px 6px; border-radius: 3px; font-size: 7pt;">${t.approved || 'APPROVED'}</span>`
+      : qc.result === 'REJECTED'
+      ? `<span style="background: #fee2e2; color: #991b1b; padding: 2px 6px; border-radius: 3px; font-size: 7pt; font-weight: bold;">${t.rejected || 'REJECTED'}</span>`
+      : `<span style="background: #fef3c7; color: #92400e; padding: 2px 6px; border-radius: 3px; font-size: 7pt;">${qc.result}</span>`;
 
     contentHTML += `
         <tr>

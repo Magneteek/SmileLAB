@@ -56,6 +56,8 @@ const CATEGORY_NAMES: Record<ProductCategory, string> = {
   SERVICE: 'Services',
   REPAIR: 'Repairs',
   MODEL: 'Models',
+  ORTHODONTICS: 'Orthodontics',
+  OTHER: 'Other',
 };
 
 // ============================================================================

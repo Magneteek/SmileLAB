@@ -15,7 +15,7 @@ export async function GET(
     const pdfBuffer = await generateOrderDetailsPDF(orderId, locale);
     const filename = `order-details-${orderId}-${new Date().toISOString().split('T')[0]}.pdf`;
 
-    return new Response(pdfBuffer, {
+    return new Response(new Uint8Array(pdfBuffer), {
       headers: {
         'Content-Type': 'application/pdf',
         'Content-Disposition': `attachment; filename="${filename}"`,

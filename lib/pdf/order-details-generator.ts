@@ -71,7 +71,7 @@ export async function generateOrderDetailsPDF(
       <table class="info-table">
         <tbody>
           <tr><td><strong>${t.orderDateLabel || 'Order Date'}</strong></td><td>${new Date(order.createdAt).toLocaleDateString(locale === 'sl' ? 'sl-SI' : 'en-GB')}</td></tr>
-          <tr><td><strong>${t.dueDateLabel || 'Due Date'}</strong></td><td>${new Date(order.dueDate).toLocaleDateString(locale === 'sl' ? 'sl-SI' : 'en-GB')}</td></tr>
+          <tr><td><strong>${t.dueDateLabel || 'Due Date'}</strong></td><td>${order.dueDate ? new Date(order.dueDate).toLocaleDateString(locale === 'sl' ? 'sl-SI' : 'en-GB') : 'N/A'}</td></tr>
           <tr><td><strong>${t.statusLabel || 'Status'}</strong></td><td>${order.status}</td></tr>
         </tbody>
       </table>

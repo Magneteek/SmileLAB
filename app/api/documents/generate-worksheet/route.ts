@@ -2,7 +2,7 @@ import { NextRequest } from 'next/server';
 import { requireAuth } from '@/lib/api/auth-middleware';
 import { handleApiError } from '@/lib/api/responses';
 import { prisma } from '@/lib/prisma';
-import { generateAnnexXIIIPDF } from '@/lib/pdf/annex-xiii-generator';
+import { generateAnnexXIII } from '@/lib/pdf/annex-xiii-generator';
 import { generateWorksheetPDF } from '@/lib/pdf/worksheet-pdf-generator';
 import { writeFile, mkdir } from 'fs/promises';
 import { existsSync } from 'fs';
@@ -30,7 +30,7 @@ export async function POST(request: NextRequest) {
     const worksheet = await prisma.workSheet.findFirst({
       where: { worksheetNumber },
       include: {
-        qualityControl: true,
+        qualityControls: true,
       },
     });
 
@@ -95,41 +95,11 @@ export async function POST(request: NextRequest) {
     }
 
     // 2. Generate Annex XIII if QC approved
-    if (worksheet.qualityControl?.result === 'PASS') {
+    if (worksheet.qualityControls?.[0]?.result === 'APPROVED') {
       try {
-        const annexXIIIPDF = await generateAnnexXIIIPDF(worksheet.id);
-        const fileName = `annex-xiii-${worksheetNumber}.pdf`;
-        const filePath = join(documentsDir, fileName);
-
-        await writeFile(filePath, annexXIIIPDF);
-
-        const existingDoc = await prisma.document.findFirst({
-          where: {
-            worksheetId: worksheet.id,
-            type: 'ANNEX_XIII',
-          },
-        });
-
-        if (!existingDoc) {
-          await prisma.document.create({
-            data: {
-              worksheetId: worksheet.id,
-              type: 'ANNEX_XIII',
-              documentNumber: `ANNEX-${worksheetNumber}`,
-              fileName,
-              filePath,
-              fileSize: annexXIIIPDF.length,
-              mimeType: 'application/pdf',
-              generatedAt: new Date(),
-              retentionUntil: new Date(Date.now() + 10 * 365 * 24 * 60 * 60 * 1000), // 10 years
-              generatedBy: session.user.id,
-              notes: 'EU MDR Annex XIII Manufacturer\'s Statement',
-            },
-          });
-          generated.push('Annex XIII');
-        } else {
-          errors.push('Annex XIII already exists');
-        }
+        // generateAnnexXIII already handles document creation and file storage
+        await generateAnnexXIII(worksheet.id, session.user.id);
+        generated.push('Annex XIII');
       } catch (error) {
         console.error('Error generating Annex XIII:', error);
         errors.push(`Annex XIII: ${error instanceof Error ? error.message : 'Unknown error'}`);
@@ -139,7 +109,7 @@ export async function POST(request: NextRequest) {
     }
 
     // 3. Generate QC Report if QC exists
-    if (worksheet.qualityControl) {
+    if (worksheet.qualityControls && worksheet.qualityControls.length > 0) {
       try {
         // For now, we'll skip QC report as it would need a single-worksheet version
         // The qc-reports-generator currently generates reports for multiple worksheets

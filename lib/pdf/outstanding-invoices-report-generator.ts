@@ -132,6 +132,9 @@ async function fetchOutstandingInvoices(): Promise<OutstandingInvoice[]> {
       paymentStatus: {
         in: ['FINALIZED', 'SENT', 'VIEWED'], // Not PAID or CANCELLED
       },
+      NOT: {
+        dueDate: null,
+      },
     },
     include: {
       dentist: {
@@ -150,7 +153,7 @@ async function fetchOutstandingInvoices(): Promise<OutstandingInvoice[]> {
   today.setHours(0, 0, 0, 0);
 
   return invoices.map((invoice) => {
-    const dueDate = new Date(invoice.dueDate);
+    const dueDate = new Date(invoice.dueDate!);
     dueDate.setHours(0, 0, 0, 0);
 
     const daysOverdue = Math.floor((today.getTime() - dueDate.getTime()) / (1000 * 60 * 60 * 24));
@@ -160,9 +163,9 @@ async function fetchOutstandingInvoices(): Promise<OutstandingInvoice[]> {
       id: invoice.id,
       invoiceNumber: invoice.invoiceNumber || 'DRAFT',
       invoiceDate: invoice.invoiceDate,
-      dueDate: invoice.dueDate,
-      dentistName: invoice.dentist.dentistName,
-      clinicName: invoice.dentist.clinicName,
+      dueDate: invoice.dueDate!,
+      dentistName: invoice.dentist!.dentistName,
+      clinicName: invoice.dentist!.clinicName,
       totalAmount: invoice.totalAmount.toNumber(),
       paymentStatus: invoice.paymentStatus,
       daysOverdue,

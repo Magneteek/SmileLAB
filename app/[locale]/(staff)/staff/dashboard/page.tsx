@@ -19,7 +19,7 @@ export default async function StaffDashboardPage() {
       {/* Welcome section */}
       <div>
         <h2 className="text-sm font-bold text-gray-900">
-          {t('staff.welcome', { name: session?.user.name })}
+          {t('staff.welcome', { name: session?.user.name || '' })}
         </h2>
         <p className="text-gray-500 mt-2">
           {t('staff.subtitle')}

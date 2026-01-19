@@ -33,6 +33,7 @@ const ROLE_HIERARCHY: Record<Role, number> = {
   INVOICING: 3,
   QC_INSPECTOR: 2,
   TECHNICIAN: 1,
+  STAFF: 0,
 };
 
 /**
@@ -113,6 +114,7 @@ export function getRoleDisplayName(role: Role): string {
     TECHNICIAN: 'Dental Technician',
     QC_INSPECTOR: 'Quality Control Inspector',
     INVOICING: 'Invoicing Specialist',
+    STAFF: 'Staff Member',
   };
   return displayNames[role];
 }
@@ -126,6 +128,7 @@ export function getRoleBadgeColor(role: Role): string {
     TECHNICIAN: 'bg-blue-100 text-blue-800',
     QC_INSPECTOR: 'bg-green-100 text-green-800',
     INVOICING: 'bg-orange-100 text-orange-800',
+    STAFF: 'bg-gray-100 text-gray-800',
   };
   return colors[role];
 }

@@ -30,12 +30,17 @@ export async function GET(
       return NextResponse.json({ error: 'SOP not found' }, { status: 404 });
     }
 
-    // Generate PDF
-    const pdfBuffer = await generateSOPPDF(sop);
+    // Generate PDF (convert dates to ISO strings)
+    const sopData = {
+      ...sop,
+      createdAt: sop.createdAt.toISOString(),
+      approvedAt: sop.approvedAt?.toISOString(),
+    };
+    const pdfBuffer = await generateSOPPDF(sopData as any);
     const fileName = generateSOPFileName(sop);
 
     // Return PDF as download
-    return new NextResponse(pdfBuffer, {
+    return new NextResponse(new Uint8Array(pdfBuffer), {
       status: 200,
       headers: {
         'Content-Type': 'application/pdf',

@@ -127,8 +127,8 @@ export default function QCInspectionPage({ params }: PageProps) {
 
       <QCInspectionForm
         worksheet={worksheet}
-        inspectorId={session.user.id}
-        inspectorName={session.user.name}
+        inspectorId={session?.user?.id || ''}
+        inspectorName={session?.user?.name || ''}
       />
     </div>
   );

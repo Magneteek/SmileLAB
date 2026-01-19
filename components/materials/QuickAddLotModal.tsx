@@ -242,10 +242,10 @@ export function QuickAddLotModal({
               <div className="flex gap-2">
                 <Input
                   id="lotNumber"
-                  ref={lotInputRef}
                   {...form.register('lotNumber')}
                   placeholder={t('arrivalFormLOTPlaceholder')}
                   className="flex-1"
+                  autoFocus
                 />
                 <Button
                   type="button"

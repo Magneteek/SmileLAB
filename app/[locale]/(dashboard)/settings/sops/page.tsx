@@ -358,8 +358,8 @@ export default function SOPsPage() {
             <AlertDialogTitle>{t('sop.detailPage.deleteConfirmTitle')}</AlertDialogTitle>
             <AlertDialogDescription>
               {t('sop.detailPage.deleteConfirmMessage', {
-                code: sopToDelete?.code,
-                title: sopToDelete?.title
+                code: sopToDelete?.code || '',
+                title: sopToDelete?.title || ''
               })}
             </AlertDialogDescription>
           </AlertDialogHeader>

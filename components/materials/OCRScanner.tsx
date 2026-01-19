@@ -13,7 +13,7 @@
  */
 
 import React, { useState, useRef, useCallback } from 'react';
-import { createWorker } from 'tesseract.js';
+import { createWorker, PSM } from 'tesseract.js';
 import { useTranslations } from 'next-intl';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
@@ -449,7 +449,7 @@ export function OCRScanner({
       // Configure Tesseract for better accuracy
       await worker.setParameters({
         tessedit_char_whitelist: 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789/-:. ',
-        tessedit_pageseg_mode: '6', // Assume uniform block of text
+        tessedit_pageseg_mode: PSM.SINGLE_BLOCK, // Assume uniform block of text
       });
 
       const {

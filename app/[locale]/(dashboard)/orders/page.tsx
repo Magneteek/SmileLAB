@@ -154,8 +154,9 @@ export default function OrdersPage() {
     setPage(1);
   }
 
-  const hasActiveFilters =
-    searchTerm || statusFilter !== 'ALL' || dentistFilter !== 'ALL' || priorityFilter !== 'ALL';
+  const hasActiveFilters = Boolean(
+    searchTerm || statusFilter !== 'ALL' || dentistFilter !== 'ALL' || priorityFilter !== 'ALL'
+  );
 
   return (
     <div className="w-full max-w-full space-y-2">

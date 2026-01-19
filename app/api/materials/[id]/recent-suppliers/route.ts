@@ -29,7 +29,6 @@ export async function GET(
     const recentLots = await prisma.materialLot.findMany({
       where: {
         materialId: id,
-        supplierName: { not: null },
       },
       select: {
         supplierName: true,
