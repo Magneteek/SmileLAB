@@ -27,6 +27,7 @@ import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { OCRScanner, OCRResult } from './OCRScanner';
 import { QuickAddLotModal } from './QuickAddLotModal';
+import { InlineMaterialLotForm } from './InlineMaterialLotForm';
 import {
   Scan,
   Loader2,
@@ -89,6 +90,10 @@ export function SmartMaterialScanner({ isOpen, onClose, onSuccess }: SmartScanne
   // Quick add LOT modal state (for existing materials)
   const [showQuickAddLot, setShowQuickAddLot] = useState(false);
 
+  // Inline form state (for new materials)
+  const [showInlineForm, setShowInlineForm] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+
   // Handle OCR scan complete
   const handleOCRScan = async (ocr: OCRResult) => {
     console.log('📸 OCR scan complete:', ocr);
@@ -136,35 +141,87 @@ export function SmartMaterialScanner({ isOpen, onClose, onSuccess }: SmartScanne
     setShowQuickAddLot(true);
   };
 
-  // Handle "Create new material"
+  // Handle "Create new material" - Show inline form
   const handleCreateNewMaterial = () => {
-    // Navigate to material creation form with pre-filled data
-    const params = new URLSearchParams();
-    if (scanResult?.extractedData.materialName) {
-      params.set('name', scanResult.extractedData.materialName);
-    }
-    if (scanResult?.extractedData.manufacturer) {
-      params.set('manufacturer', scanResult.extractedData.manufacturer);
-    }
-    if (scanResult?.extractedData.materialType) {
-      params.set('type', scanResult.extractedData.materialType);
-    }
-    if (scanResult?.extractedData.unit) {
-      params.set('unit', scanResult.extractedData.unit);
-    }
-    // Also pass LOT data to be added after creation
-    if (ocrData?.lotNumber) {
-      params.set('lotNumber', ocrData.lotNumber);
-    }
-    if (ocrData?.expiryDate) {
-      params.set('expiryDate', ocrData.expiryDate.toISOString());
-    }
-    if (ocrData?.quantity) {
-      params.set('quantity', ocrData.quantity.toString());
-    }
+    setShowInlineForm(true);
+  };
 
-    router.push(`/materials/new?${params.toString()}`);
-    onClose();
+  // Handle inline form submission - Create Material + LOT in one transaction
+  const handleInlineFormSubmit = async (data: any) => {
+    try {
+      setIsSaving(true);
+
+      console.log('💾 Creating material + LOT:', data);
+
+      // First, create the material
+      const materialResponse = await fetch('/api/materials', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          code: data.code,
+          name: data.name,
+          type: data.type,
+          manufacturer: data.manufacturer,
+          description: data.description,
+          biocompatible: data.biocompatible,
+          iso10993Cert: data.iso10993Cert,
+          ceMarked: data.ceMarked,
+          ceNumber: data.ceNumber,
+          unit: data.unit,
+          active: data.active,
+        }),
+      });
+
+      if (!materialResponse.ok) {
+        const error = await materialResponse.json();
+        throw new Error(error.error || 'Failed to create material');
+      }
+
+      const material = await materialResponse.json();
+      console.log('✅ Material created:', material.id);
+
+      // Then, create the LOT for this material
+      const lotResponse = await fetch(`/api/materials/${material.id}/lots`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          lotNumber: data.lotNumber,
+          expiryDate: data.expiryDate,
+          quantityReceived: data.quantityReceived,
+          supplierName: data.supplierName,
+          notes: data.notes,
+          arrivalDate: new Date(),
+        }),
+      });
+
+      if (!lotResponse.ok) {
+        const error = await lotResponse.json();
+        throw new Error(error.error || 'Failed to create LOT');
+      }
+
+      console.log('✅ LOT created successfully');
+
+      toast({
+        title: t('scanner.toastSuccessTitle'),
+        description: t('scanner.toastSuccessDesc', {
+          materialName: data.name,
+          lotNumber: data.lotNumber,
+        }),
+      });
+
+      onSuccess?.();
+      onClose();
+      router.refresh();
+    } catch (error: any) {
+      console.error('❌ Error creating material + LOT:', error);
+      toast({
+        title: t('scanner.toastErrorTitle'),
+        description: error.message || t('scanner.toastErrorDesc'),
+        variant: 'destructive',
+      });
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   // Handle quick add LOT success
@@ -183,7 +240,9 @@ export function SmartMaterialScanner({ isOpen, onClose, onSuccess }: SmartScanne
     setScanResult(null);
     setOcrData(null);
     setShowOCRScanner(false);
+    setShowInlineForm(false);
     setIsAnalyzing(false);
+    setIsSaving(false);
     onClose();
   };
 
@@ -203,15 +262,15 @@ export function SmartMaterialScanner({ isOpen, onClose, onSuccess }: SmartScanne
 
   return (
     <>
-      <Dialog open={isOpen && !showOCRScanner && !showQuickAddLot} onOpenChange={handleClose}>
+      <Dialog open={isOpen && !showOCRScanner && !showQuickAddLot && !showInlineForm} onOpenChange={handleClose}>
         <DialogContent className="max-w-2xl w-[95vw] sm:w-full max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <Scan className="h-5 w-5" />
-              Smart Material Scanner
+              {t('scanner.smartScannerTitle')}
             </DialogTitle>
             <DialogDescription>
-              Scan material label to automatically add to inventory
+              {t('scanner.smartScannerDescription')}
             </DialogDescription>
           </DialogHeader>
 
@@ -221,14 +280,14 @@ export function SmartMaterialScanner({ isOpen, onClose, onSuccess }: SmartScanne
               <div className="text-center py-8">
                 <Package className="h-16 w-16 mx-auto text-muted-foreground mb-4" />
                 <h3 className="text-lg font-semibold mb-2">
-                  Ready to Scan
+                  {t('scanner.readyToScan')}
                 </h3>
                 <p className="text-sm text-muted-foreground mb-6">
-                  Use your camera to scan the material label. AI will automatically identify the material and add it to inventory.
+                  {t('scanner.readyToScanDesc')}
                 </p>
                 <Button onClick={() => setShowOCRScanner(true)} size="lg">
                   <Scan className="h-5 w-5 mr-2" />
-                  Start Camera Scan
+                  {t('scanner.startCameraScan')}
                 </Button>
               </div>
             )}
@@ -238,10 +297,10 @@ export function SmartMaterialScanner({ isOpen, onClose, onSuccess }: SmartScanne
               <div className="text-center py-8">
                 <Loader2 className="h-16 w-16 mx-auto text-primary animate-spin mb-4" />
                 <h3 className="text-lg font-semibold mb-2">
-                  Analyzing Material...
+                  {t('scanner.analyzingMaterial')}
                 </h3>
                 <p className="text-sm text-muted-foreground">
-                  AI is processing the label and searching the database
+                  {t('scanner.analyzingDesc')}
                 </p>
               </div>
             )}
@@ -255,13 +314,13 @@ export function SmartMaterialScanner({ isOpen, onClose, onSuccess }: SmartScanne
                     variant="outline"
                     className={`${getConfidenceColor(scanResult.confidence)} border`}
                   >
-                    {scanResult.confidence.toUpperCase()} Confidence
+                    {t(`scanner.${scanResult.confidence}Confidence`)}
                     {scanResult.matchScore && ` (${scanResult.matchScore}% match)`}
                   </Badge>
                   {scanResult.confidence === 'low' && (
                     <Badge variant="outline" className="text-yellow-800 bg-yellow-50">
                       <AlertTriangle className="h-3 w-3 mr-1" />
-                      Review Recommended
+                      {t('scanner.reviewRecommended')}
                     </Badge>
                   )}
                 </div>
@@ -270,7 +329,7 @@ export function SmartMaterialScanner({ isOpen, onClose, onSuccess }: SmartScanne
                 <Alert>
                   <Info className="h-4 w-4" />
                   <AlertDescription className="text-xs">
-                    <strong>AI Analysis:</strong> {scanResult.reasoning}
+                    <strong>{t('scanner.aiAnalysis')}</strong> {scanResult.reasoning}
                   </AlertDescription>
                 </Alert>
 
@@ -280,25 +339,25 @@ export function SmartMaterialScanner({ isOpen, onClose, onSuccess }: SmartScanne
                     <CardHeader>
                       <CardTitle className="flex items-center gap-2 text-base">
                         <CheckCircle2 className="h-5 w-5 text-green-600" />
-                        Material Found in Database
+                        {t('scanner.materialFoundTitle')}
                       </CardTitle>
                     </CardHeader>
                     <CardContent className="space-y-3">
                       <div className="grid grid-cols-2 gap-2 text-sm">
                         <div>
-                          <span className="text-muted-foreground">Code:</span>
+                          <span className="text-muted-foreground">{t('scanner.materialFoundCode')}</span>
                           <p className="font-semibold">{scanResult.matchedMaterial.code}</p>
                         </div>
                         <div>
-                          <span className="text-muted-foreground">Name:</span>
+                          <span className="text-muted-foreground">{t('scanner.materialFoundName')}</span>
                           <p className="font-semibold">{scanResult.matchedMaterial.name}</p>
                         </div>
                         <div>
-                          <span className="text-muted-foreground">Type:</span>
+                          <span className="text-muted-foreground">{t('scanner.materialFoundType')}</span>
                           <p className="font-semibold">{scanResult.matchedMaterial.type}</p>
                         </div>
                         <div>
-                          <span className="text-muted-foreground">Manufacturer:</span>
+                          <span className="text-muted-foreground">{t('scanner.materialFoundManufacturer')}</span>
                           <p className="font-semibold">{scanResult.matchedMaterial.manufacturer}</p>
                         </div>
                       </div>
@@ -307,18 +366,18 @@ export function SmartMaterialScanner({ isOpen, onClose, onSuccess }: SmartScanne
                       {ocrData && (
                         <div className="pt-3 border-t border-green-200">
                           <p className="text-xs font-semibold text-muted-foreground mb-2">
-                            LOT Information to Add:
+                            {t('scanner.lotInfoToAdd')}
                           </p>
                           <div className="grid grid-cols-2 gap-2 text-sm">
                             {ocrData.lotNumber && (
                               <div>
-                                <span className="text-muted-foreground">LOT:</span>
+                                <span className="text-muted-foreground">{t('scanner.lotNumber')}</span>
                                 <p className="font-mono font-semibold">{ocrData.lotNumber}</p>
                               </div>
                             )}
                             {ocrData.expiryDate && (
                               <div>
-                                <span className="text-muted-foreground">Expiry:</span>
+                                <span className="text-muted-foreground">{t('scanner.expiryDate')}</span>
                                 <p className="font-semibold">
                                   {ocrData.expiryDate.toLocaleDateString('sl-SI')}
                                 </p>
@@ -326,7 +385,7 @@ export function SmartMaterialScanner({ isOpen, onClose, onSuccess }: SmartScanne
                             )}
                             {ocrData.quantity && (
                               <div>
-                                <span className="text-muted-foreground">Quantity:</span>
+                                <span className="text-muted-foreground">{t('scanner.quantity')}</span>
                                 <p className="font-semibold">
                                   {ocrData.quantity} {scanResult.matchedMaterial.unit}
                                 </p>
@@ -338,7 +397,7 @@ export function SmartMaterialScanner({ isOpen, onClose, onSuccess }: SmartScanne
 
                       <Button onClick={handleAddLotToExisting} className="w-full" size="lg">
                         <Plus className="h-5 w-5 mr-2" />
-                        Add LOT to This Material
+                        {t('scanner.addLotToMaterial')}
                       </Button>
                     </CardContent>
                   </Card>
@@ -350,12 +409,12 @@ export function SmartMaterialScanner({ isOpen, onClose, onSuccess }: SmartScanne
                     <CardHeader>
                       <CardTitle className="flex items-center gap-2 text-base">
                         <Plus className="h-5 w-5 text-blue-600" />
-                        New Material Detected
+                        {t('scanner.newMaterialDetected')}
                       </CardTitle>
                     </CardHeader>
                     <CardContent className="space-y-3">
                       <p className="text-sm text-muted-foreground">
-                        This material is not in the database. Create it now with the information below:
+                        {t('scanner.newMaterialDesc')}
                       </p>
 
                       <div className="grid grid-cols-2 gap-2 text-sm">
@@ -389,18 +448,18 @@ export function SmartMaterialScanner({ isOpen, onClose, onSuccess }: SmartScanne
                       {ocrData && (
                         <div className="pt-3 border-t border-blue-200">
                           <p className="text-xs font-semibold text-muted-foreground mb-2">
-                            LOT Information (will be added after creation):
+                            {t('scanner.lotInfoAfterCreation')}
                           </p>
                           <div className="grid grid-cols-2 gap-2 text-sm">
                             {ocrData.lotNumber && (
                               <div>
-                                <span className="text-muted-foreground">LOT:</span>
+                                <span className="text-muted-foreground">{t('scanner.lotNumber')}</span>
                                 <p className="font-mono font-semibold">{ocrData.lotNumber}</p>
                               </div>
                             )}
                             {ocrData.expiryDate && (
                               <div>
-                                <span className="text-muted-foreground">Expiry:</span>
+                                <span className="text-muted-foreground">{t('scanner.expiryDate')}</span>
                                 <p className="font-semibold">
                                   {ocrData.expiryDate.toLocaleDateString('sl-SI')}
                                 </p>
@@ -408,7 +467,7 @@ export function SmartMaterialScanner({ isOpen, onClose, onSuccess }: SmartScanne
                             )}
                             {ocrData.quantity && scanResult.extractedData.unit && (
                               <div>
-                                <span className="text-muted-foreground">Quantity:</span>
+                                <span className="text-muted-foreground">{t('scanner.quantity')}</span>
                                 <p className="font-semibold">
                                   {ocrData.quantity} {scanResult.extractedData.unit}
                                 </p>
@@ -420,7 +479,7 @@ export function SmartMaterialScanner({ isOpen, onClose, onSuccess }: SmartScanne
 
                       <Button onClick={handleCreateNewMaterial} className="w-full" size="lg">
                         <ArrowRight className="h-5 w-5 mr-2" />
-                        Create New Material + Add LOT
+                        {t('scanner.createNewMaterialLot')}
                       </Button>
                     </CardContent>
                   </Card>
@@ -437,7 +496,7 @@ export function SmartMaterialScanner({ isOpen, onClose, onSuccess }: SmartScanne
                       setShowOCRScanner(true);
                     }}
                   >
-                    Scan Again
+                    {t('scanner.scanAgain')}
                   </Button>
                 </div>
               </div>
@@ -445,6 +504,40 @@ export function SmartMaterialScanner({ isOpen, onClose, onSuccess }: SmartScanne
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Inline Material + LOT Creation Form (for new materials) */}
+      {showInlineForm && scanResult && !scanResult.materialExists && (
+        <Dialog open={showInlineForm} onOpenChange={(open) => !open && setShowInlineForm(false)}>
+          <DialogContent className="max-w-3xl w-[95vw] sm:w-full max-h-[90vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2">
+                <Plus className="h-5 w-5" />
+                {t('scanner.createMaterialTitle')}
+              </DialogTitle>
+              <DialogDescription>
+                {t('scanner.createMaterialDesc')}
+              </DialogDescription>
+            </DialogHeader>
+
+            <InlineMaterialLotForm
+              initialMaterialData={{
+                name: scanResult.extractedData.materialName,
+                manufacturer: scanResult.extractedData.manufacturer,
+                type: scanResult.extractedData.materialType as any,
+                unit: scanResult.extractedData.unit,
+              }}
+              initialLotData={{
+                lotNumber: ocrData?.lotNumber,
+                expiryDate: ocrData?.expiryDate,
+                quantity: ocrData?.quantity,
+              }}
+              onSubmit={handleInlineFormSubmit}
+              onCancel={() => setShowInlineForm(false)}
+              isLoading={isSaving}
+            />
+          </DialogContent>
+        </Dialog>
+      )}
 
       {/* OCR Scanner Modal */}
       {showOCRScanner && (
