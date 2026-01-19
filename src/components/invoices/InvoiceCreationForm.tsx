@@ -490,11 +490,11 @@ export function InvoiceCreationForm() {
 
       {/* Line Items */}
       <div className="space-y-4">
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
           <Label>{t('invoices.lineItemsLabel')}</Label>
-          <div className="flex gap-2">
+          <div className="flex flex-col gap-2 md:flex-row w-full md:w-auto">
             <ProductSelectorDialog onSelect={addProductFromPricingList} />
-            <Button type="button" variant="outline" size="sm" onClick={addCustomLineItem}>
+            <Button type="button" variant="outline" size="sm" onClick={addCustomLineItem} className="w-full md:w-auto">
               <Plus className="h-4 w-4 mr-2" />
               {t('invoices.addCustomItemButton')}
             </Button>
@@ -917,7 +917,7 @@ export function InvoiceCreationForm() {
       </div>
 
       {/* Action Buttons */}
-      <div className="flex gap-3">
+      <div className="flex flex-col gap-3 md:flex-row">
         <Button
           type="button"
           variant="outline"

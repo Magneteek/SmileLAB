@@ -19,7 +19,7 @@ export default function NewOrderPage() {
   const t = useTranslations();
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-2">
       {/* Header */}
       <div className="flex items-center gap-4">
         <Button variant="ghost" size="icon" asChild>
@@ -28,7 +28,7 @@ export default function NewOrderPage() {
           </Link>
         </Button>
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">{t('order.createNewOrder')}</h1>
+          <h1 className="text-sm font-bold tracking-tight">{t('order.createNewOrder')}</h1>
           <p className="text-muted-foreground">
             {t('order.createNewOrderSubtitle')}
           </p>

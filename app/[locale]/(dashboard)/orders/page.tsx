@@ -12,15 +12,8 @@ import { useSession } from 'next-auth/react';
 import { useTranslations } from 'next-intl';
 import Link from 'next/link';
 import { OrdersTable } from '@/components/orders/OrdersTable';
+import { OrderFilters } from '@/components/orders/OrderFilters';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import {
@@ -31,7 +24,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import { Plus, Search, Filter, Loader2, X } from 'lucide-react';
+import { Plus, Loader2 } from 'lucide-react';
 import { OrderStatus } from '@prisma/client';
 import { OrderWithRelations, OrderListResponse } from '@/types/order';
 
@@ -165,16 +158,16 @@ export default function OrdersPage() {
     searchTerm || statusFilter !== 'ALL' || dentistFilter !== 'ALL' || priorityFilter !== 'ALL';
 
   return (
-    <div className="space-y-6">
+    <div className="w-full max-w-full space-y-2">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">{t('order.title')}</h1>
+          <h1 className="text-sm font-bold tracking-tight">{t('order.title')}</h1>
           <p className="text-muted-foreground">
             {t('order.subtitle')}
           </p>
         </div>
-        <Button asChild>
+        <Button asChild className="w-full sm:w-auto">
           <Link href="/orders/new">
             <Plus className="mr-2 h-4 w-4" />
             {t('order.newOrder')}
@@ -182,85 +175,21 @@ export default function OrdersPage() {
         </Button>
       </div>
 
-      {/* Filters - Compact Single Row */}
-      <Card>
-        <CardContent className="py-3">
-          <div className="flex items-center gap-3">
-            {/* Search */}
-            <Input
-              placeholder={t('order.searchPlaceholder')}
-              className="w-48"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-            />
-
-            {/* Status filter */}
-            <Select
-              value={statusFilter}
-              onValueChange={(value) => setStatusFilter(value as OrderStatus | 'ALL')}
-            >
-              <SelectTrigger className="w-48">
-                <SelectValue placeholder={t('order.allStatuses')} />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="ALL">{t('order.allStatuses')}</SelectItem>
-                <SelectItem value="PENDING">{t('status.pending')}</SelectItem>
-                <SelectItem value="IN_PRODUCTION">{t('status.in_production')}</SelectItem>
-                <SelectItem value="QC_PENDING">{t('status.qc_pending')}</SelectItem>
-                <SelectItem value="QC_APPROVED">{t('status.qc_approved')}</SelectItem>
-                {/* Hide INVOICED filter for TECHNICIAN */}
-                {session?.user?.role !== 'TECHNICIAN' && (
-                  <>
-                    <SelectItem value="INVOICED">{t('status.sent')}</SelectItem>
-                    <SelectItem value="DELIVERED">{t('status.delivered')}</SelectItem>
-                  </>
-                )}
-                <SelectItem value="CANCELLED">{t('status.cancelled')}</SelectItem>
-              </SelectContent>
-            </Select>
-
-            {/* Dentist filter */}
-            <Select value={dentistFilter} onValueChange={setDentistFilter}>
-              <SelectTrigger className="w-48">
-                <SelectValue placeholder={t('order.allDentists')} />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="ALL">{t('order.allDentists')}</SelectItem>
-                {dentists.map((dentist) => (
-                  <SelectItem key={dentist.id} value={dentist.id}>
-                    {dentist.clinicName}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-
-            {/* Priority filter */}
-            <Select value={priorityFilter} onValueChange={setPriorityFilter}>
-              <SelectTrigger className="w-48">
-                <SelectValue placeholder={t('order.allPriorities')} />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="ALL">{t('order.allPriorities')}</SelectItem>
-                <SelectItem value="0">{t('order.priorityNormal')}</SelectItem>
-                <SelectItem value="1">{t('order.priorityHigh')}</SelectItem>
-                <SelectItem value="2">{t('order.priorityUrgent')}</SelectItem>
-              </SelectContent>
-            </Select>
-
-            {/* Clear Filters */}
-            {hasActiveFilters && (
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={resetFilters}
-              >
-                <X className="mr-2 h-4 w-4" />
-                {t('order.clear')}
-              </Button>
-            )}
-          </div>
-        </CardContent>
-      </Card>
+      {/* Filters - Mobile drawer, desktop inline */}
+      <OrderFilters
+        searchTerm={searchTerm}
+        statusFilter={statusFilter}
+        dentistFilter={dentistFilter}
+        priorityFilter={priorityFilter}
+        dentists={dentists}
+        hasActiveFilters={hasActiveFilters}
+        userRole={session?.user?.role}
+        onSearchChange={setSearchTerm}
+        onStatusChange={setStatusFilter}
+        onDentistChange={setDentistFilter}
+        onPriorityChange={setPriorityFilter}
+        onResetFilters={resetFilters}
+      />
 
       {/* Error message */}
       {error && (

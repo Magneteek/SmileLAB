@@ -63,7 +63,7 @@ export default function NewDentistPage() {
   };
 
   return (
-    <div className="container mx-auto py-8 max-w-4xl space-y-6">
+    <div className="container mx-auto py-8 max-w-4xl space-y-2">
       {/* Header */}
       <div className="flex items-center gap-4">
         <Link href="/dentists">
@@ -75,7 +75,7 @@ export default function NewDentistPage() {
       </div>
 
       <div>
-        <h1 className="text-3xl font-bold">{t('dentist.createTitle')}</h1>
+        <h1 className="text-sm font-bold">{t('dentist.createTitle')}</h1>
         <p className="text-gray-500 mt-1">
           {t('dentist.createSubtitle')}
         </p>

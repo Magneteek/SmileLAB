@@ -32,7 +32,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { Eye, MoreVertical, Edit, Archive, CheckCircle2, XCircle, Trash2, ToggleLeft, ToggleRight } from 'lucide-react';
+import { Eye, MoreVertical, Edit, Archive, CheckCircle2, XCircle, Trash2, ToggleLeft, ToggleRight, Plus, Scan } from 'lucide-react';
 import { SortableTableHeader } from '@/components/shared/SortableTableHeader';
 import { useTableSort } from '@/lib/hooks/useTableSort';
 
@@ -42,6 +42,8 @@ interface MaterialsTableProps {
   onArchive?: (id: string) => void;
   onDelete?: (id: string) => void;
   onToggleActive?: (id: string, currentActive: boolean) => void;
+  onQuickAddLot?: (material: MaterialWithLots) => void;
+  onOpenSmartScanner?: () => void;
   onSearch?: (search: string) => void;
   onFilterType?: (type: MaterialType | 'all') => void;
   onFilterActive?: (active: boolean | 'all') => void;
@@ -68,6 +70,8 @@ export function MaterialsTable({
   onArchive,
   onDelete,
   onToggleActive,
+  onQuickAddLot,
+  onOpenSmartScanner,
   onSearch,
   onFilterType,
   onFilterActive,
@@ -134,7 +138,7 @@ export function MaterialsTable({
             className="max-w-sm"
           />
         </div>
-        <div className="flex gap-2">
+        <div className="flex flex-col gap-2 w-full md:w-auto md:flex-row">
           <Select value={filterType} onValueChange={handleFilterType}>
             <SelectTrigger className="w-[180px]">
               <SelectValue placeholder={t('material.filterByType')} />
@@ -162,22 +166,27 @@ export function MaterialsTable({
               <SelectItem value="false">{t('material.inactive')}</SelectItem>
             </SelectContent>
           </Select>
+
+          {/* Smart Scanner Button */}
+          {onOpenSmartScanner && (
+            <Button
+              onClick={onOpenSmartScanner}
+              variant="default"
+              className="w-full md:w-auto bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
+            >
+              <Scan className="h-4 w-4 mr-2" />
+              Smart Scan
+            </Button>
+          )}
         </div>
       </div>
 
       {/* Table */}
-      <div className="rounded-md border">
-        <Table>
+      <div className="rounded-md border overflow-x-auto">
+        <Table className="min-w-full">
           <TableHeader>
             <TableRow>
-              <SortableTableHeader
-                sortKey="code"
-                currentSortKey={sortKey}
-                currentSortDirection={sortDirection}
-                onSort={handleSort}
-              >
-                {t('material.tableHeaderCode')}
-              </SortableTableHeader>
+              <TableHead className="text-right">{t('material.tableHeaderActions')}</TableHead>
               <SortableTableHeader
                 sortKey="name"
                 currentSortKey={sortKey}
@@ -194,6 +203,7 @@ export function MaterialsTable({
               >
                 {t('material.tableHeaderType')}
               </SortableTableHeader>
+              <TableHead className="text-right">{t('material.tableHeaderLOTs')}</TableHead>
               <SortableTableHeader
                 sortKey="manufacturer"
                 currentSortKey={sortKey}
@@ -211,7 +221,6 @@ export function MaterialsTable({
               >
                 {t('material.tableHeaderCE')}
               </SortableTableHeader>
-              <TableHead className="text-right">{t('material.tableHeaderLOTs')}</TableHead>
               <TableHead className="text-right">{t('material.tableHeaderAvailableQty')}</TableHead>
               <SortableTableHeader
                 sortKey="active"
@@ -221,13 +230,12 @@ export function MaterialsTable({
               >
                 {t('material.tableHeaderStatus')}
               </SortableTableHeader>
-              <TableHead className="text-right">{t('material.tableHeaderActions')}</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {sortedMaterials.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={9} className="text-center text-muted-foreground">
+                <TableCell colSpan={8} className="text-center text-muted-foreground">
                   {t('material.tableEmpty')}
                 </TableCell>
               </TableRow>
@@ -243,12 +251,78 @@ export function MaterialsTable({
                     className="cursor-pointer hover:bg-muted/50"
                     onClick={() => window.location.href = `/materials/${material.id}`}
                   >
-                    <TableCell className="font-medium">{material.code}</TableCell>
+                    <TableCell className="text-right" onClick={(e) => e.stopPropagation()}>
+                      <div className="flex items-center justify-end gap-1">
+                        {/* Quick Add LOT Button */}
+                        {onQuickAddLot && (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => onQuickAddLot(material)}
+                            title={t('material.quickAddLOTTooltip')}
+                          >
+                            <Plus className="h-4 w-4" />
+                          </Button>
+                        )}
+
+                        {/* More Actions Menu */}
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" size="sm">
+                              <MoreVertical className="h-4 w-4" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end" className="z-50">
+                            <DropdownMenuItem asChild>
+                              <Link href={`/materials/${material.id}`}>
+                                <Eye className="mr-2 h-4 w-4" />
+                                {t('material.dropdownViewDetails')}
+                              </Link>
+                            </DropdownMenuItem>
+                            {onEdit && (
+                              <DropdownMenuItem onClick={() => onEdit(material.id)}>
+                                <Edit className="mr-2 h-4 w-4" />
+                                {t('material.dropdownEdit')}
+                              </DropdownMenuItem>
+                            )}
+                            {onToggleActive && (
+                              <DropdownMenuItem onClick={() => onToggleActive(material.id, material.active)}>
+                                {material.active ? (
+                                  <>
+                                    <ToggleLeft className="mr-2 h-4 w-4" />
+                                    {t('material.dropdownMarkInactive')}
+                                  </>
+                                ) : (
+                                  <>
+                                    <ToggleRight className="mr-2 h-4 w-4" />
+                                    {t('material.dropdownMarkActive')}
+                                  </>
+                                )}
+                              </DropdownMenuItem>
+                            )}
+                            {onDelete && (
+                              <DropdownMenuItem
+                                onClick={() => onDelete(material.id)}
+                                className="text-red-600"
+                              >
+                                <Trash2 className="mr-2 h-4 w-4" />
+                                {t('material.dropdownDelete')}
+                              </DropdownMenuItem>
+                            )}
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </div>
+                    </TableCell>
                     <TableCell>{material.name}</TableCell>
                     <TableCell>
                       <Badge className={TYPE_COLORS[material.type]} variant="secondary">
                         {t(`material.type${material.type}` as any)}
                       </Badge>
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <span className="text-muted-foreground">
+                        {availableLots} / {material.lots.length}
+                      </span>
                     </TableCell>
                     <TableCell>{material.manufacturer}</TableCell>
                     <TableCell className="text-center">
@@ -257,11 +331,6 @@ export function MaterialsTable({
                       ) : (
                         <XCircle className="inline h-4 w-4 text-red-600" />
                       )}
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <span className="text-muted-foreground">
-                        {availableLots} / {material.lots.length}
-                      </span>
                     </TableCell>
                     <TableCell className="text-right">
                       <span
@@ -284,53 +353,6 @@ export function MaterialsTable({
                       ) : (
                         <Badge variant="secondary">{t('material.inactive')}</Badge>
                       )}
-                    </TableCell>
-                    <TableCell className="text-right" onClick={(e) => e.stopPropagation()}>
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" size="sm">
-                            <MoreVertical className="h-4 w-4" />
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end" className="z-50">
-                          <DropdownMenuItem asChild>
-                            <Link href={`/materials/${material.id}`}>
-                              <Eye className="mr-2 h-4 w-4" />
-                              {t('material.dropdownViewDetails')}
-                            </Link>
-                          </DropdownMenuItem>
-                          {onEdit && (
-                            <DropdownMenuItem onClick={() => onEdit(material.id)}>
-                              <Edit className="mr-2 h-4 w-4" />
-                              {t('material.dropdownEdit')}
-                            </DropdownMenuItem>
-                          )}
-                          {onToggleActive && (
-                            <DropdownMenuItem onClick={() => onToggleActive(material.id, material.active)}>
-                              {material.active ? (
-                                <>
-                                  <ToggleLeft className="mr-2 h-4 w-4" />
-                                  {t('material.dropdownMarkInactive')}
-                                </>
-                              ) : (
-                                <>
-                                  <ToggleRight className="mr-2 h-4 w-4" />
-                                  {t('material.dropdownMarkActive')}
-                                </>
-                              )}
-                            </DropdownMenuItem>
-                          )}
-                          {onDelete && (
-                            <DropdownMenuItem
-                              onClick={() => onDelete(material.id)}
-                              className="text-red-600"
-                            >
-                              <Trash2 className="mr-2 h-4 w-4" />
-                              {t('material.dropdownDelete')}
-                            </DropdownMenuItem>
-                          )}
-                        </DropdownMenuContent>
-                      </DropdownMenu>
                     </TableCell>
                   </TableRow>
                 );

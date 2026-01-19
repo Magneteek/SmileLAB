@@ -308,10 +308,10 @@ export function ProductSelector({
 
   return (
     <div className={className}>
-      {/* 3:1 Grid Layout: Selected Products (75%) | Browse Products (25%) */}
-      <div className="grid grid-cols-1 lg:grid-cols-4 gap-4">
-        {/* Left Column: Selected Products (3/4 width = 75%) */}
-        <Card className="lg:col-span-3">
+      {/* 70/30 Grid Layout: Selected Products (70%) | Browse Products (30%) */}
+      <div className="grid grid-cols-1 lg:grid-cols-10 gap-4">
+        {/* Left Column: Selected Products (70%) */}
+        <Card className="lg:col-span-7">
           <CardHeader>
             <div className="flex items-center justify-between">
               <CardTitle className="text-base">
@@ -420,8 +420,8 @@ export function ProductSelector({
           </CardContent>
         </Card>
 
-        {/* Right Column: Product Browser (1/4 width = 25%) */}
-        <Card className="lg:col-span-1">
+        {/* Right Column: Product Browser (30%) */}
+        <Card className="lg:col-span-3">
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-base">
             <PackagePlus className="h-4 w-4" />
@@ -518,21 +518,14 @@ export function ProductSelector({
                           />
                         )}
                         <div className="flex-1 min-w-0">
-                          <div className="flex items-start justify-between gap-2">
-                            <div className="flex-1">
-                              <p className="font-medium text-xs">
-                                {product.code} - {product.name}
-                              </p>
-                              {product.description && (
-                                <p className="text-[11px] text-gray-600 mt-0.5 line-clamp-2">
-                                  {product.description}
-                                </p>
-                              )}
-                            </div>
-                            <Badge variant="outline" className="shrink-0 text-[10px] px-1.5 py-0">
-                              {product.category}
-                            </Badge>
-                          </div>
+                          <p className="font-medium text-xs">
+                            {product.code} - {product.name}
+                          </p>
+                          {product.description && (
+                            <p className="text-[11px] text-gray-600 mt-0.5 line-clamp-2">
+                              {product.description}
+                            </p>
+                          )}
                         </div>
                       </div>
                     </div>

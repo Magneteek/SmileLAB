@@ -15,7 +15,7 @@ export default async function LotSelectorDemoPage() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-2">
       <div className="flex items-center gap-4">
         <Link href="/materials">
           <Button variant="ghost" size="icon">
@@ -23,7 +23,7 @@ export default async function LotSelectorDemoPage() {
           </Button>
         </Link>
         <div>
-          <h1 className="text-3xl font-bold">LOT Selector Demo</h1>
+          <h1 className="text-sm font-bold">LOT Selector Demo</h1>
           <p className="text-muted-foreground mt-1">
             Test the flexible LOT selection for worksheet materials
           </p>

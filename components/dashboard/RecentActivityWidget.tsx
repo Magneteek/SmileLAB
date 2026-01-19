@@ -43,22 +43,22 @@ export function RecentActivityWidget({ data }: RecentActivityWidgetProps) {
 
   return (
     <Card>
-      <CardHeader>
-        <div className="flex items-center justify-between">
+      <CardHeader className="p-2 pb-1">
+        <div className="flex items-center justify-between py-0.5">
           <div>
-            <CardTitle className="text-lg">{t('recentActivityTitle')}</CardTitle>
-            <CardDescription>{t('recentActivityDescription')}</CardDescription>
+            <CardTitle className="text-xs font-semibold">{t('recentActivityTitle')}</CardTitle>
+            <CardDescription className="text-[10px]">{t('recentActivityDescription')}</CardDescription>
           </div>
-          <Activity className="h-8 w-8 text-muted-foreground" />
+          <Activity className="h-3 w-3 text-muted-foreground" />
         </div>
       </CardHeader>
-      <CardContent>
+      <CardContent className="p-2 pt-1">
         {data.length === 0 ? (
           <div className="p-8 text-center">
-            <p className="text-sm text-muted-foreground">{t('noRecentActivity')}</p>
+            <p className="text-[10px] text-muted-foreground">{t('noRecentActivity')}</p>
           </div>
         ) : (
-          <div className="space-y-3">
+          <div className="space-y-0.5">
             {data.slice(0, 4).map((activity, index) => {
               const Icon = activityIcons[activity.type];
               const colorClass = activityColors[activity.type];
@@ -66,26 +66,26 @@ export function RecentActivityWidget({ data }: RecentActivityWidgetProps) {
               return (
                 <div
                   key={`${activity.id}-${index}`}
-                  className="flex items-start gap-3 p-3 rounded-lg hover:bg-muted/50 transition-colors"
+                  className="flex items-start gap-1 p-1 rounded-lg hover:bg-muted/50 transition-colors"
                 >
                   {/* Icon */}
                   <div
                     className={`flex-shrink-0 w-8 h-8 ${colorClass} rounded-full flex items-center justify-center`}
                   >
-                    <Icon className="h-4 w-4 text-white" />
+                    <Icon className="h-3 w-3 text-white" />
                   </div>
 
                   {/* Content */}
                   <div className="flex-1 min-w-0">
-                    <div className="flex items-center justify-between gap-2">
-                      <p className="text-sm font-medium truncate">
+                    <div className="flex items-center justify-between gap-1">
+                      <p className="text-[10px] font-medium truncate">
                         {activity.description}
                       </p>
                       <Badge variant="outline" className="flex-shrink-0 text-xs">
                         {t(`activityType${activity.type.charAt(0) + activity.type.slice(1).toLowerCase()}`)}
                       </Badge>
                     </div>
-                    <div className="flex items-center gap-2 mt-1">
+                    <div className="flex items-center gap-1 mt-1">
                       <p className="text-xs text-muted-foreground">
                         {t('byUser', { userName: activity.userName })}
                       </p>
@@ -106,7 +106,7 @@ export function RecentActivityWidget({ data }: RecentActivityWidgetProps) {
 
         {/* View All Link */}
         {data.length > 0 && (
-          <div className="mt-4 pt-4 border-t">
+          <div className="mt-4 pt-1 border-t">
             <a href="/activity" className="text-sm text-blue-600 hover:underline w-full text-center block">
               {t('viewAllActivity')}
             </a>

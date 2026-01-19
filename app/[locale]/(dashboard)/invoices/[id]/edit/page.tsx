@@ -105,7 +105,7 @@ export default async function InvoiceEditPage({
   };
 
   return (
-    <div className="container mx-auto py-6 space-y-6">
+    <div className="container mx-auto py-6 space-y-2">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
@@ -116,7 +116,7 @@ export default async function InvoiceEditPage({
           </Link>
           <div>
             <div className="flex items-center gap-3">
-              <h1 className="text-2xl font-bold tracking-tight">Edit Draft Invoice</h1>
+              <h1 className="text-sm font-bold tracking-tight">Edit Draft Invoice</h1>
               <Badge variant="outline">DRAFT</Badge>
             </div>
             <p className="text-sm text-gray-500">

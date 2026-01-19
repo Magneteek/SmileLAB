@@ -28,7 +28,7 @@ export default async function NewMaterialPage() {
   const t = await getTranslations('material');
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-2">
       <div className="flex items-center gap-4">
         <Link href="/materials">
           <Button variant="ghost" size="icon">
@@ -36,7 +36,7 @@ export default async function NewMaterialPage() {
           </Button>
         </Link>
         <div>
-          <h1 className="text-3xl font-bold">{t('createTitle')}</h1>
+          <h1 className="text-sm font-bold">{t('createTitle')}</h1>
           <p className="text-muted-foreground">{t('createSubtitle')}</p>
         </div>
       </div>

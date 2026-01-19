@@ -68,7 +68,7 @@ export default function EditProductPage() {
 
   if (error || !product) {
     return (
-      <div className="container mx-auto py-6 space-y-6">
+      <div className="container mx-auto py-6 space-y-2">
         <Alert variant="destructive">
           <AlertCircle className="h-4 w-4" />
           <AlertDescription>
@@ -86,7 +86,7 @@ export default function EditProductPage() {
   }
 
   return (
-    <div className="container mx-auto py-6 space-y-6">
+    <div className="container mx-auto py-6 space-y-2">
       {/* Header */}
       <div className="flex items-center gap-4">
         <Link href="/pricing">
@@ -96,7 +96,7 @@ export default function EditProductPage() {
           </Button>
         </Link>
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">{t('editProductTitle')}</h1>
+          <h1 className="text-sm font-bold tracking-tight">{t('editProductTitle')}</h1>
           <p className="text-gray-600 mt-1">
             {t('editProductSubtitle', { code: product.code })}
           </p>

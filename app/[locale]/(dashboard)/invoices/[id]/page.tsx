@@ -340,9 +340,9 @@ export default function InvoiceDetailPage({
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-2">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
         <div className="flex items-center gap-4">
           <Button variant="ghost" onClick={() => router.back()}>
             <ArrowLeft className="mr-2 h-4 w-4" />
@@ -350,7 +350,7 @@ export default function InvoiceDetailPage({
           </Button>
           <div>
             <div className="flex items-center gap-3">
-              <h1 className="text-3xl font-bold tracking-tight">
+              <h1 className="text-sm font-bold tracking-tight">
                 {t('invoices.invoice')} {invoice.invoiceNumber}
               </h1>
               {invoice.isDraft && (
@@ -372,7 +372,7 @@ export default function InvoiceDetailPage({
           </div>
         </div>
 
-        <div className="flex gap-2">
+        <div className="flex flex-col sm:flex-row gap-2 w-full md:w-auto">
           {/* Draft invoice actions */}
           {invoice.isDraft && (
             <>
@@ -380,10 +380,10 @@ export default function InvoiceDetailPage({
                 variant="outline"
                 onClick={handleDeleteDraft}
                 disabled={saving}
-                className="text-destructive hover:bg-destructive/10"
+                className="text-destructive hover:bg-destructive/10 w-full sm:w-auto"
               >
                 <Trash2 className="mr-2 h-4 w-4" />
-                {t('invoices.deleteDraftButton')}
+                <span className="truncate">{t('invoices.deleteDraftButton')}</span>
               </Button>
               <FinalizeDraftButton
                 invoiceId={invoice.id}
@@ -411,26 +411,28 @@ export default function InvoiceDetailPage({
                     window.open(`/api/invoices/${invoice.id}/pdf`, '_blank');
                   }
                 }}
+                className="w-full sm:w-auto"
               >
                 <Download className="mr-2 h-4 w-4" />
-                {t('invoices.downloadPdfButton')}
+                <span className="truncate">{t('invoices.downloadPdfButton')}</span>
               </Button>
               <Button
                 variant="outline"
                 onClick={handleSendEmail}
                 disabled={sendingEmail || !invoice.pdfPath || !invoice.dentist?.email}
+                className="w-full sm:w-auto"
               >
                 <Mail className="mr-2 h-4 w-4" />
-                {sendingEmail ? t('invoices.sendingEmail') : t('invoices.sendEmailButton')}
+                <span className="truncate">{sendingEmail ? t('invoices.sendingEmail') : t('invoices.sendEmailButton')}</span>
               </Button>
             </>
           )}
         </div>
       </div>
 
-      <div className="grid gap-6 md:grid-cols-3">
+      <div className="grid gap-2 md:grid-cols-3">
         {/* Left Column: Invoice Details */}
-        <div className="md:col-span-2 space-y-6">
+        <div className="md:col-span-2 space-y-2">
           {/* Invoice Info */}
           <Card>
             <CardHeader>
@@ -484,7 +486,7 @@ export default function InvoiceDetailPage({
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
-                <Building className="h-5 w-5" />
+                <Building className="h-4 w-4" />
                 {t('invoices.dentistClinicTitle')}
               </CardTitle>
             </CardHeader>
@@ -543,7 +545,7 @@ export default function InvoiceDetailPage({
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
-                  <User className="h-5 w-5" />
+                  <User className="h-4 w-4" />
                   {t('invoices.patientInformationTitle')}
                 </CardTitle>
               </CardHeader>
@@ -637,11 +639,11 @@ export default function InvoiceDetailPage({
         </div>
 
         {/* Right Column: Payment Status Update */}
-        <div className="space-y-6">
+        <div className="space-y-2">
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
-                <CreditCard className="h-5 w-5" />
+                <CreditCard className="h-4 w-4" />
                 {t('invoices.paymentStatusTitle')}
               </CardTitle>
             </CardHeader>

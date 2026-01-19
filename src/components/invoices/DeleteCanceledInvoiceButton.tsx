@@ -66,16 +66,16 @@ export function DeleteCanceledInvoiceButton({
   return (
     <AlertDialog>
       <AlertDialogTrigger asChild>
-        <Button variant="destructive" disabled={deleting} size="sm">
+        <Button variant="destructive" disabled={deleting} size="sm" className="w-full sm:w-auto">
           {deleting ? (
             <>
               <Loader2 className="mr-2 h-3 w-3 animate-spin" />
-              Deleting...
+              <span className="truncate">Deleting...</span>
             </>
           ) : (
             <>
               <Trash2 className="mr-2 h-3 w-3" />
-              Delete
+              <span className="truncate">Delete</span>
             </>
           )}
         </Button>

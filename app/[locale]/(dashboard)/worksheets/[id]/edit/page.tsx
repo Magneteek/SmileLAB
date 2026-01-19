@@ -17,12 +17,14 @@ import { Button } from '@/components/ui/button';
 import { WorksheetForm } from '@/src/components/worksheets/WorksheetForm';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { AlertCircle } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 import type { WorksheetWithRelations } from '@/src/types/worksheet';
 
 export default function EditWorksheetPage() {
   const router = useRouter();
   const params = useParams();
   const worksheetId = params.id as string;
+  const t = useTranslations();
 
   const [worksheet, setWorksheet] = useState<WorksheetWithRelations | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -85,7 +87,7 @@ export default function EditWorksheetPage() {
   };
 
   return (
-    <div className="container mx-auto py-6 space-y-6">
+    <div className="container mx-auto py-6 space-y-2">
       {/* Header */}
       <div className="flex items-center gap-4">
         <Button
@@ -96,12 +98,12 @@ export default function EditWorksheetPage() {
           <ArrowLeft className="h-4 w-4" />
         </Button>
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Edit Worksheet</h1>
+          <h1 className="text-sm font-bold tracking-tight">{t('worksheet.editWorksheet')}</h1>
           {worksheet && (
             <p className="text-gray-600 mt-1">
-              {worksheet.worksheetNumber} • Order #{worksheet.order.orderNumber}
-              {worksheet.patientName && ` • Patient: ${worksheet.patientName}`}
-              {worksheet.order.orderDate && ` • Date: ${new Date(worksheet.order.orderDate).toLocaleDateString('sl-SI', {
+              {worksheet.worksheetNumber} • {t('worksheet.orderNumber')} #{worksheet.order.orderNumber}
+              {worksheet.patientName && ` • ${t('worksheet.patient')}: ${worksheet.patientName}`}
+              {worksheet.order.orderDate && ` • ${t('worksheet.date')}: ${new Date(worksheet.order.orderDate).toLocaleDateString('sl-SI', {
                 year: 'numeric',
                 month: '2-digit',
                 day: '2-digit',
@@ -115,7 +117,7 @@ export default function EditWorksheetPage() {
       {isLoading && (
         <div className="flex items-center justify-center py-12">
           <Loader2 className="h-8 w-8 animate-spin text-gray-400" />
-          <span className="ml-3 text-gray-600">Loading worksheet...</span>
+          <span className="ml-3 text-gray-600">{t('worksheet.loadingWorksheet')}</span>
         </div>
       )}
 
@@ -128,7 +130,7 @@ export default function EditWorksheetPage() {
             <div className="mt-2">
               <Link href={`/worksheets/${worksheetId}`}>
                 <Button variant="outline" size="sm">
-                  Back to Worksheet
+                  {t('worksheet.backToWorksheet')}
                 </Button>
               </Link>
             </div>

@@ -439,29 +439,29 @@ export default function SettingsPage() {
   }
 
   return (
-    <div className="container mx-auto py-8 max-w-6xl">
+    <div className="w-full max-w-6xl">
       {/* Page Header */}
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold mb-2">Settings</h1>
-        <p className="text-gray-600 text-sm">
+      <div className="mb-4 md:mb-6">
+        <h1 className="text-xl md:text-2xl font-bold mb-2">Settings</h1>
+        <p className="text-gray-600 text-xs md:text-sm">
           {t('pageDescription')}
         </p>
       </div>
 
-      {/* Settings Navigation Tabs */}
-      <div className="flex gap-2 mb-6 border-b">
+      {/* Settings Navigation Tabs - Scrollable on mobile */}
+      <div className="flex gap-2 mb-4 md:mb-6 border-b overflow-x-auto scrollbar-hide">
         <button
-          className="flex items-center gap-2 px-4 py-2 border-b-2 border-blue-500 text-blue-600 font-medium text-sm"
+          className="flex items-center gap-2 px-3 md:px-4 py-2 border-b-2 border-blue-500 text-blue-600 font-medium text-xs md:text-sm whitespace-nowrap"
         >
-          <Building2 className="h-4 w-4" />
-          {t('pageTitle')}
+          <Building2 className="h-4 w-4 flex-shrink-0" />
+          <span className="truncate">{t('pageTitle')}</span>
         </button>
         <Link href={`/${locale}/settings/sops`}>
           <button
-            className="flex items-center gap-2 px-4 py-2 border-b-2 border-transparent hover:border-gray-300 text-gray-600 hover:text-gray-900 font-medium text-sm transition-colors"
+            className="flex items-center gap-2 px-3 md:px-4 py-2 border-b-2 border-transparent hover:border-gray-300 text-gray-600 hover:text-gray-900 font-medium text-xs md:text-sm transition-colors whitespace-nowrap"
           >
-            <FileText className="h-4 w-4" />
-            {t('sopSection')}
+            <FileText className="h-4 w-4 flex-shrink-0" />
+            <span className="truncate">{t('sopSection')}</span>
           </button>
         </Link>
       </div>
@@ -1034,8 +1034,8 @@ export default function SettingsPage() {
 
               {/* Invoice Legal Terms Section */}
               <div className="space-y-4">
-                <h3 className="text-lg font-semibold">{t('sectionInvoiceLegalTerms')}</h3>
-                <p className="text-sm text-gray-600">
+                <h3 className="text-sm md:text-lg font-semibold">{t('sectionInvoiceLegalTerms')}</h3>
+                <p className="text-xs md:text-sm text-gray-600">
                   {t('legalTermsIntro')}
                 </p>
 
@@ -1044,15 +1044,15 @@ export default function SettingsPage() {
                   name="invoiceLegalTerms"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>{t('legalTermsText')}</FormLabel>
+                      <FormLabel className="text-sm">{t('legalTermsText')}</FormLabel>
                       <FormControl>
                         <Textarea
                           placeholder={t('legalTermsPlaceholder')}
-                          className="min-h-[200px] font-mono text-sm"
+                          className="min-h-[200px] font-mono text-xs md:text-sm whitespace-pre-wrap break-words overflow-x-hidden"
                           {...field}
                         />
                       </FormControl>
-                      <FormDescription>
+                      <FormDescription className="text-xs">
                         {t('legalTermsHelp')}
                       </FormDescription>
                       <FormMessage />
@@ -1115,70 +1115,76 @@ export default function SettingsPage() {
           <CardContent>
             {bankAccounts.length === 0 ? (
               <div className="text-center py-8 text-gray-500">
-                <p>{t('noBankAccounts')}</p>
-                <p className="text-sm">{t('addFirstBankAccount')}</p>
+                <p className="text-sm md:text-base">{t('noBankAccounts')}</p>
+                <p className="text-xs md:text-sm">{t('addFirstBankAccount')}</p>
               </div>
             ) : (
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead className="w-[50px]">{t('tableHeaderPrimary')}</TableHead>
-                    <TableHead>{t('tableHeaderBank')}</TableHead>
-                    <TableHead>{t('tableHeaderIban')}</TableHead>
-                    <TableHead>{t('tableHeaderSwift')}</TableHead>
-                    <TableHead>{t('tableHeaderType')}</TableHead>
-                    <TableHead className="text-right">{t('tableHeaderActions')}</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {bankAccounts
-                    .sort((a, b) => a.displayOrder - b.displayOrder)
-                    .map((account) => (
-                      <TableRow key={account.id}>
-                        <TableCell>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => handleTogglePrimary(account.id)}
-                            className="p-0 h-auto"
-                          >
-                            {account.isPrimary ? (
-                              <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
-                            ) : (
-                              <StarOff className="h-4 w-4 text-gray-400" />
-                            )}
-                          </Button>
-                        </TableCell>
-                        <TableCell className="font-medium">{account.bankName}</TableCell>
-                        <TableCell>{account.iban}</TableCell>
-                        <TableCell>{account.swiftBic || '-'}</TableCell>
-                        <TableCell>
-                          <span className="inline-flex items-center rounded-md bg-blue-50 px-2 py-1 text-xs font-medium text-blue-700 ring-1 ring-inset ring-blue-700/10">
-                            {account.accountType || '-'}
-                          </span>
-                        </TableCell>
-                        <TableCell className="text-right">
-                          <div className="flex justify-end gap-2">
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => handleEditBank(account)}
-                            >
-                              <Edit className="h-4 w-4" />
-                            </Button>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => setDeletingBankId(account.id)}
-                            >
-                              <Trash2 className="h-4 w-4 text-red-600" />
-                            </Button>
-                          </div>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                </TableBody>
-              </Table>
+              <div className="overflow-x-auto">
+                <div className="inline-block min-w-full align-middle">
+                  <div className="overflow-hidden rounded-lg">
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead className="w-[50px] text-xs md:text-sm">{t('tableHeaderPrimary')}</TableHead>
+                          <TableHead className="min-w-[150px] text-xs md:text-sm">{t('tableHeaderBank')}</TableHead>
+                          <TableHead className="min-w-[200px] text-xs md:text-sm">{t('tableHeaderIban')}</TableHead>
+                          <TableHead className="min-w-[100px] text-xs md:text-sm">{t('tableHeaderSwift')}</TableHead>
+                          <TableHead className="min-w-[100px] text-xs md:text-sm">{t('tableHeaderType')}</TableHead>
+                          <TableHead className="text-right min-w-[100px] text-xs md:text-sm">{t('tableHeaderActions')}</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {bankAccounts
+                          .sort((a, b) => a.displayOrder - b.displayOrder)
+                          .map((account) => (
+                            <TableRow key={account.id}>
+                              <TableCell>
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => handleTogglePrimary(account.id)}
+                                  className="p-0 h-auto"
+                                >
+                                  {account.isPrimary ? (
+                                    <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
+                                  ) : (
+                                    <StarOff className="h-4 w-4 text-gray-400" />
+                                  )}
+                                </Button>
+                              </TableCell>
+                              <TableCell className="font-medium text-xs md:text-sm">{account.bankName}</TableCell>
+                              <TableCell className="font-mono text-xs md:text-sm">{account.iban}</TableCell>
+                              <TableCell className="text-xs md:text-sm">{account.swiftBic || '-'}</TableCell>
+                              <TableCell>
+                                <span className="inline-flex items-center rounded-md bg-blue-50 px-2 py-1 text-xs font-medium text-blue-700 ring-1 ring-inset ring-blue-700/10 whitespace-nowrap">
+                                  {account.accountType || '-'}
+                                </span>
+                              </TableCell>
+                              <TableCell className="text-right">
+                                <div className="flex justify-end gap-2">
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={() => handleEditBank(account)}
+                                  >
+                                    <Edit className="h-3 md:h-4 w-3 md:w-4" />
+                                  </Button>
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={() => setDeletingBankId(account.id)}
+                                  >
+                                    <Trash2 className="h-3 md:h-4 w-3 md:w-4 text-red-600" />
+                                  </Button>
+                                </div>
+                              </TableCell>
+                            </TableRow>
+                          ))}
+                      </TableBody>
+                    </Table>
+                  </div>
+                </div>
+              </div>
             )}
           </CardContent>
         </Card>

@@ -311,7 +311,8 @@ export default function ProductsTable({
         </div>
       )}
 
-      <Table>
+      <div className="rounded-md border overflow-x-auto">
+        <Table className="min-w-full">
         <TableHeader>
           <TableRow>
             {isAdmin && (
@@ -400,7 +401,8 @@ export default function ProductsTable({
             </TableRow>
           ))}
         </TableBody>
-      </Table>
+        </Table>
+      </div>
 
       {/* Single Delete Confirmation Dialog */}
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>

@@ -292,7 +292,7 @@ export default function DentistDetailPage() {
   }
 
   return (
-    <div className="container mx-auto py-8 max-w-6xl space-y-6">
+    <div className="container mx-auto py-8 max-w-6xl space-y-2">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
@@ -326,7 +326,7 @@ export default function DentistDetailPage() {
       {/* Title & Status */}
       <div>
         <div className="flex items-center gap-3">
-          <h1 className="text-3xl font-bold">{dentist.clinicName}</h1>
+          <h1 className="text-sm font-bold">{dentist.clinicName}</h1>
           {dentist.active ? (
             <Badge variant="default" className="bg-green-600">
               {t('dentist.statusActive')}
@@ -373,7 +373,7 @@ export default function DentistDetailPage() {
               isSubmitting={isSubmitting}
             />
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
               {/* Basic Information */}
               <Card>
                 <CardHeader>
@@ -561,7 +561,7 @@ export default function DentistDetailPage() {
             <CardHeader className="flex flex-row items-center justify-between">
               <CardTitle>{t('dentist.invoicesTitle')}</CardTitle>
               {invoiceSummary && (
-                <div className="flex gap-6 text-sm">
+                <div className="flex gap-2 text-sm">
                   <div>
                     <span className="text-gray-500">{t('dentist.invoicesOutstanding')}: </span>
                     <span className="font-semibold text-red-600">
@@ -771,7 +771,7 @@ export default function DentistDetailPage() {
                             className="flex items-center gap-1 cursor-pointer text-green-600 hover:text-green-700"
                             title={`Annex XIII Document\nRetention until: ${new Date(worksheet.documents[0].retentionUntil).toLocaleDateString('sl-SI')}`}
                           >
-                            <FileText className="h-5 w-5" />
+                            <FileText className="h-4 w-4" />
                             <span className="text-xs font-medium">MDR</span>
                           </div>
                         )}

@@ -39,8 +39,14 @@ export async function middleware(req: NextRequest) {
   // Apply locale middleware first
   const response = intlMiddleware(req);
 
-  // Check if path includes login or register (public pages)
-  if (pathname.includes('/login') || pathname.includes('/register')) {
+  // Check if path includes authentication pages (public pages)
+  if (
+    pathname.includes('/login') ||
+    pathname.includes('/register') ||
+    pathname.includes('/staff-register') ||
+    pathname.includes('/forgot-password') ||
+    pathname.includes('/reset-password')
+  ) {
     return response;
   }
 
@@ -56,6 +62,44 @@ export async function middleware(req: NextRequest) {
     const loginUrl = new URL(`/${locale}/login`, req.url);
     loginUrl.searchParams.set('callbackUrl', pathname);
     return NextResponse.redirect(loginUrl);
+  }
+
+  // Role-based routing
+  const localeMatch = pathname.match(/^\/(en|sl)\//);
+  const locale = localeMatch ? localeMatch[1] : defaultLocale;
+  const userRole = token.role as string;
+
+  // Production routes that STAFF should not access
+  const productionRoutes = [
+    '/dashboard',
+    '/orders',
+    '/worksheets',
+    '/invoices',
+    '/dentists',
+    '/materials',
+    '/pricing',
+    '/quality-control',
+    '/settings'
+  ];
+
+  const isStaffRoute = pathname.includes('/staff');
+  const isProductionRoute = productionRoutes.some(route => pathname.includes(route));
+
+  // STAFF users
+  if (userRole === 'STAFF') {
+    // Block access to production routes
+    if (isProductionRoute && !isStaffRoute) {
+      const staffDashboardUrl = new URL(`/${locale}/staff/dashboard`, req.url);
+      return NextResponse.redirect(staffDashboardUrl);
+    }
+  }
+  // Production users (ADMIN, TECHNICIAN, QC_INSPECTOR, INVOICING)
+  else {
+    // Block access to staff-only routes
+    if (isStaffRoute) {
+      const dashboardUrl = new URL(`/${locale}/dashboard`, req.url);
+      return NextResponse.redirect(dashboardUrl);
+    }
   }
 
   return response;

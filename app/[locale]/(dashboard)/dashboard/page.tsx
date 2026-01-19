@@ -37,11 +37,11 @@ import { Plus, FileText, Package, Receipt } from 'lucide-react';
 function WidgetSkeleton() {
   return (
     <Card>
-      <CardContent className="p-6">
-        <Skeleton className="h-8 w-3/4 mb-4" />
-        <Skeleton className="h-4 w-1/2 mb-6" />
-        <Skeleton className="h-32 w-full mb-4" />
-        <Skeleton className="h-24 w-full" />
+      <CardContent className="p-2">
+        <Skeleton className="h-4 w-3/4 mb-1" />
+        <Skeleton className="h-3 w-1/2 mb-2" />
+        <Skeleton className="h-24 w-full mb-1" />
+        <Skeleton className="h-16 w-full" />
       </CardContent>
     </Card>
   );
@@ -49,12 +49,12 @@ function WidgetSkeleton() {
 
 function DashboardSkeleton() {
   return (
-    <div className="space-y-6">
+    <div className="space-y-2">
       <div>
-        <Skeleton className="h-10 w-64 mb-2" />
-        <Skeleton className="h-5 w-96" />
+        <Skeleton className="h-5 w-64 mb-1" />
+        <Skeleton className="h-3 w-96" />
       </div>
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2">
         {[1, 2, 3, 4, 5, 6].map((i) => (
           <WidgetSkeleton key={i} />
         ))}
@@ -84,39 +84,39 @@ export default async function DashboardPage() {
   const isAdmin = session.user.role === 'ADMIN';
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-2">
       {/* Header */}
       <div>
-        <h1 className="text-3xl font-bold tracking-tight">{t('dashboard.title')}</h1>
-        <p className="text-muted-foreground mt-1">
+        <h1 className="text-sm font-bold tracking-tight">{t('dashboard.title')}</h1>
+        <p className="text-muted-foreground mt-0.5 text-xs">
           {t('dashboard.welcomeBack', { name: session.user.name })}
         </p>
       </div>
 
       {/* Quick Actions */}
-      <div className="flex flex-wrap gap-3">
-        <Button asChild variant="default" size="sm">
+      <div className="flex flex-wrap gap-1">
+        <Button asChild variant="default" size="sm" className="text-xs py-1 px-2">
           <Link href="/orders/new">
-            <Plus className="mr-2 h-4 w-4" />
+            <Plus className="mr-1 h-3 w-3" />
             {t('dashboard.createOrder')}
           </Link>
         </Button>
-        <Button asChild variant="outline" size="sm">
+        <Button asChild variant="outline" size="sm" className="text-xs py-1 px-2">
           <Link href="/worksheets/new">
-            <FileText className="mr-2 h-4 w-4" />
+            <FileText className="mr-1 h-3 w-3" />
             {t('dashboard.createWorksheet')}
           </Link>
         </Button>
-        <Button asChild variant="outline" size="sm">
+        <Button asChild variant="outline" size="sm" className="text-xs py-1 px-2">
           <Link href="/materials">
-            <Package className="mr-2 h-4 w-4" />
+            <Package className="mr-1 h-3 w-3" />
             {t('dashboard.manageMaterials')}
           </Link>
         </Button>
         {isAdmin && (
-          <Button asChild variant="outline" size="sm">
+          <Button asChild variant="outline" size="sm" className="text-xs py-1 px-2">
             <Link href="/invoices">
-              <Receipt className="mr-2 h-4 w-4" />
+              <Receipt className="mr-1 h-3 w-3" />
               {t('dashboard.viewInvoices')}
             </Link>
           </Button>
@@ -124,7 +124,7 @@ export default async function DashboardPage() {
       </div>
 
       {/* Widgets Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2">
         {/* Orders Overview */}
         <Suspense fallback={<WidgetSkeleton />}>
           <OrdersOverviewWidget data={stats.orders} />

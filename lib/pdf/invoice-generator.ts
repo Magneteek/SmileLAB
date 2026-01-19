@@ -3,11 +3,16 @@
  *
  * Generates professional invoice PDFs for dental laboratory services
  * following Slovenian invoice requirements and EU VAT regulations
+ *
+ * NOW USES UNIFIED PDF INFRASTRUCTURE:
+ * - Base generator from pdf-generator.ts (Puppeteer wrapper)
+ * - Handlebars template with embedded styling (for now)
+ * - Future: Extract template CSS to pdf-styles.ts and use reusable footer
  */
 
 import { prisma } from '@/lib/prisma';
 import { getLabConfigurationOrThrow, getPrimaryBankAccount } from '@/lib/services/lab-configuration-service';
-import puppeteer from 'puppeteer';
+import { generatePDFFromTemplate } from './base/pdf-generator';
 import handlebars from 'handlebars';
 import { promises as fs } from 'fs';
 import path from 'path';
@@ -412,47 +417,36 @@ async function compileTemplate(data: InvoiceData): Promise<string> {
 }
 
 /**
- * Generate PDF from HTML using Puppeteer
+ * Generate PDF from HTML using unified PDF generator
+ *
+ * Uses the unified PDF infrastructure for consistent generation
+ * Template includes its own CSS and payment QR code (embedded in invoice.hbs)
  */
 async function generatePDF(html: string): Promise<Buffer> {
-  let browser;
-
   try {
-    browser = await puppeteer.launch({
-      headless: true,
-      args: [
-        '--no-sandbox',
-        '--disable-setuid-sandbox',
-        '--disable-dev-shm-usage',
-        '--disable-gpu',
-      ],
-    });
+    // Use unified PDF generator
+    // No header/footer needed - they're embedded in the Handlebars template
+    const result = await generatePDFFromTemplate(
+      html,
+      '', // No separate header (in template)
+      '', // No separate footer (in template)
+      {
+        format: 'A4',
+        margins: {
+          top: '12mm',
+          right: '15mm',
+          bottom: '20mm',
+          left: '15mm',
+        },
+        printBackground: true,
+        displayHeaderFooter: false, // Headers/footers are in the template itself
+      }
+    );
 
-    const page = await browser.newPage();
-    await page.setContent(html, {
-      waitUntil: 'networkidle0',
-    });
-
-    const pdfBuffer = await page.pdf({
-      format: 'A4',
-      printBackground: true,
-      margin: {
-        top: '12mm',
-        right: '15mm',
-        bottom: '20mm',
-        left: '15mm',
-      },
-    });
-
-    // Convert Uint8Array to Buffer for compatibility
-    return Buffer.from(pdfBuffer);
+    return result.buffer;
   } catch (error) {
     console.error('[Invoice PDF] PDF generation failed:', error);
     throw new Error('Failed to generate PDF');
-  } finally {
-    if (browser) {
-      await browser.close();
-    }
   }
 }
 

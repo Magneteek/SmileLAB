@@ -4,7 +4,7 @@ import { redirect } from 'next/navigation';
 import { getTranslations } from 'next-intl/server';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
-import { Plus, Package } from 'lucide-react';
+import { Plus, Package, Scan } from 'lucide-react';
 import { MaterialsClientWrapper } from '@/components/materials/MaterialsClientWrapper';
 
 export const metadata = {
@@ -22,22 +22,22 @@ export default async function MaterialsPage() {
   const t = await getTranslations('material');
 
   return (
-    <div className="space-y-6">
-      <div className="flex justify-between items-center">
+    <div className="space-y-2 sm:space-y-4">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
         <div>
-          <h1 className="text-3xl font-bold flex items-center gap-2">
-            <Package className="h-8 w-8" />
+          <h1 className="text-xl sm:text-2xl font-bold flex items-center gap-2">
+            <Package className="h-6 w-6 sm:h-8 sm:w-8" />
             {t('listTitle')}
           </h1>
-          <p className="text-muted-foreground mt-1">
+          <p className="text-sm text-muted-foreground mt-1">
             {t('listSubtitle')}
           </p>
         </div>
 
-        <div className="flex gap-2">
+        <div className="flex gap-2 w-full sm:w-auto">
           {['ADMIN', 'TECHNICIAN'].includes(session.user.role) && (
-            <Link href="/materials/new">
-              <Button>
+            <Link href="/materials/new" className="w-full sm:w-auto">
+              <Button className="w-full sm:w-auto">
                 <Plus className="mr-2 h-4 w-4" />
                 {t('newButton')}
               </Button>

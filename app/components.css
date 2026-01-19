@@ -1,0 +1,305 @@
+/**
+ * Semantic Component Styles
+ *
+ * Reusable classes for consistent compact sizing across all pages
+ * Based on navigation size (text-sm = 14px) as the base reference
+ */
+
+@layer components {
+
+  /* ========================================================================
+     PAGE LAYOUT - ULTRA COMPACT
+     ======================================================================== */
+
+  .page-container {
+    @apply space-y-2; /* Minimal page spacing (8px) */
+  }
+
+  .page-header {
+    @apply mb-2 flex items-center gap-2; /* Inline header with title + subtitle */
+  }
+
+  .page-title {
+    @apply text-sm font-bold tracking-tight; /* 14px - Same as nav */
+  }
+
+  .page-subtitle {
+    @apply text-xs text-muted-foreground; /* 12px - Inline with title */
+  }
+
+  .section-title {
+    @apply text-sm font-semibold; /* 14px - Section headings */
+  }
+
+  .section-subtitle {
+    @apply text-xs text-muted-foreground; /* 12px - Section descriptions */
+  }
+
+  /* ========================================================================
+     CARDS & CONTAINERS - ULTRA COMPACT
+     ======================================================================== */
+
+  .card-compact {
+    @apply p-2 space-y-1; /* Ultra compact: 8px padding, 4px internal spacing */
+  }
+
+  .card-header-compact {
+    @apply space-y-0.5; /* Minimal header spacing */
+  }
+
+  .card-title {
+    @apply text-sm font-semibold; /* 14px - Card titles */
+  }
+
+  .card-description {
+    @apply text-xs text-muted-foreground; /* 12px - Card descriptions */
+  }
+
+  .card-content {
+    @apply space-y-1; /* Minimal content spacing (4px) */
+  }
+
+  .card-footer {
+    @apply pt-2 mt-2 border-t; /* Minimal footer spacing */
+  }
+
+  /* ========================================================================
+     FORMS - ULTRA COMPACT
+     ======================================================================== */
+
+  .form-container {
+    @apply space-y-2; /* Minimal form spacing (8px) */
+  }
+
+  .form-section {
+    @apply space-y-1; /* Minimal section spacing (4px) */
+  }
+
+  .form-row {
+    @apply grid grid-cols-1 md:grid-cols-2 gap-2; /* Two-column with minimal gap */
+  }
+
+  .form-row-3 {
+    @apply grid grid-cols-1 md:grid-cols-3 gap-2; /* Three-column with minimal gap */
+  }
+
+  .form-label {
+    @apply text-xs font-medium; /* 12px - Form labels */
+  }
+
+  .form-label-required::after {
+    @apply content-['*'] text-destructive ml-0.5; /* Required asterisk */
+  }
+
+  .form-description {
+    @apply text-[10px] text-muted-foreground; /* 10px - Help text */
+  }
+
+  .form-error {
+    @apply text-[10px] text-destructive; /* 10px - Errors */
+  }
+
+  /* ========================================================================
+     BUTTONS & ACTIONS - ULTRA COMPACT
+     ======================================================================== */
+
+  .btn-compact {
+    @apply text-xs py-1 px-2; /* 12px text, minimal padding */
+  }
+
+  .btn-icon-compact {
+    @apply p-1; /* Icon buttons: 4px padding */
+  }
+
+  .action-buttons {
+    @apply flex gap-1 justify-end; /* Minimal gap (4px) */
+  }
+
+  /* ========================================================================
+     TABLES & DATA - ULTRA COMPACT
+     ======================================================================== */
+
+  .table-container {
+    @apply overflow-x-auto; /* Scrollable tables on mobile */
+  }
+
+  .table-compact {
+    @apply text-xs; /* 12px table font size */
+  }
+
+  .table-header {
+    @apply text-[10px] font-semibold uppercase tracking-wide; /* 10px headers */
+  }
+
+  .table-cell {
+    @apply text-xs py-1 px-2; /* 12px with minimal padding */
+  }
+
+  .table-row-hover {
+    @apply hover:bg-muted/50 cursor-pointer; /* Hover effect */
+  }
+
+  /* ========================================================================
+     LISTS & ITEMS - ULTRA COMPACT
+     ======================================================================== */
+
+  .list-compact {
+    @apply space-y-1; /* Minimal spacing (4px) */
+  }
+
+  .list-item {
+    @apply text-xs py-1; /* 12px with minimal padding */
+  }
+
+  /* ========================================================================
+     BADGES & STATUS
+     ======================================================================== */
+
+  .badge-compact {
+    @apply text-xs px-2 py-0.5 rounded; /* 12px text, minimal padding */
+  }
+
+  .status-indicator {
+    @apply inline-flex items-center gap-1 text-xs; /* Status with icon */
+  }
+
+  /* ========================================================================
+     DIALOGS & MODALS - ULTRA COMPACT
+     ======================================================================== */
+
+  .dialog-header-compact {
+    @apply space-y-0.5; /* Minimal header spacing */
+  }
+
+  .dialog-title {
+    @apply text-sm font-semibold; /* 14px - Dialog titles */
+  }
+
+  .dialog-description {
+    @apply text-xs text-muted-foreground; /* 12px - Dialog descriptions */
+  }
+
+  .dialog-content {
+    @apply space-y-1; /* Minimal content spacing (4px) */
+  }
+
+  .dialog-footer {
+    @apply flex gap-1 justify-end pt-2; /* Minimal footer spacing */
+  }
+
+  /* ========================================================================
+     NAVIGATION & MENUS
+     ======================================================================== */
+
+  .nav-item {
+    @apply text-sm py-2 px-3 gap-2; /* Base nav item (our reference!) */
+  }
+
+  .nav-icon {
+    @apply h-4 w-4; /* 16px icons */
+  }
+
+  .breadcrumb {
+    @apply text-sm; /* Breadcrumb text */
+  }
+
+  /* ========================================================================
+     GRIDS & LAYOUTS - ULTRA COMPACT
+     ======================================================================== */
+
+  .grid-compact {
+    @apply gap-2; /* Minimal grid gap (8px) */
+  }
+
+  .grid-2-cols {
+    @apply grid grid-cols-1 md:grid-cols-2 gap-2;
+  }
+
+  .grid-3-cols {
+    @apply grid grid-cols-1 md:grid-cols-3 gap-2;
+  }
+
+  .grid-4-cols {
+    @apply grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-2;
+  }
+
+  /* ========================================================================
+     SPACING UTILITIES - ULTRA COMPACT
+     ======================================================================== */
+
+  .stack-xs {
+    @apply space-y-0.5; /* Ultra small: 2px */
+  }
+
+  .stack-sm {
+    @apply space-y-1; /* Small: 4px */
+  }
+
+  .stack-md {
+    @apply space-y-2; /* Medium: 8px */
+  }
+
+  .stack-lg {
+    @apply space-y-3; /* Large: 12px */
+  }
+
+  .inline-xs {
+    @apply space-x-0.5; /* Ultra small: 2px */
+  }
+
+  .inline-sm {
+    @apply space-x-1; /* Small: 4px */
+  }
+
+  .inline-md {
+    @apply space-x-2; /* Medium: 8px */
+  }
+
+  .inline-lg {
+    @apply space-x-3; /* Large: 12px */
+  }
+
+  /* ========================================================================
+     TEXT UTILITIES - ULTRA COMPACT
+     ======================================================================== */
+
+  .text-heading-lg {
+    @apply text-sm font-bold; /* 14px - Large headings */
+  }
+
+  .text-heading-md {
+    @apply text-sm font-semibold; /* 14px - Medium headings */
+  }
+
+  .text-heading-sm {
+    @apply text-xs font-semibold; /* 12px - Small headings */
+  }
+
+  .text-body {
+    @apply text-xs; /* 12px - Body text */
+  }
+
+  .text-caption {
+    @apply text-[10px] text-muted-foreground; /* 10px - Captions */
+  }
+
+  .text-label {
+    @apply text-xs font-medium; /* 12px - Labels */
+  }
+
+  /* ========================================================================
+     RESPONSIVE UTILITIES
+     ======================================================================== */
+
+  .hide-mobile {
+    @apply hidden md:block;
+  }
+
+  .show-mobile {
+    @apply block md:hidden;
+  }
+
+  .responsive-text {
+    @apply text-xs sm:text-sm; /* Scale up text on larger screens */
+  }
+}

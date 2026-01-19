@@ -33,8 +33,8 @@ export interface ToothElementProps {
   /** Work type assigned to this tooth (if selected) */
   workType?: WorkType;
 
-  /** Click handler for tooth selection */
-  onClick: () => void;
+  /** Click handler for tooth selection - receives mouse event for Shift key detection */
+  onClick: (event?: React.MouseEvent) => void;
 
   /** Right-click handler for tooth deselection */
   onRightClick?: () => void;
@@ -127,7 +127,7 @@ export function ToothElement({
   return (
     <g
       className={`tooth-element ${disabled ? 'cursor-default' : 'cursor-pointer'} transition-all duration-150`}
-      onClick={disabled ? undefined : onClick}
+      onClick={disabled ? undefined : (e) => onClick(e as any)}
       onContextMenu={(e) => {
         if (!disabled && onRightClick && isSelected) {
           e.preventDefault();

@@ -21,55 +21,55 @@ export function DocumentsWidget({ data }: DocumentsWidgetProps) {
 
   return (
     <Card>
-      <CardHeader>
-        <div className="flex items-center justify-between">
+      <CardHeader className="p-2 pb-1">
+        <div className="flex items-center justify-between py-0.5">
           <div>
-            <CardTitle className="text-lg">{t('mdrDocumentsTitle')}</CardTitle>
-            <CardDescription>{t('mdrDocumentsDescription')}</CardDescription>
+            <CardTitle className="text-xs font-semibold">{t('mdrDocumentsTitle')}</CardTitle>
+            <CardDescription className="text-[10px]">{t('mdrDocumentsDescription')}</CardDescription>
           </div>
-          <FileText className="h-8 w-8 text-muted-foreground" />
+          <FileText className="h-3 w-3 text-muted-foreground" />
         </div>
       </CardHeader>
-      <CardContent className="space-y-4">
+      <CardContent className="p-2 pt-1 space-y-0">
         {/* Summary Stats */}
-        <div className="grid grid-cols-2 gap-4">
-          <div className="space-y-1">
-            <p className="text-sm text-muted-foreground">{t('totalDocuments')}</p>
-            <p className="text-2xl font-bold">{data.total}</p>
+        <div className="grid grid-cols-2 gap-1">
+          <div className="space-y-0">
+            <p className="text-[10px] text-muted-foreground">{t('totalDocuments')}</p>
+            <p className="text-sm font-bold">{data.total}</p>
           </div>
-          <div className="space-y-1">
-            <p className="text-sm text-muted-foreground">{t('generated')}</p>
-            <p className="text-2xl font-bold text-green-600">{data.generated}</p>
+          <div className="space-y-0">
+            <p className="text-[10px] text-muted-foreground">{t('generated')}</p>
+            <p className="text-sm font-bold text-green-600">{data.generated}</p>
           </div>
         </div>
 
         {/* Status Breakdown */}
-        <div className="space-y-2 border-t pt-4">
-          <p className="text-sm font-medium text-muted-foreground mb-3">
+        <div className="space-y-0.5 border-t pt-1">
+          <p className="text-[10px] font-medium text-muted-foreground mb-0.5">
             {t('documentStatus')}
           </p>
 
-          <div className="flex items-center justify-between p-3 border rounded-lg">
-            <div className="flex items-center gap-2">
-              <CheckCircle className="h-4 w-4 text-green-600" />
-              <span className="text-sm font-medium">{t('generated')}</span>
+          <div className="flex items-center justify-between p-1 border rounded-lg">
+            <div className="flex items-center gap-1">
+              <CheckCircle className="h-3 w-3 text-green-600" />
+              <span className="text-[10px] font-medium">{t('generated')}</span>
             </div>
             <Badge className="bg-green-500">{data.generated}</Badge>
           </div>
 
-          <div className="flex items-center justify-between p-3 border rounded-lg">
-            <div className="flex items-center gap-2">
-              <Clock className="h-4 w-4 text-blue-600" />
-              <span className="text-sm font-medium">{t('pending')}</span>
+          <div className="flex items-center justify-between p-1 border rounded-lg">
+            <div className="flex items-center gap-1">
+              <Clock className="h-3 w-3 text-blue-600" />
+              <span className="text-[10px] font-medium">{t('pending')}</span>
             </div>
             <Badge className="bg-blue-500">{data.pending}</Badge>
           </div>
 
           {data.retentionExpiring > 0 && (
-            <div className="flex items-center justify-between p-3 border rounded-lg bg-yellow-50">
-              <div className="flex items-center gap-2">
-                <AlertTriangle className="h-4 w-4 text-yellow-600" />
-                <span className="text-sm font-medium text-yellow-900">
+            <div className="flex items-center justify-between p-1 border rounded-lg bg-yellow-50">
+              <div className="flex items-center gap-1">
+                <AlertTriangle className="h-3 w-3 text-yellow-600" />
+                <span className="text-[10px] font-medium text-yellow-900">
                   {t('retentionExpiring')}
                 </span>
               </div>
@@ -79,8 +79,8 @@ export function DocumentsWidget({ data }: DocumentsWidgetProps) {
         </div>
 
         {/* Compliance Info */}
-        <div className="border-t pt-4">
-          <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
+        <div className="border-t pt-1">
+          <div className="p-1 bg-blue-50 border border-blue-200 rounded-lg">
             <p className="text-xs font-medium text-blue-900">
               {t('documentsRetained10Years')}
             </p>
@@ -89,9 +89,9 @@ export function DocumentsWidget({ data }: DocumentsWidgetProps) {
 
         {/* Coming Soon Notice */}
         {data.total === 0 && (
-          <div className="border-t pt-4">
-            <div className="p-4 bg-gray-50 border rounded-lg text-center">
-              <p className="text-sm text-muted-foreground">
+          <div className="border-t pt-1">
+            <div className="p-2 bg-gray-50 border rounded-lg text-center">
+              <p className="text-[10px] text-muted-foreground">
                 {t('noDocumentsGenerated')}
               </p>
               <p className="text-xs text-muted-foreground mt-1">

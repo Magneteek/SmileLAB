@@ -155,11 +155,11 @@ export default function PricingListPage() {
   };
 
   return (
-    <div className="container mx-auto py-6 space-y-6">
+    <div className="container mx-auto py-6 space-y-2">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">{t('title')}</h1>
+          <h1 className="text-sm font-bold tracking-tight">{t('title')}</h1>
           <p className="text-gray-600 mt-1">
             {t('subtitle')}
           </p>

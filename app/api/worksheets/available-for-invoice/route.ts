@@ -133,12 +133,33 @@ export async function GET(request: NextRequest) {
 
     console.log('[Available Worksheets] Found worksheets from DB:', worksheets.length);
 
+    // Debug: Log all worksheets with their invoice line items
+    worksheets.forEach((ws) => {
+      console.log(`[Worksheet Debug] ${ws.worksheetNumber}:`, {
+        id: ws.id,
+        status: ws.status,
+        invoiceLineItemsCount: ws.invoiceLineItems.length,
+        invoiceLineItems: ws.invoiceLineItems.map((item) => ({
+          id: item.id,
+          invoiceId: item.invoiceId,
+          invoiceNumber: item.invoice?.invoiceNumber || 'NULL',
+          isDraft: item.invoice?.isDraft,
+        })),
+      });
+    });
+
     // Filter out worksheets that have finalized invoices
     // (worksheets with only draft invoices are still available)
     const availableWorksheets = worksheets.filter((worksheet) => {
       const finalizedInvoices = worksheet.invoiceLineItems.filter(
-        (item) => !item.invoice.isDraft
+        (item) => item.invoice && !item.invoice.isDraft
       );
+
+      // Debug logging for filtered worksheets
+      if (finalizedInvoices.length > 0) {
+        console.log(`[Filtered Out] ${worksheet.worksheetNumber} has ${finalizedInvoices.length} finalized invoice(s)`);
+      }
+
       return finalizedInvoices.length === 0;
     });
 

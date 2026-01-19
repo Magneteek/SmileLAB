@@ -26,13 +26,13 @@
  * ```
  */
 
-import { useState, useCallback, useMemo } from 'react';
+import { useState, useCallback, useMemo, useRef } from 'react';
 import { useTranslations } from 'next-intl';
 import { cn } from '@/lib/utils';
-import type { TeethSelectorProps, ToothData } from './types';
+import type { TeethSelectorProps, ToothData, WorkType } from './types';
 import { PERMANENT_TEETH, PRIMARY_TEETH, CANVAS_CONFIG } from './constants';
 import { ToothElement } from './ToothElement';
-import { WorkTypeSelector } from './WorkTypeSelector';
+import { WorkTypeToolbar } from './WorkTypeToolbar';
 import { TeethLegend } from './TeethLegend';
 import { SelectionSummary } from './SelectionSummary';
 import { Input } from '@/components/ui/input';
@@ -58,11 +58,12 @@ export function TeethSelector({
   layout = 'default', // 'default' or 'sidebar'
 }: TeethSelectorProps & { layout?: 'default' | 'sidebar' }) {
   const t = useTranslations();
+  const tFdi = useTranslations('fdi');
 
   // Local state for UI interactions
   const [hoveredTooth, setHoveredTooth] = useState<string | null>(null);
-  const [editingTooth, setEditingTooth] = useState<string | null>(null);
-  const [lastSelectedWorkType, setLastSelectedWorkType] = useState<typeof selectedTeeth[0]['workType']>('crown');
+  const [selectedWorkType, setSelectedWorkType] = useState<WorkType>('crown');
+  const [lastClickedTooth, setLastClickedTooth] = useState<string | null>(null);
   const [editingShade, setEditingShade] = useState<string>('');
   const [editingToothShape, setEditingToothShape] = useState<string>('');
   const [editingNotes, setEditingNotes] = useState<string>('');
@@ -95,42 +96,85 @@ export function TeethSelector({
   }, [displayTeeth]);
 
   /**
-   * Handle tooth click - select/deselect or open work type editor
+   * Get teeth in range between two tooth numbers
+   */
+  const getTeethInRange = useCallback(
+    (startTooth: string, endTooth: string): string[] => {
+      // Find start and end indices in displayTeeth
+      const startIndex = displayTeeth.findIndex((t) => t.number === startTooth);
+      const endIndex = displayTeeth.findIndex((t) => t.number === endTooth);
+
+      if (startIndex === -1 || endIndex === -1) return [];
+
+      // Get all teeth between start and end (inclusive)
+      const minIndex = Math.min(startIndex, endIndex);
+      const maxIndex = Math.max(startIndex, endIndex);
+
+      return displayTeeth.slice(minIndex, maxIndex + 1).map((t) => t.number);
+    },
+    [displayTeeth]
+  );
+
+  /**
+   * Handle tooth click - applies selected work type from toolbar
+   * Supports Shift+click for range selection
    */
   const handleToothClick = useCallback(
-    (toothNumber: string) => {
+    (toothNumber: string, event?: React.MouseEvent) => {
       if (readOnly) return;
 
       const existing = selectedTeeth.find((t) => t.toothNumber === toothNumber);
 
-      if (existing) {
-        // Already selected - open work type editor
-        setEditingTooth(toothNumber);
-      } else {
-        // New selection - add with last selected work type and open editor
-        onTeethChange([
-          ...selectedTeeth,
-          { toothNumber, workType: lastSelectedWorkType },
-        ]);
-        setEditingTooth(toothNumber);
-      }
-    },
-    [selectedTeeth, onTeethChange, readOnly, lastSelectedWorkType]
-  );
+      // Handle Shift+click for range selection
+      if (event?.shiftKey && lastClickedTooth && lastClickedTooth !== toothNumber) {
+        // Get all teeth in range
+        const teethInRange = getTeethInRange(lastClickedTooth, toothNumber);
 
-  /**
-   * Handle work type selection from modal with shade and notes
-   */
-  const handleWorkTypeSelect = useCallback(
-    (toothNumber: string, workType: typeof selectedTeeth[0]['workType'], shade?: string, notes?: string) => {
-      const updated = selectedTeeth.map((t) =>
-        t.toothNumber === toothNumber ? { ...t, workType, shade, notes } : t
-      );
-      onTeethChange(updated);
-      setLastSelectedWorkType(workType); // Remember last selected work type
-      setEditingTooth(null);
+        // Add/update all teeth in range with current selected work type
+        const updatedTeeth = [...selectedTeeth];
+
+        teethInRange.forEach((tooth) => {
+          const existingIndex = updatedTeeth.findIndex((t) => t.toothNumber === tooth);
+
+          if (existingIndex !== -1) {
+            // Update existing tooth with new work type
+            updatedTeeth[existingIndex] = {
+              ...updatedTeeth[existingIndex],
+              workType: selectedWorkType,
+            };
+          } else {
+            // Add new tooth
+            updatedTeeth.push({ toothNumber: tooth, workType: selectedWorkType });
+          }
+        });
+
+        onTeethChange(updatedTeeth);
+        setLastClickedTooth(toothNumber);
+        return;
+      }
+
+      // Normal click behavior
+      if (existing) {
+        // Already selected - update work type
+        const updated = selectedTeeth.map((t) =>
+          t.toothNumber === toothNumber ? { ...t, workType: selectedWorkType } : t
+        );
+        onTeethChange(updated);
+      } else {
+        // New selection - add with selected work type from toolbar
+        onTeethChange([...selectedTeeth, { toothNumber, workType: selectedWorkType }]);
+      }
+
+      setLastClickedTooth(toothNumber);
     },
-    [selectedTeeth, onTeethChange]
+    [
+      selectedTeeth,
+      onTeethChange,
+      readOnly,
+      selectedWorkType,
+      lastClickedTooth,
+      getTeethInRange,
+    ]
   );
 
   /**
@@ -140,17 +184,9 @@ export function TeethSelector({
     (toothNumber: string) => {
       const filtered = selectedTeeth.filter((t) => t.toothNumber !== toothNumber);
       onTeethChange(filtered);
-      setEditingTooth(null);
     },
     [selectedTeeth, onTeethChange]
   );
-
-  /**
-   * Close work type selector modal
-   */
-  const handleCloseWorkTypeSelector = useCallback(() => {
-    setEditingTooth(null);
-  }, []);
 
   /**
    * Handle shade and notes update for all selected teeth
@@ -256,7 +292,7 @@ export function TeethSelector({
             className="text-sm font-semibold fill-gray-700"
             style={{ fontSize: '14px' }}
           >
-            Upper Jaw (Maxilla)
+            {tFdi('upperJaw')}
           </text>
 
           {/* Lower Jaw Label */}
@@ -267,7 +303,7 @@ export function TeethSelector({
             className="text-sm font-semibold fill-gray-700"
             style={{ fontSize: '14px' }}
           >
-            Lower Jaw (Mandible)
+            {tFdi('lowerJaw')}
           </text>
 
           {/* Midline Divider (Vertical) */}
@@ -354,7 +390,7 @@ export function TeethSelector({
                     selectedTeeth.find((t) => t.toothNumber === tooth.number)
                       ?.workType
                   }
-                  onClick={() => handleToothClick(tooth.number)}
+                  onClick={(event) => handleToothClick(tooth.number, event)}
                   onRightClick={() => handleToothRemove(tooth.number)}
                   onMouseEnter={() => setHoveredTooth(tooth.number)}
                   onMouseLeave={() => setHoveredTooth(null)}
@@ -375,7 +411,7 @@ export function TeethSelector({
                 className="text-sm font-medium fill-gray-900"
                 style={{ fontSize: '14px' }}
               >
-                {displayTeeth.find((t) => t.number === hoveredTooth)?.name}
+                {tFdi(`teeth.${hoveredTooth}`)}
               </text>
             </g>
           )}
@@ -408,31 +444,26 @@ export function TeethSelector({
     </div>
   );
 
-  // Render modal (common to both layouts)
-  const modalElement = editingTooth && (
-    <WorkTypeSelector
-      toothNumber={editingTooth}
-      currentWorkType={
-        selectedTeeth.find((t) => t.toothNumber === editingTooth)?.workType
-      }
-      currentShade={
-        selectedTeeth.find((t) => t.toothNumber === editingTooth)?.shade
-      }
-      currentNotes={
-        selectedTeeth.find((t) => t.toothNumber === editingTooth)?.notes
-      }
-      onSelect={(workType, shade, notes) =>
-        handleWorkTypeSelect(editingTooth, workType, shade, notes)
-      }
-      onClose={handleCloseWorkTypeSelector}
-      onRemove={() => handleToothRemove(editingTooth)}
-    />
+  // Render toolbar (common to both layouts)
+  const toolbarElement = !readOnly && (
+    <Card className="border-gray-200">
+      <CardContent className="p-3">
+        <WorkTypeToolbar
+          selectedWorkType={selectedWorkType}
+          onSelectWorkType={setSelectedWorkType}
+          disabled={readOnly}
+        />
+      </CardContent>
+    </Card>
   );
 
   // Return layout based on prop
   if (layout === 'sidebar') {
     return (
       <div className={cn('teeth-selector w-full', className)}>
+        {/* Work Type Toolbar */}
+        {toolbarElement && <div className="mb-3">{toolbarElement}</div>}
+
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
           {/* Left: Canvas (50%) */}
           <div className="space-y-3">
@@ -445,9 +476,6 @@ export function TeethSelector({
             {sidebarElement}
           </div>
         </div>
-
-        {/* Modal */}
-        {modalElement}
       </div>
     );
   }
@@ -455,15 +483,17 @@ export function TeethSelector({
   // Default stacked layout
   return (
     <div className={cn('teeth-selector w-full', className)}>
+      {/* Work Type Toolbar */}
+      {toolbarElement && <div className="mb-3">{toolbarElement}</div>}
+
+      {/* Canvas */}
       {canvasElement}
 
       {/* Shade & Notes Section */}
       {shadeNotesElement && <div className="mt-3">{shadeNotesElement}</div>}
 
+      {/* Legend and Summary */}
       <div className="mt-3">{sidebarElement}</div>
-
-      {/* Modal */}
-      {modalElement}
     </div>
   );
 }

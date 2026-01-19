@@ -51,7 +51,7 @@ export default async function NewLotPage({ params }: NewLotPageProps) {
   const t = await getTranslations('material');
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-2">
       <div className="flex items-center gap-4">
         <Link href={`/materials/${id}`}>
           <Button variant="ghost" size="icon">
@@ -59,7 +59,7 @@ export default async function NewLotPage({ params }: NewLotPageProps) {
           </Button>
         </Link>
         <div>
-          <h1 className="text-3xl font-bold">{t('arrivalFormTitle')}</h1>
+          <h1 className="text-sm font-bold">{t('arrivalFormTitle')}</h1>
           <p className="text-muted-foreground mt-1">
             {t('arrivalFormMaterialLabel')}: {material.name} ({material.code})
           </p>

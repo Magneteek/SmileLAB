@@ -3,11 +3,17 @@
  *
  * Generates Manufacturer's Statement for Custom-Made Devices
  * Compliant with Regulation (EU) 2017/745 Annex XIII
+ *
+ * NOW USES UNIFIED PDF INFRASTRUCTURE:
+ * - Base generator from pdf-generator.ts (Puppeteer wrapper)
+ * - Global CSS already extracted from this template to pdf-styles.ts
+ * - Handlebars template with embedded styling (uses shared styles)
+ * - Future: Use reusable header/footer components
  */
 
 import { prisma } from '@/lib/prisma';
 import { getLabConfigurationOrThrow } from '@/lib/services/lab-configuration-service';
-import puppeteer from 'puppeteer';
+import { generatePDFFromTemplate } from './base/pdf-generator';
 import handlebars from 'handlebars';
 import { promises as fs } from 'fs';
 import path from 'path';
@@ -525,47 +531,38 @@ async function compileTemplate(data: AnnexXIIIData): Promise<string> {
 }
 
 /**
- * Generate PDF from HTML using Puppeteer
+ * Generate PDF from HTML using unified PDF generator
+ *
+ * Uses the unified PDF infrastructure for consistent generation
+ * Template includes brand styling from pdf-styles.ts (already extracted)
+ * Header/footer embedded in Handlebars template annex-xiii.hbs
  */
 async function generatePDF(html: string): Promise<Buffer> {
-  let browser;
-
   try {
-    browser = await puppeteer.launch({
-      headless: true,
-      args: [
-        '--no-sandbox',
-        '--disable-setuid-sandbox',
-        '--disable-dev-shm-usage',
-        '--disable-gpu',
-      ],
-    });
+    // Use unified PDF generator
+    // No header/footer needed - they're embedded in the Handlebars template
+    // This template is the SOURCE of our beautiful brand styling
+    const result = await generatePDFFromTemplate(
+      html,
+      '', // No separate header (in template)
+      '', // No separate footer (in template)
+      {
+        format: 'A4',
+        margins: {
+          top: '20mm',
+          right: '15mm',
+          bottom: '20mm',
+          left: '15mm',
+        },
+        printBackground: true,
+        displayHeaderFooter: false, // Headers/footers are in the template itself
+      }
+    );
 
-    const page = await browser.newPage();
-    await page.setContent(html, {
-      waitUntil: 'networkidle0',
-    });
-
-    const pdfResult = await page.pdf({
-      format: 'A4',
-      printBackground: true,
-      margin: {
-        top: '20mm',
-        right: '15mm',
-        bottom: '20mm',
-        left: '15mm',
-      },
-    });
-
-    // Convert Uint8Array to Buffer for compatibility
-    return Buffer.from(pdfResult);
+    return result.buffer;
   } catch (error) {
     console.error('[Annex XIII] PDF generation failed:', error);
     throw new Error('Failed to generate PDF');
-  } finally {
-    if (browser) {
-      await browser.close();
-    }
   }
 }
 

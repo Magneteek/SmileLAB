@@ -45,7 +45,7 @@ export default async function MaterialDetailPage({ params }: MaterialDetailPageP
   const t = await getTranslations('material');
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-2">
       <div className="flex items-center gap-4">
         <Link href="/materials">
           <Button variant="ghost" size="icon">
@@ -54,8 +54,8 @@ export default async function MaterialDetailPage({ params }: MaterialDetailPageP
         </Link>
         <div className="flex-1">
           <div className="flex items-center gap-2">
-            <Package className="h-6 w-6" />
-            <h1 className="text-3xl font-bold">{material.name}</h1>
+            <Package className="h-4 w-4" />
+            <h1 className="text-sm font-bold">{material.name}</h1>
             {!material.active && (
               <Badge variant="secondary">{t('inactiveBadge')}</Badge>
             )}

@@ -982,7 +982,7 @@ model SOP {
   id String @id @default(cuid())
 
   // SOP Identification
-  code     String      @unique // "SOP-001", "SOP-002"
+  code     String // "SOP-001", "SOP-002" - NOT unique, multiple versions allowed
   title    String
   category SOPCategory
 
@@ -1012,12 +1012,11 @@ model SOP {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  // MDR compliance (10-year retention)
-  retentionUntil DateTime?
-
   // Relations
   acknowledgments SOPAcknowledgment[]
 
+  @@unique([code, versionNumber]) // Composite unique: each code can have multiple versions
+  @@index([code])
   @@index([category])
   @@index([status])
   @@index([createdById])

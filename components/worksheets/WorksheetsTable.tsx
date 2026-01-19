@@ -36,8 +36,8 @@ export function WorksheetsTable({ worksheets }: WorksheetsTableProps) {
   });
 
   return (
-    <div className="rounded-lg border overflow-hidden">
-      <Table>
+    <div className="rounded-lg border overflow-x-auto">
+      <Table className="min-w-full">
         <TableHeader>
           <TableRow>
             <TableHead>{t('worksheet.tableActions')}</TableHead>
@@ -151,7 +151,11 @@ export function WorksheetsTable({ worksheets }: WorksheetsTableProps) {
                   <WorksheetStatusBadge status={worksheet.status} size="sm" />
                 </TableCell>
                 <TableCell>
-                  {new Date(worksheet.createdAt).toLocaleDateString()}
+                  {new Date(worksheet.createdAt).toLocaleDateString('sl-SI', {
+                    year: 'numeric',
+                    month: '2-digit',
+                    day: '2-digit'
+                  })}
                 </TableCell>
               </TableRow>
             ))

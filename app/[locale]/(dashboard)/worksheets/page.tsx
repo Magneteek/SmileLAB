@@ -26,6 +26,7 @@ import { getWorksheets } from '@/src/lib/services/worksheet-service';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { WorksheetsTable } from '@/components/worksheets/WorksheetsTable';
+import { WorksheetFilters } from '@/components/worksheets/WorksheetFilters';
 import { Plus } from 'lucide-react';
 import type { WorksheetStatus } from '@/src/types/worksheet';
 
@@ -63,7 +64,7 @@ export default async function WorksheetsPage({
 
   // Parse query parameters
   const page = parseInt(params.page || '1', 10);
-  const status = params.status;
+  const status = params.status && params.status !== 'ALL' ? params.status : undefined;
   const search = params.search;
 
   // Fetch worksheets
@@ -83,63 +84,25 @@ export default async function WorksheetsPage({
   const { data: worksheets, pagination } = result;
 
   return (
-    <div className="container mx-auto py-6 space-y-6">
+    <div className="w-full max-w-full py-6 space-y-2">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">{t('worksheet.title')}</h1>
+          <h1 className="text-sm font-bold tracking-tight">{t('worksheet.title')}</h1>
           <p className="text-gray-600 mt-1">
             {t('worksheet.subtitle')}
           </p>
         </div>
-        <Link href="/worksheets/new">
-          <Button>
+        <Link href="/worksheets/new" className="w-full sm:w-auto">
+          <Button className="w-full sm:w-auto">
             <Plus className="h-4 w-4 mr-2" />
             {t('worksheet.newWorksheet')}
           </Button>
         </Link>
       </div>
 
-      {/* Filters - Compact Single Row */}
-      <Card>
-        <CardContent className="py-3">
-          <form method="get" action="/worksheets" className="flex items-center gap-3" suppressHydrationWarning>
-            {/* Search */}
-            <input
-              type="text"
-              id="search"
-              name="search"
-              placeholder={t('order.searchPlaceholder')}
-              defaultValue={search}
-              className="w-48 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-              suppressHydrationWarning
-            />
-
-            {/* Status Filter */}
-            <select
-              id="status"
-              name="status"
-              defaultValue={status || ''}
-              className="w-48 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-              suppressHydrationWarning
-            >
-              <option value="">{t('order.allStatuses')}</option>
-              <option value="DRAFT">{t('status.draft')}</option>
-              <option value="IN_PRODUCTION">{t('status.in_production')}</option>
-              <option value="QC_PENDING">{t('status.qc_pending')}</option>
-              <option value="QC_APPROVED">{t('status.qc_approved')}</option>
-              <option value="QC_REJECTED">{t('status.qc_rejected')}</option>
-              <option value="DELIVERED">{t('status.delivered')}</option>
-              <option value="CANCELLED">{t('status.cancelled')}</option>
-            </select>
-
-            {/* Apply Filters Button */}
-            <Button type="submit" className="whitespace-nowrap" suppressHydrationWarning>
-              {t('worksheet.applyFilters')}
-            </Button>
-          </form>
-        </CardContent>
-      </Card>
+      {/* Filters - Mobile drawer, desktop inline */}
+      <WorksheetFilters search={search} status={status} />
 
       {/* Worksheets Table */}
       <Card>

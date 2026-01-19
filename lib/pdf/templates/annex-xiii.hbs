@@ -493,7 +493,7 @@
     <!-- Left Column: Section 3 - Prescriber Information -->
     <div class="grid-column">
       <section>
-        <h3>{{t.section4Title}}</h3>
+        <h3>{{t.section3Title}}</h3>
         <table class="info-table">
           <tr>
             <td>{{t.dentistName}}</td>
@@ -526,7 +526,7 @@
     <!-- Right Column: Section 4 - Device Classification -->
     <div class="grid-column">
       <section>
-        <h3>{{t.section3Title}}</h3>
+        <h3>{{t.section4Title}}</h3>
         <table class="info-table">
           <tr>
             <td>{{t.emdnCode}}</td>
@@ -541,9 +541,42 @@
     </div>
   </div>
 
-  <!-- Section 5: Products & Material Traceability (CRITICAL) -->
-  <section>
+  <!-- Section 5: Annex I Compliance -->
+  <section class="bg-brand-blue">
     <h3>{{t.section5Title}}</h3>
+    {{#if qcInspection.annexIDeviations}}
+    <div>
+      <p><strong>{{t.annexIDeviationsLabel}}</strong></p>
+      <p>{{qcInspection.annexIDeviations}}</p>
+    </div>
+    {{else}}
+    <div>
+      <p><strong>{{t.fullCompliance}}</strong></p>
+      <p>{{t.fullComplianceText}}</p>
+    </div>
+    {{/if}}
+  </section>
+
+  <!-- Section 6: Declaration of Conformity -->
+  <section class="bg-brand-orange">
+    <h3>{{t.section6Title}}</h3>
+    <div>
+      <p style="margin-bottom: 8px;">{{{t.declarationIntro}}}</p>
+      <ul style="margin-left: 20px; margin-bottom: 10px;">
+        <li>{{{t.declarationItem1}}}</li>
+        <li>{{{t.declarationItem2}}}</li>
+        <li>{{{t.declarationItem3}}}</li>
+        <li>{{{t.declarationItem4}}}</li>
+      </ul>
+      <p style="margin-bottom: 6px;"><strong>{{t.biocompatibilityLabel}}</strong> {{{t.biocompatibilityText}}}</p>
+      <p style="margin-bottom: 6px;"><strong>{{t.ceMarkingLabel}}</strong> {{{t.ceMarkingText}}}</p>
+      <p>{{{t.patientSpecificText}}}</p>
+    </div>
+  </section>
+
+  <!-- Section 7: Products & Material Traceability (CRITICAL) -->
+  <section>
+    <h3>{{t.section7Title}}</h3>
     <p style="margin-bottom: 8px; color: #475569;">
       {{t.traceabilityDescription}}
     </p>
@@ -649,39 +682,6 @@
         {{/if}}
       </tbody>
     </table>
-  </section>
-
-  <!-- Section 6: Annex I Compliance -->
-  <section class="bg-brand-blue">
-    <h3>{{t.section6Title}}</h3>
-    {{#if qcInspection.annexIDeviations}}
-    <div>
-      <p><strong>{{t.annexIDeviationsLabel}}</strong></p>
-      <p>{{qcInspection.annexIDeviations}}</p>
-    </div>
-    {{else}}
-    <div>
-      <p><strong>{{t.fullCompliance}}</strong></p>
-      <p>{{t.fullComplianceText}}</p>
-    </div>
-    {{/if}}
-  </section>
-
-  <!-- Section 7: Declaration of Conformity -->
-  <section class="bg-brand-orange">
-    <h3>{{t.section7Title}}</h3>
-    <div>
-      <p style="margin-bottom: 8px;">{{{t.declarationIntro}}}</p>
-      <ul style="margin-left: 20px; margin-bottom: 10px;">
-        <li>{{{t.declarationItem1}}}</li>
-        <li>{{{t.declarationItem2}}}</li>
-        <li>{{{t.declarationItem3}}}</li>
-        <li>{{{t.declarationItem4}}}</li>
-      </ul>
-      <p style="margin-bottom: 6px;"><strong>{{t.biocompatibilityLabel}}</strong> {{{t.biocompatibilityText}}}</p>
-      <p style="margin-bottom: 6px;"><strong>{{t.ceMarkingLabel}}</strong> {{{t.ceMarkingText}}}</p>
-      <p>{{{t.patientSpecificText}}}</p>
-    </div>
   </section>
 
   <!-- Section 8: Quality Control & Authorization (50-50 Grid) -->

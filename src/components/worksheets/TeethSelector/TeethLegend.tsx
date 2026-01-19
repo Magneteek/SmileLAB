@@ -42,22 +42,12 @@ const LEGEND_WORK_TYPES: WorkType[] = [
  */
 export function TeethLegend({ className, compact = false }: TeethLegendProps) {
   const t = useTranslations();
+  const tWorkTypes = useTranslations('fdi.workTypes');
 
-  // Get translated work type label
+  // Get translated work type label using FDI translation keys
   const getWorkTypeLabel = (workType: WorkType): string => {
-    const labelMap: Record<WorkType, string> = {
-      crown: t('teethSelector.workTypeCrown'),
-      bridge: t('teethSelector.workTypeBridge'),
-      filling: t('teethSelector.workTypeFilling'),
-      implant: t('teethSelector.workTypeImplant'),
-      denture: t('teethSelector.workTypeDenture'),
-      veneer: t('teethSelector.workTypeVeneer'),
-      inlay: t('teethSelector.workTypeInlay'),
-      onlay: t('teethSelector.workTypeOnlay'),
-      root_canal: t('teethSelector.workTypeRootCanal'),
-      extraction: t('teethSelector.workTypeExtraction'),
-    };
-    return labelMap[workType];
+    // Map work type to uppercase key for FDI translations
+    return tWorkTypes(workType.toUpperCase() as any);
   };
 
   return (

@@ -80,16 +80,16 @@ export function FinalizeDraftButton({
   return (
     <AlertDialog>
       <AlertDialogTrigger asChild>
-        <Button disabled={finalizing} size="lg">
+        <Button disabled={finalizing} size="lg" className="w-full sm:w-auto">
           {finalizing ? (
             <>
               <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              Finalizing...
+              <span className="truncate">Finalizing...</span>
             </>
           ) : (
             <>
               <CheckCircle className="mr-2 h-4 w-4" />
-              Finalize Invoice
+              <span className="truncate">Finalize Invoice</span>
             </>
           )}
         </Button>

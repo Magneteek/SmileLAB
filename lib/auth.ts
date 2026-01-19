@@ -111,6 +111,25 @@ export const authOptions: NextAuthOptions = {
   },
 
   callbacks: {
+    async redirect({ url, baseUrl }) {
+      // Get user session to check role
+      // This callback runs after successful sign in
+      // Extract locale from URL if present
+      const urlObj = new URL(url.startsWith('/') ? `${baseUrl}${url}` : url);
+      const pathParts = urlObj.pathname.split('/').filter(Boolean);
+      const locale = ['en', 'sl'].includes(pathParts[0]) ? pathParts[0] : 'sl';
+
+      // If redirecting after signIn, check the URL
+      // STAFF users go to /staff/dashboard
+      // Production users go to /dashboard
+      if (url.includes('callbackUrl')) {
+        return url;
+      }
+
+      // Default redirects based on role will be handled by middleware
+      return `${baseUrl}/${locale}/dashboard`;
+    },
+
     async jwt({ token, user }) {
       // Initial sign in
       if (user) {

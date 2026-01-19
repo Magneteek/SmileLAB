@@ -9,6 +9,7 @@
 import { useState } from 'react';
 import { signIn } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { useLocale, useTranslations } from 'next-intl';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
@@ -146,6 +147,16 @@ export default function LoginPage() {
                     </FormItem>
                   )}
                 />
+
+                {/* Forgot Password Link */}
+                <div className="text-right">
+                  <Link
+                    href={`/${locale}/forgot-password`}
+                    className="text-sm text-blue-600 hover:text-blue-800 hover:underline"
+                  >
+                    {t('auth.forgotPasswordLink')}
+                  </Link>
+                </div>
 
                 {/* Login Button */}
                 <Button type="submit" className="w-full" disabled={isLoading}>

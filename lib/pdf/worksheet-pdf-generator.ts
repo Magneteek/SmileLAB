@@ -3,11 +3,16 @@
  *
  * Generates printable worksheet with FDI teeth diagram
  * for technicians to use during production
+ *
+ * NOW USES UNIFIED PDF INFRASTRUCTURE:
+ * - Base generator from pdf-generator.ts (Puppeteer wrapper)
+ * - Handlebars template with embedded styling (for now)
+ * - Future: Extract template CSS to pdf-styles.ts
  */
 
 import { prisma } from '@/lib/prisma';
 import { getLabConfigurationOrThrow } from '@/lib/services/lab-configuration-service';
-import puppeteer from 'puppeteer';
+import { generatePDFFromTemplate } from './base/pdf-generator';
 import handlebars from 'handlebars';
 import { promises as fs } from 'fs';
 import path from 'path';
@@ -556,31 +561,30 @@ async function compileTemplate(data: WorksheetPDFData): Promise<string> {
 }
 
 /**
- * Generate PDF from HTML using Puppeteer
+ * Generate PDF from HTML using unified PDF generator
+ *
+ * Uses the unified PDF infrastructure for consistent generation
+ * Template includes its own CSS (embedded in worksheet-print.hbs)
  */
 async function generatePDF(html: string): Promise<Buffer> {
-  const browser = await puppeteer.launch({
-    headless: true,
-    args: ['--no-sandbox', '--disable-setuid-sandbox'],
-  });
-
-  try {
-    const page = await browser.newPage();
-    await page.setContent(html, { waitUntil: 'networkidle0' });
-
-    const pdfBuffer = await page.pdf({
+  // Use unified PDF generator
+  // No header/footer needed - they're embedded in the Handlebars template
+  const result = await generatePDFFromTemplate(
+    html,
+    '', // No separate header (in template)
+    '', // No separate footer (in template)
+    {
       format: 'A4',
-      margin: {
+      margins: {
         top: '10mm',
         right: '10mm',
         bottom: '10mm',
         left: '10mm',
       },
       printBackground: true,
-    });
+      displayHeaderFooter: false, // Headers/footers are in the template itself
+    }
+  );
 
-    return Buffer.from(pdfBuffer);
-  } finally {
-    await browser.close();
-  }
+  return result.buffer;
 }

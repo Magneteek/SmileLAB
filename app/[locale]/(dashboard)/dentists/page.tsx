@@ -158,11 +158,11 @@ export default function DentistsPage() {
   };
 
   return (
-    <div className="container mx-auto py-8 space-y-6">
+    <div className="container mx-auto py-8 space-y-2">
       {/* Header */}
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-3xl font-bold">{t('dentist.listTitle')}</h1>
+          <h1 className="text-sm font-bold">{t('dentist.listTitle')}</h1>
           <p className="text-gray-500 mt-1">
             {t('dentist.listSubtitle')}
           </p>

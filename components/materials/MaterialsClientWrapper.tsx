@@ -3,6 +3,8 @@
 import { useState, useEffect } from 'react';
 import { useTranslations } from 'next-intl';
 import { MaterialsTable } from './MaterialsTable';
+import { QuickAddLotModal } from './QuickAddLotModal';
+import { SmartMaterialScanner } from './SmartMaterialScanner';
 import { MaterialWithLots } from '@/types/material';
 import { Loader2 } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
@@ -14,6 +16,17 @@ export function MaterialsClientWrapper() {
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
   const router = useRouter();
+
+  // Quick-add LOT modal state
+  const [quickAddModalOpen, setQuickAddModalOpen] = useState(false);
+  const [selectedMaterial, setSelectedMaterial] = useState<{
+    id: string;
+    name: string;
+    unit: string;
+  } | null>(null);
+
+  // Smart scanner state
+  const [smartScannerOpen, setSmartScannerOpen] = useState(false);
 
   useEffect(() => {
     fetchMaterials();
@@ -101,6 +114,20 @@ export function MaterialsClientWrapper() {
     router.push(`/materials/${id}/edit`);
   };
 
+  const handleQuickAddLot = (material: MaterialWithLots) => {
+    setSelectedMaterial({
+      id: material.id,
+      name: material.name,
+      unit: material.unit,
+    });
+    setQuickAddModalOpen(true);
+  };
+
+  const handleQuickAddSuccess = () => {
+    // Refresh materials list after adding LOT
+    fetchMaterials();
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center p-8">
@@ -110,11 +137,36 @@ export function MaterialsClientWrapper() {
   }
 
   return (
-    <MaterialsTable
-      materials={materials}
-      onEdit={handleEdit}
-      onToggleActive={handleToggleActive}
-      onDelete={handleDelete}
-    />
+    <>
+      <MaterialsTable
+        materials={materials}
+        onEdit={handleEdit}
+        onToggleActive={handleToggleActive}
+        onDelete={handleDelete}
+        onQuickAddLot={handleQuickAddLot}
+        onOpenSmartScanner={() => setSmartScannerOpen(true)}
+      />
+
+      {/* Quick-add LOT Modal */}
+      {selectedMaterial && (
+        <QuickAddLotModal
+          materialId={selectedMaterial.id}
+          materialName={selectedMaterial.name}
+          materialUnit={selectedMaterial.unit}
+          isOpen={quickAddModalOpen}
+          onClose={() => setQuickAddModalOpen(false)}
+          onSuccess={handleQuickAddSuccess}
+        />
+      )}
+
+      {/* Smart Material Scanner */}
+      <SmartMaterialScanner
+        isOpen={smartScannerOpen}
+        onClose={() => setSmartScannerOpen(false)}
+        onSuccess={() => {
+          fetchMaterials();
+        }}
+      />
+    </>
   );
 }

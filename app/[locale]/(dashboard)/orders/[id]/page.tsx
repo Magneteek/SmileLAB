@@ -158,14 +158,14 @@ export default function OrderDetailPage({ params }: { params: Promise<{ id: stri
 
   if (error || !order) {
     return (
-      <div className="space-y-6">
+      <div className="space-y-2">
         <div className="flex items-center gap-4">
           <Button variant="ghost" size="icon" asChild>
             <Link href="/orders">
               <ArrowLeft className="h-4 w-4" />
             </Link>
           </Button>
-          <h1 className="text-3xl font-bold tracking-tight">{t('orderNotFound')}</h1>
+          <h1 className="text-sm font-bold tracking-tight">{t('orderNotFound')}</h1>
         </div>
         <Alert variant="destructive">
           <AlertDescription>{error || t('orderNotFound')}</AlertDescription>
@@ -175,7 +175,7 @@ export default function OrderDetailPage({ params }: { params: Promise<{ id: stri
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-2">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
@@ -185,8 +185,8 @@ export default function OrderDetailPage({ params }: { params: Promise<{ id: stri
             </Link>
           </Button>
           <div>
-            <h1 className="text-3xl font-bold tracking-tight">
-              Order {order.orderNumber}
+            <h1 className="text-sm font-bold tracking-tight">
+              {t('orderTitle')} {order.orderNumber}
             </h1>
             <p className="text-muted-foreground">
               {t('viewManageDetails')}
@@ -267,7 +267,7 @@ export default function OrderDetailPage({ params }: { params: Promise<{ id: stri
                 <div>
                   <p className="text-sm font-medium text-muted-foreground">{t('statusLabel')}</p>
                   <Badge className={`${statusColors[order.status]} mt-1`} variant="default">
-                    {order.status.replace(/_/g, ' ')}
+                    {t(`statuses.${order.status}`)}
                   </Badge>
                 </div>
                 <div>

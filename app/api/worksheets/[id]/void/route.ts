@@ -62,6 +62,50 @@ export async function POST(
       );
     }
 
+    // CRITICAL: Check for invoices before allowing void
+    const { checkWorksheetInvoiceStatus } = await import(
+      '@/src/lib/services/invoice-service'
+    );
+    const invoiceStatus = await checkWorksheetInvoiceStatus(id);
+
+    if (invoiceStatus) {
+      // Block void if invoice is PAID
+      if (invoiceStatus.hasPaidInvoice) {
+        const paidInvoice = invoiceStatus.invoices.find(
+          inv => inv.paymentStatus === 'PAID'
+        );
+        return NextResponse.json(
+          {
+            error: `Cannot void worksheet that has a PAID invoice (${paidInvoice?.invoiceNumber}). ` +
+                   `Paid invoices cannot be modified. Contact administrator if you need to make changes.`,
+          },
+          { status: 403 }
+        );
+      }
+
+      // Block void if invoice is SENT (awaiting payment)
+      if (invoiceStatus.hasSentInvoice) {
+        const sentInvoice = invoiceStatus.invoices.find(
+          inv => inv.paymentStatus === 'SENT'
+        );
+        return NextResponse.json(
+          {
+            error: `Cannot void worksheet that has a SENT invoice (${sentInvoice?.invoiceNumber}). ` +
+                   `The invoice has already been sent to the client. Cancel the invoice first if needed.`,
+          },
+          { status: 403 }
+        );
+      }
+
+      // Allow void but log warning if other invoices exist
+      if (invoiceStatus.hasActiveInvoice) {
+        console.warn(
+          `⚠️ Voiding worksheet ${worksheet.worksheetNumber} which has active invoices:`,
+          invoiceStatus.invoices.map(inv => inv.invoiceNumber).filter(Boolean)
+        );
+      }
+    }
+
     // Void the worksheet
     const voidedWorksheet = await prisma.workSheet.update({
       where: { id },

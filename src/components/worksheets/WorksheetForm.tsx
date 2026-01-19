@@ -866,7 +866,9 @@ export function WorksheetForm({
                       </Button>
                       <Button
                         type="button"
-                        onClick={async () => {
+                        onClick={async (e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
                           if (worksheetId && selectedTeeth.length > 0) {
                             await saveCurrentTab();
                           }
@@ -900,7 +902,7 @@ export function WorksheetForm({
 
                   {!isReadOnly && (
                     <div className="mt-4 flex justify-end gap-3">
-                      <Button type="button" variant="outline" onClick={() => setActiveTab('materials')}>
+                      <Button type="button" variant="outline" onClick={() => setActiveTab(ENABLE_DIRECT_MATERIALS_TAB ? 'materials' : 'teeth')}>
                         {t('worksheet.buttonBack')}
                       </Button>
                       <Button type="submit" disabled={isSubmitting}>
@@ -932,7 +934,9 @@ export function WorksheetForm({
                         <Button type="button" variant="outline" onClick={() => setActiveTab('teeth')}>
                           {t('worksheet.buttonBack')}
                         </Button>
-                        <Button type="button" variant="default" onClick={() => {
+                        <Button type="button" variant="default" onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
                           saveCurrentTab();
                           setActiveTab('products');
                         }} disabled={isSubmitting}>

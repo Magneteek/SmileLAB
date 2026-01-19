@@ -33,7 +33,6 @@ import { WorksheetStatusBadge } from '@/src/components/worksheets/WorksheetStatu
 import { StatusTransitionControls } from '@/src/components/worksheets/StatusTransitionControls';
 import { WorksheetHistory } from '@/src/components/worksheets/WorksheetHistory';
 import { Separator } from '@/components/ui/separator';
-import { GenerateInvoiceButton } from '@/src/components/invoices/GenerateInvoiceButton';
 import { GenerateAnnexButton } from '@/src/components/documents/GenerateAnnexButton';
 import { VoidWorksheetButton } from '@/src/components/worksheets/VoidWorksheetButton';
 import { DeleteWorksheetButton } from '@/src/components/worksheets/DeleteWorksheetButton';
@@ -69,7 +68,7 @@ export default async function WorksheetDetailPage({
   const isDraft = worksheet.status === 'DRAFT';
 
   return (
-    <div className="container mx-auto py-6 space-y-6">
+    <div className="container mx-auto py-6 space-y-2">
       {/* Compact Header with All Info */}
       <Card>
         <CardContent className="pt-6">
@@ -82,7 +81,7 @@ export default async function WorksheetDetailPage({
               </Link>
               <div>
                 <div className="flex items-center gap-3 mb-2">
-                  <h1 className="text-2xl font-bold tracking-tight">
+                  <h1 className="text-sm font-bold tracking-tight">
                     {worksheet.worksheetNumber}
                   </h1>
                   <WorksheetStatusBadge status={worksheet.status} />
@@ -148,15 +147,6 @@ export default async function WorksheetDetailPage({
                 currentStatus={worksheet.status}
                 orderId={worksheet.orderId}
               />
-              {/* Hide invoice button for TECHNICIAN */}
-              {session.user.role !== 'TECHNICIAN' && (
-                <GenerateInvoiceButton
-                  worksheetId={worksheet.id}
-                  worksheetStatus={worksheet.status as any}
-                  invoiceId={worksheet.invoiceLineItems?.[0]?.invoice?.id}
-                  invoiceStatus={worksheet.invoiceLineItems?.[0]?.invoice?.paymentStatus}
-                />
-              )}
               <Link href={`/api/documents/worksheet-pdf/${worksheet.id}?locale=sl`} target="_blank">
                 <Button variant="outline" size="sm">
                   <Printer className="h-4 w-4 mr-2" />
@@ -182,7 +172,7 @@ export default async function WorksheetDetailPage({
       </Card>
 
       {/* Grid Layout: 75% Products / 25% Info Sidebar */}
-      <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-4 gap-2">
         {/* Products & Materials - 75% (Left) */}
         <div className="lg:col-span-3 space-y-4">
           <Card>
@@ -293,7 +283,7 @@ export default async function WorksheetDetailPage({
                   <div className="flex flex-wrap gap-2">
                     {worksheet.teeth.map((tooth: any) => (
                       <Badge key={tooth.id} variant="outline" className="text-xs px-2 py-1">
-                        #{tooth.toothNumber} - {tooth.workType}
+                        #{tooth.toothNumber} - {t(`fdi.workTypes.${tooth.workType}`)}
                         {tooth.shade && ` (${tooth.shade})`}
                       </Badge>
                     ))}
@@ -432,7 +422,9 @@ export default async function WorksheetDetailPage({
                             ''
                           }
                         >
-                          {qc.result}
+                          {qc.result === 'APPROVED' ? t('qualityControl.qcResultApproved') :
+                           qc.result === 'CONDITIONAL' ? t('qualityControl.qcResultConditional') :
+                           t('qualityControl.qcResultRejected')}
                         </Badge>
                         <span className="text-sm text-gray-600">
                           {new Date(qc.inspectionDate).toLocaleString()}

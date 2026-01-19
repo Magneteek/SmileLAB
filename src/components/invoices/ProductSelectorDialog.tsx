@@ -191,6 +191,25 @@ export function ProductSelectorDialog({
     });
   };
 
+  /**
+   * Handle double-click on product - add with quantity 1 directly
+   */
+  const handleDoubleClickProduct = (product: Product) => {
+    onSelect(product, 1);
+
+    // Reset and close
+    setSelectedProduct(null);
+    setQuantity(1);
+    setSearchQuery('');
+    setCategoryFilter('all');
+    setOpen(false);
+
+    toast({
+      title: t('invoices.productAddedTitle'),
+      description: t('invoices.productAddedDescription', { name: product.name }),
+    });
+  };
+
   const getUniqueCategories = () => {
     const categories = new Set(products.map((p) => p.category));
     return Array.from(categories).sort();
@@ -206,19 +225,19 @@ export function ProductSelectorDialog({
           </Button>
         )}
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[54rem] max-h-[90vh]">
-        <DialogHeader>
+      <DialogContent className="max-w-[95vw] sm:max-w-[90vw] md:max-w-[54rem] max-h-[90vh] flex flex-col">
+        <DialogHeader className="flex-shrink-0">
           <DialogTitle>{t('invoices.addProductTitle')}</DialogTitle>
           <DialogDescription>
             {t('invoices.addProductDescription')}
           </DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-4">
+        <div className="flex-1 flex flex-col space-y-4 min-h-0 overflow-hidden">
           {/* Search and Filter Controls */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 flex-shrink-0">
             <div>
-              <Label htmlFor="search">{t('invoices.searchProductsLabel')}</Label>
+              <Label htmlFor="search" className="text-sm">{t('invoices.searchProductsLabel')}</Label>
               <div className="relative">
                 <Search className="absolute left-2 top-2.5 h-4 w-4 text-gray-400" />
                 <Input
@@ -231,7 +250,7 @@ export function ProductSelectorDialog({
               </div>
             </div>
             <div>
-              <Label htmlFor="category">{t('invoices.categoryLabel')}</Label>
+              <Label htmlFor="category" className="text-sm">{t('invoices.categoryLabel')}</Label>
               <Select value={categoryFilter} onValueChange={setCategoryFilter}>
                 <SelectTrigger id="category">
                   <SelectValue />
@@ -250,7 +269,7 @@ export function ProductSelectorDialog({
 
           {/* Products List */}
           <div className="border rounded-lg">
-            <ScrollArea className="h-[500px]">
+            <ScrollArea className="h-[300px] sm:h-[350px] md:h-[400px]">
               {loading ? (
                 <div className="p-8 text-center text-gray-500 text-sm">
                   {t('invoices.loadingProducts')}
@@ -270,17 +289,18 @@ export function ProductSelectorDialog({
                           : ''
                       }`}
                       onClick={() => handleSelectProduct(product)}
+                      onDoubleClick={() => handleDoubleClickProduct(product)}
                     >
-                      <div className="flex items-center justify-between gap-3">
-                        <div className="flex items-center gap-2 flex-1 min-w-0">
+                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                        <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2 flex-1 min-w-0">
                           <span className="text-sm font-medium text-gray-900 truncate">
                             {product.name}
                           </span>
-                          <Badge variant="outline" className="text-xs shrink-0">
+                          <Badge variant="outline" className="text-xs shrink-0 self-start">
                             {product.category}
                           </Badge>
                         </div>
-                        <div className="text-right shrink-0">
+                        <div className="text-left sm:text-right shrink-0">
                           <p className="text-sm font-bold text-blue-600">
                             €{Number(product.currentPrice || 0).toFixed(2)}
                           </p>
@@ -295,19 +315,19 @@ export function ProductSelectorDialog({
 
           {/* Selected Product and Quantity */}
           {selectedProduct && (
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
-              <div className="flex items-center justify-between gap-3">
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 flex-shrink-0">
+              <div className="flex flex-col gap-3">
                 <div className="flex-1">
-                  <p className="text-xs font-semibold text-blue-900">
+                  <p className="text-xs font-semibold text-blue-900 break-words">
                     {t('invoices.selectedProduct', { code: selectedProduct.code, name: selectedProduct.name })}
                   </p>
-                  <p className="text-xs text-blue-700">
+                  <p className="text-xs text-blue-700 mt-1">
                     {t('invoices.pricePerUnit', { price: Number(selectedProduct.currentPrice || 0).toFixed(2), unit: selectedProduct.unit })}
                   </p>
                 </div>
-                <div className="flex items-center gap-3">
-                  <div>
-                    <Label htmlFor="quantity" className="text-xs">
+                <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
+                  <div className="flex items-center gap-2">
+                    <Label htmlFor="quantity" className="text-xs whitespace-nowrap">
                       {t('invoices.quantityLabel')}
                     </Label>
                     <Input
@@ -316,11 +336,11 @@ export function ProductSelectorDialog({
                       min="1"
                       value={quantity}
                       onChange={(e) => setQuantity(parseInt(e.target.value) || 1)}
-                      className="w-20 mt-1 h-8"
+                      className="w-20 h-8"
                     />
                   </div>
-                  <div className="text-right">
-                    <p className="text-xs text-blue-700">{t('invoices.totalLabel')}</p>
+                  <div className="flex items-center gap-2 sm:ml-auto">
+                    <p className="text-xs text-blue-700">{t('invoices.totalLabel')}:</p>
                     <p className="text-base font-bold text-blue-900">
                       €{(Number(selectedProduct.currentPrice || 0) * quantity).toFixed(2)}
                     </p>
@@ -331,7 +351,7 @@ export function ProductSelectorDialog({
           )}
 
           {/* Action Buttons */}
-          <div className="flex justify-end gap-2 pt-4 border-t">
+          <div className="flex flex-col-reverse sm:flex-row justify-end gap-2 pt-4 border-t flex-shrink-0">
             <Button
               variant="outline"
               onClick={() => {
@@ -341,12 +361,14 @@ export function ProductSelectorDialog({
                 setSearchQuery('');
                 setCategoryFilter('all');
               }}
+              className="w-full sm:w-auto"
             >
               {t('invoices.cancelButton')}
             </Button>
             <Button
               onClick={handleAddProduct}
               disabled={!selectedProduct}
+              className="w-full sm:w-auto"
             >
               {t('invoices.addProductButton')}
             </Button>

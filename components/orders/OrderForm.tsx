@@ -304,7 +304,7 @@ export function OrderForm({
           />
         )}
 
-        <div className="flex gap-4">
+        <div className="flex flex-col gap-4">
           <FormField
             control={form.control}
             name="dueDate"

@@ -47,6 +47,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { FilterDrawer } from '@/components/ui/filter-drawer';
 import {
   FileText,
   Eye,
@@ -229,16 +230,16 @@ export default function InvoicesPage() {
   }, [searchInput]);
 
   return (
-    <div className="space-y-6">
+    <div className="w-full max-w-full space-y-2">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">{t('invoice.title')}</h1>
+          <h1 className="text-sm font-bold tracking-tight">{t('invoice.title')}</h1>
           <p className="text-muted-foreground">
             {t('invoice.subtitle')}
           </p>
         </div>
-        <Button asChild>
+        <Button asChild className="w-full sm:w-auto">
           <Link href="/invoices/new">
             <Plus className="h-4 w-4 mr-2" />
             {t('invoice.createInvoice')}
@@ -252,19 +253,19 @@ export default function InvoicesPage() {
           <Card>
             <CardHeader className="pb-2">
               <CardDescription>{t('invoice.summaryDraft')}</CardDescription>
-              <CardTitle className="text-2xl">{invoices.summary.totalDraft}</CardTitle>
+              <CardTitle className="text-sm">{invoices.summary.totalDraft}</CardTitle>
             </CardHeader>
           </Card>
           <Card>
             <CardHeader className="pb-2">
               <CardDescription>{t('invoice.summarySent')}</CardDescription>
-              <CardTitle className="text-2xl">{invoices.summary.totalSent}</CardTitle>
+              <CardTitle className="text-sm">{invoices.summary.totalSent}</CardTitle>
             </CardHeader>
           </Card>
           <Card>
             <CardHeader className="pb-2">
               <CardDescription>{t('invoice.summaryPaid')}</CardDescription>
-              <CardTitle className="text-2xl text-green-600">
+              <CardTitle className="text-sm text-green-600">
                 {invoices.summary.totalPaid}
               </CardTitle>
             </CardHeader>
@@ -272,7 +273,7 @@ export default function InvoicesPage() {
           <Card>
             <CardHeader className="pb-2">
               <CardDescription>{t('invoice.summaryOverdue')}</CardDescription>
-              <CardTitle className="text-2xl text-red-600">
+              <CardTitle className="text-sm text-red-600">
                 {invoices.summary.totalOverdue}
               </CardTitle>
             </CardHeader>
@@ -280,28 +281,41 @@ export default function InvoicesPage() {
           <Card>
             <CardHeader className="pb-2">
               <CardDescription>{t('invoice.summaryUnpaid')}</CardDescription>
-              <CardTitle className="text-2xl">{invoices.summary.totalUnpaid}</CardTitle>
+              <CardTitle className="text-sm">{invoices.summary.totalUnpaid}</CardTitle>
             </CardHeader>
           </Card>
         </div>
       )}
 
-      {/* Filters - Compact Single Row */}
-      <Card>
-        <CardContent className="py-3">
-          <div className="flex items-center gap-3">
-            {/* Search */}
+      {/* Filters - Mobile drawer, desktop inline */}
+      <FilterDrawer
+        title={t('invoice.title')}
+        description={t('invoice.subtitle')}
+        triggerLabel={t('invoice.filters')}
+      >
+        <div className="flex flex-col md:flex-row md:items-center gap-3 p-4 md:p-0">
+          {/* Search */}
+          <div className="flex flex-col gap-1.5 w-full md:w-48">
+            <label htmlFor="search" className="text-xs font-medium md:sr-only">
+              {t('invoice.searchPlaceholder')}
+            </label>
             <Input
               type="text"
+              id="search"
               placeholder={t('invoice.searchPlaceholder')}
               value={searchInput}
               onChange={(e) => setSearchInput(e.target.value)}
-              className="w-48"
+              className="w-full"
             />
+          </div>
 
-            {/* Payment Status Filter */}
+          {/* Payment Status Filter */}
+          <div className="flex flex-col gap-1.5 w-full md:w-48">
+            <label htmlFor="status" className="text-xs font-medium md:sr-only">
+              {t('invoice.allStatuses')}
+            </label>
             <Select value={paymentStatus} onValueChange={setPaymentStatus}>
-              <SelectTrigger className="w-48">
+              <SelectTrigger className="w-full" id="status">
                 <SelectValue placeholder={t('invoice.allStatuses')} />
               </SelectTrigger>
               <SelectContent>
@@ -315,23 +329,23 @@ export default function InvoicesPage() {
                 <SelectItem value="CANCELLED">{t('invoice.statusCancelled')}</SelectItem>
               </SelectContent>
             </Select>
-
-            {/* Overdue Toggle */}
-            <Button
-              variant={showOverdueOnly ? 'default' : 'outline'}
-              size="sm"
-              onClick={() => {
-                setShowOverdueOnly(!showOverdueOnly);
-                setPage(1);
-              }}
-              className="gap-2 whitespace-nowrap"
-            >
-              <AlertCircle className="h-4 w-4" />
-              {showOverdueOnly ? t('invoice.overdueOnly') : t('invoice.showOverdue')}
-            </Button>
           </div>
-        </CardContent>
-      </Card>
+
+          {/* Overdue Toggle */}
+          <Button
+            variant={showOverdueOnly ? 'default' : 'outline'}
+            size="sm"
+            onClick={() => {
+              setShowOverdueOnly(!showOverdueOnly);
+              setPage(1);
+            }}
+            className="gap-2 w-full md:w-auto"
+          >
+            <AlertCircle className="h-4 w-4" />
+            <span className="truncate">{showOverdueOnly ? t('invoice.overdueOnly') : t('invoice.showOverdue')}</span>
+          </Button>
+        </div>
+      </FilterDrawer>
 
       {/* Invoices Table */}
       <Card>
@@ -353,8 +367,9 @@ export default function InvoicesPage() {
 
           {!loading && !error && invoices && (
             <>
-              <div className="rounded-md border">
-                <Table>
+              <div className="overflow-x-auto rounded-md border">
+                <div className="inline-block min-w-full align-middle">
+                  <Table>
                   <TableHeader>
                     <TableRow>
                       <SortableTableHeader
@@ -362,6 +377,7 @@ export default function InvoicesPage() {
                         currentSortKey={sortKey}
                         currentSortDirection={sortDirection}
                         onSort={handleSort}
+                        className="text-xs md:text-sm min-w-[120px]"
                       >
                         {t('invoice.table.invoiceNumber')}
                       </SortableTableHeader>
@@ -534,6 +550,7 @@ export default function InvoicesPage() {
                     )}
                   </TableBody>
                 </Table>
+                </div>
               </div>
 
               {/* Pagination */}

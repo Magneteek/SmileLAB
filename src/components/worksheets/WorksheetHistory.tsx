@@ -9,6 +9,7 @@
 
 import { useEffect, useState } from 'react';
 import { format } from 'date-fns';
+import { useTranslations } from 'next-intl';
 import { History, User, Calendar, FileEdit, AlertCircle } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -76,9 +77,9 @@ function formatFieldName(field: string): string {
 /**
  * Format value for display
  */
-function formatValue(value: any): string {
-  if (value === null || value === undefined) return 'Not set';
-  if (typeof value === 'boolean') return value ? 'Yes' : 'No';
+function formatValue(value: any, t: any): string {
+  if (value === null || value === undefined) return t('notSet');
+  if (typeof value === 'boolean') return value ? t('yes') : t('no');
   if (value instanceof Date) return format(new Date(value), 'MMM dd, yyyy');
   if (typeof value === 'string' && value.match(/^\d{4}-\d{2}-\d{2}/)) {
     return format(new Date(value), 'MMM dd, yyyy');
@@ -126,6 +127,7 @@ function isStateTransition(entry: HistoryEntry): entry is StateTransitionEntry {
 // ============================================================================
 
 export function WorksheetHistory({ worksheetId }: WorksheetHistoryProps) {
+  const t = useTranslations('worksheetHistory');
   const [history, setHistory] = useState<HistoryEntry[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -158,8 +160,8 @@ export function WorksheetHistory({ worksheetId }: WorksheetHistoryProps) {
     return (
       <Card>
         <CardHeader>
-          <CardTitle>Edit History</CardTitle>
-          <CardDescription>Loading edit history...</CardDescription>
+          <CardTitle>{t('title')}</CardTitle>
+          <CardDescription>{t('loading')}</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <Skeleton className="h-20 w-full" />
@@ -174,7 +176,7 @@ export function WorksheetHistory({ worksheetId }: WorksheetHistoryProps) {
     return (
       <Card>
         <CardHeader>
-          <CardTitle>Edit History</CardTitle>
+          <CardTitle>{t('title')}</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="flex items-center gap-2 text-destructive">
@@ -190,13 +192,13 @@ export function WorksheetHistory({ worksheetId }: WorksheetHistoryProps) {
     return (
       <Card>
         <CardHeader>
-          <CardTitle>Edit History</CardTitle>
-          <CardDescription>No edit history available</CardDescription>
+          <CardTitle>{t('title')}</CardTitle>
+          <CardDescription>{t('noHistory')}</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="text-center py-8 text-muted-foreground">
             <History className="h-12 w-12 mx-auto mb-2 opacity-50" />
-            <p>No changes have been made to this worksheet yet</p>
+            <p>{t('noChanges')}</p>
           </div>
         </CardContent>
       </Card>
@@ -208,10 +210,10 @@ export function WorksheetHistory({ worksheetId }: WorksheetHistoryProps) {
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <History className="h-5 w-5" />
-          Edit History
+          {t('title')}
         </CardTitle>
         <CardDescription>
-          Complete audit trail of all changes ({history.length} {history.length === 1 ? 'entry' : 'entries'})
+          {t('auditTrail')} ({history.length} {history.length === 1 ? t('entry') : t('entries')})
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -229,7 +231,7 @@ export function WorksheetHistory({ worksheetId }: WorksheetHistoryProps) {
                 <div className="space-y-1">
                   <div className="flex items-center gap-2">
                     <Badge variant={getActionVariant(entry.action)}>
-                      {entry.action === 'STATE_TRANSITION' ? 'STATUS CHANGE' : entry.action}
+                      {entry.action === 'STATE_TRANSITION' ? t('statusChange') : entry.action}
                     </Badge>
                     <span className="text-sm font-medium">{entry.user.name}</span>
                     {!isStateTransition(entry) && entry.user.role && (
@@ -249,11 +251,11 @@ export function WorksheetHistory({ worksheetId }: WorksheetHistoryProps) {
               {isStateTransition(entry) && (
                 <div className="space-y-2">
                   <div className="flex items-center gap-2 text-sm">
-                    <span className="text-muted-foreground">Status changed from</span>
+                    <span className="text-muted-foreground">{t('statusChangedFrom')}</span>
                     <Badge variant="outline" className="text-destructive border-destructive">
                       {entry.fromStatus ? formatStatus(entry.fromStatus) : 'Unknown'}
                     </Badge>
-                    <span className="text-muted-foreground">to</span>
+                    <span className="text-muted-foreground">{t('statusChangedTo')}</span>
                     <Badge variant="outline" className="text-green-600 border-green-600">
                       {entry.toStatus ? formatStatus(entry.toStatus) : 'Unknown'}
                     </Badge>
@@ -261,7 +263,7 @@ export function WorksheetHistory({ worksheetId }: WorksheetHistoryProps) {
                   {entry.reason && (
                     <div className="p-2 bg-muted rounded-md">
                       <div className="text-xs font-medium text-muted-foreground mb-1">
-                        Notes:
+                        {t('notes')}
                       </div>
                       <div className="text-sm">{entry.reason}</div>
                     </div>
@@ -276,7 +278,7 @@ export function WorksheetHistory({ worksheetId }: WorksheetHistoryProps) {
                   {entry.reasonForChange && (
                     <div className="mb-2 p-2 bg-muted rounded-md">
                       <div className="text-xs font-medium text-muted-foreground mb-1">
-                        Reason for Change:
+                        {t('reasonForChange')}
                       </div>
                       <div className="text-sm">{entry.reasonForChange}</div>
                     </div>
@@ -286,7 +288,7 @@ export function WorksheetHistory({ worksheetId }: WorksheetHistoryProps) {
                   {entry.changes && entry.changes.length > 0 && (
                     <div className="space-y-2">
                       <div className="text-xs font-medium text-muted-foreground">
-                        Changes:
+                        {t('changes')}
                       </div>
                       <div className="space-y-1">
                         {entry.changes.map((change, changeIndex) => (
@@ -300,11 +302,11 @@ export function WorksheetHistory({ worksheetId }: WorksheetHistoryProps) {
                             <div className="space-y-1">
                               {change.oldValue !== undefined && (
                                 <div className="text-destructive line-through">
-                                  {formatValue(change.oldValue)}
+                                  {formatValue(change.oldValue, t)}
                                 </div>
                               )}
                               <div className="text-green-600 font-medium">
-                                {formatValue(change.newValue)}
+                                {formatValue(change.newValue, t)}
                               </div>
                             </div>
                           </div>
@@ -316,7 +318,7 @@ export function WorksheetHistory({ worksheetId }: WorksheetHistoryProps) {
                   {/* Show simple message for CREATE actions */}
                   {entry.action === 'CREATE' && (!entry.changes || entry.changes.length === 0) && (
                     <div className="text-sm text-muted-foreground">
-                      Worksheet created
+                      {t('worksheetCreated')}
                     </div>
                   )}
                 </>

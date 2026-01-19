@@ -291,9 +291,9 @@ export default async function QualityControlPage() {
   ]);
 
   return (
-    <div className="container mx-auto p-6 space-y-6">
+    <div className="container mx-auto p-6 space-y-2">
       <div>
-        <h1 className="text-3xl font-bold">{t('qualityControl.dashboardTitle')}</h1>
+        <h1 className="text-sm font-bold">{t('qualityControl.dashboardTitle')}</h1>
         <p className="text-muted-foreground mt-1">
           {t('qualityControl.dashboardSubtitle')}
         </p>

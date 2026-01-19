@@ -737,6 +737,74 @@ export async function getInvoicesByWorksheetId(
 }
 
 /**
+ * Check if a worksheet has any invoices and get their payment status
+ *
+ * Used for cancellation warnings and blocking logic
+ *
+ * @param worksheetId - Worksheet ID
+ * @returns Invoice status information or null if no invoices
+ */
+export async function checkWorksheetInvoiceStatus(
+  worksheetId: string
+): Promise<{
+  hasInvoice: boolean;
+  invoiceCount: number;
+  hasPaidInvoice: boolean;
+  hasSentInvoice: boolean;
+  hasActiveInvoice: boolean; // SENT, PAID, or VIEWED (not DRAFT or CANCELLED)
+  invoices: Array<{
+    id: string;
+    invoiceNumber: string | null;
+    paymentStatus: string;
+    isDraft: boolean;
+  }>;
+} | null> {
+  // Find all invoices that have line items referencing this worksheet
+  const invoices = await prisma.invoice.findMany({
+    where: {
+      lineItems: {
+        some: {
+          worksheetId,
+        },
+      },
+    },
+    select: {
+      id: true,
+      invoiceNumber: true,
+      paymentStatus: true,
+      isDraft: true,
+    },
+    orderBy: {
+      createdAt: 'desc',
+    },
+  });
+
+  if (invoices.length === 0) {
+    return null;
+  }
+
+  const hasPaidInvoice = invoices.some(inv => inv.paymentStatus === 'PAID');
+  const hasSentInvoice = invoices.some(inv => inv.paymentStatus === 'SENT');
+  const hasActiveInvoice = invoices.some(
+    inv => !inv.isDraft && inv.paymentStatus !== 'CANCELLED'
+  );
+
+  return {
+    hasInvoice: true,
+    invoiceCount: invoices.length,
+    hasPaidInvoice,
+    hasSentInvoice,
+    hasActiveInvoice,
+    invoices: invoices.map(inv => ({
+      id: inv.id,
+      invoiceNumber: inv.invoiceNumber,
+      paymentStatus: inv.paymentStatus,
+      isDraft: inv.isDraft,
+    })),
+  };
+}
+
+/**
  * List invoices with filters and pagination
  *
  * @param filters - Filter criteria

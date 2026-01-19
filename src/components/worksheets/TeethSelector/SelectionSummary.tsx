@@ -27,22 +27,17 @@ export function SelectionSummary({
   readOnly = false,
 }: SelectionSummaryProps) {
   const t = useTranslations();
+  const tFdi = useTranslations('fdi');
+  const tWorkTypes = useTranslations('fdi.workTypes');
 
-  // Get translated work type label
+  // Get translated work type label using FDI translation keys
   const getWorkTypeLabel = (workType: string): string => {
-    const labelMap: Record<string, string> = {
-      crown: t('teethSelector.workTypeCrown'),
-      bridge: t('teethSelector.workTypeBridge'),
-      filling: t('teethSelector.workTypeFilling'),
-      implant: t('teethSelector.workTypeImplant'),
-      denture: t('teethSelector.workTypeDenture'),
-      veneer: t('teethSelector.workTypeVeneer'),
-      inlay: t('teethSelector.workTypeInlay'),
-      onlay: t('teethSelector.workTypeOnlay'),
-      root_canal: t('teethSelector.workTypeRootCanal'),
-      extraction: t('teethSelector.workTypeExtraction'),
-    };
-    return labelMap[workType] || workType;
+    return tWorkTypes(workType.toUpperCase() as any);
+  };
+
+  // Get translated tooth name
+  const getToothName = (toothNumber: string): string => {
+    return tFdi(`teeth.${toothNumber}`);
   };
 
   if (selectedTeeth.length === 0) {
@@ -83,9 +78,6 @@ export function SelectionSummary({
       {/* Selected Teeth List */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-1.5">
         {selectedTeeth.map((tooth) => {
-          const toothData = getToothByNumber(tooth.toothNumber);
-          const toothName = toothData ? toothData.name : `Tooth ${tooth.toothNumber}`;
-
           return (
             <Card key={tooth.toothNumber} className="p-2 relative group">
               <div className="flex items-start justify-between gap-1.5">
@@ -100,22 +92,20 @@ export function SelectionSummary({
                       className="text-xs py-0 px-1 border-0 text-white font-medium"
                       style={{ backgroundColor: WORK_TYPE_COLORS[tooth.workType] }}
                     >
-                      {tooth.workType}
+                      {getWorkTypeLabel(tooth.workType)}
                     </Badge>
                   </div>
 
-                  {/* Tooth Name and Type */}
-                  {toothData && (
-                    <div className="text-xs text-gray-600 mb-0.5">
-                      {toothName}
-                    </div>
-                  )}
+                  {/* Tooth Name */}
+                  <div className="text-xs text-gray-600 mb-0.5">
+                    {getToothName(tooth.toothNumber)}
+                  </div>
 
                   {/* Shade Information - Prominent */}
                   {tooth.shade && (
                     <div className="flex items-center gap-1 text-xs font-medium text-gray-700 bg-gray-50 px-1.5 py-0.5 rounded mt-1">
                       <Paintbrush className="h-3 w-3 text-purple-600" />
-                      <span className="text-gray-600">Shade:</span>
+                      <span className="text-gray-600">{t('teethSelector.shadeLabel')}:</span>
                       <span className="text-purple-700">{tooth.shade}</span>
                     </div>
                   )}

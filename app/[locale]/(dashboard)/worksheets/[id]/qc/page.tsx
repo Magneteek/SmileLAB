@@ -1,3 +1,5 @@
+'use client';
+
 /**
  * Quality Control Inspection Page
  *
@@ -5,132 +7,12 @@
  * Route: /worksheets/:id/qc
  */
 
-import { Metadata } from 'next';
-import { redirect, notFound } from 'next/navigation';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth';
-import { prisma } from '@/lib/prisma';
+import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { useSession } from 'next-auth/react';
+import { useTranslations } from 'next-intl';
+import { Loader2 } from 'lucide-react';
 import { QCInspectionForm } from '@/src/components/quality-control/QCInspectionForm';
-
-export const metadata: Metadata = {
-  title: 'Quality Control Inspection | Smilelab MDR',
-  description: 'Inspect and approve worksheet quality',
-};
-
-/**
- * Fetch worksheet for QC inspection with all related data
- */
-async function getWorksheetForQC(id: string) {
-  const worksheet = await prisma.workSheet.findUnique({
-    where: { id },
-    include: {
-      order: {
-        include: {
-          dentist: {
-            select: {
-              id: true,
-              dentistName: true,
-              clinicName: true,
-              licenseNumber: true,
-              email: true,
-              phone: true,
-            },
-          },
-        },
-      },
-      teeth: true,
-      products: {
-        include: {
-          product: {
-            select: {
-              id: true,
-              name: true,
-              category: true,
-              code: true,
-            },
-          },
-          productMaterials: {
-            include: {
-              material: true,
-              materialLot: true,
-            },
-          },
-        },
-      },
-      materials: {
-        include: {
-          material: {
-            select: {
-              id: true,
-              name: true,
-              type: true,
-              code: true,
-              manufacturer: true,
-            },
-          },
-          materialLot: {
-            select: {
-              id: true,
-              lotNumber: true,
-              expiryDate: true,
-              arrivalDate: true,
-              quantityReceived: true,
-              quantityAvailable: true,
-            },
-          },
-        },
-      },
-      qualityControls: {
-        include: {
-          inspector: {
-            select: {
-              id: true,
-              name: true,
-              email: true,
-            },
-          },
-        },
-      },
-      createdBy: {
-        select: {
-          id: true,
-          name: true,
-        },
-      },
-    },
-  });
-
-  // Convert Decimal fields to numbers for client component
-  if (worksheet) {
-    return {
-      ...worksheet,
-      products: worksheet.products.map(p => ({
-        ...p,
-        priceAtSelection: Number(p.priceAtSelection),
-        productMaterials: p.productMaterials?.map(pm => ({
-          ...pm,
-          quantityUsed: Number(pm.quantityUsed),
-          materialLot: pm.materialLot ? {
-            ...pm.materialLot,
-            quantityReceived: Number(pm.materialLot.quantityReceived),
-            quantityAvailable: Number(pm.materialLot.quantityAvailable),
-          } : null,
-        })) || [],
-      })),
-      materials: worksheet.materials.map(m => ({
-        ...m,
-        quantityPlanned: Number(m.quantityPlanned || 0),
-        materialLot: m.materialLot ? {
-          ...m.materialLot,
-          quantityReceived: Number(m.materialLot.quantityReceived),
-          quantityAvailable: Number(m.materialLot.quantityAvailable),
-        } : null,
-      })),
-    };
-  }
-
-  return worksheet;
-}
 
 interface PageProps {
   params: Promise<{ id: string }>;
@@ -139,43 +21,106 @@ interface PageProps {
 /**
  * Quality Control Inspection Page
  */
-export default async function QCInspectionPage({ params }: PageProps) {
+export default function QCInspectionPage({ params }: PageProps) {
+  const router = useRouter();
+  const { data: session, status: sessionStatus } = useSession();
+  const t = useTranslations('qualityControl');
+  const [worksheetId, setWorksheetId] = useState<string | null>(null);
+  const [worksheet, setWorksheet] = useState<any>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  // Unwrap params
+  useEffect(() => {
+    params.then((p) => setWorksheetId(p.id));
+  }, [params]);
+
   // Check authentication and role
-  const session = await getServerSession(authOptions);
+  useEffect(() => {
+    if (sessionStatus === 'loading') return;
 
-  if (!session) {
-    redirect('/login');
+    if (!session) {
+      router.push('/login');
+      return;
+    }
+
+    // Only ADMIN and TECHNICIAN can access QC inspection
+    if (!['ADMIN', 'TECHNICIAN'].includes(session.user.role)) {
+      router.push('/dashboard');
+    }
+  }, [session, sessionStatus, router]);
+
+  // Fetch worksheet data
+  useEffect(() => {
+    if (!worksheetId || !session) return;
+
+    async function fetchWorksheet() {
+      setIsLoading(true);
+      setError(null);
+
+      try {
+        const response = await fetch(`/api/worksheets/${worksheetId}`);
+
+        if (!response.ok) {
+          if (response.status === 404) {
+            throw new Error('Worksheet not found');
+          }
+          throw new Error('Failed to fetch worksheet');
+        }
+
+        const data = await response.json();
+
+        if (data.success && data.data) {
+          // Check if worksheet is in QC_PENDING status
+          if (data.data.status !== 'QC_PENDING') {
+            router.push(`/worksheets/${worksheetId}?error=not-pending-qc`);
+            return;
+          }
+
+          setWorksheet(data.data);
+        } else {
+          throw new Error(data.error || 'Failed to load worksheet');
+        }
+      } catch (err) {
+        console.error('Error fetching worksheet:', err);
+        setError(err instanceof Error ? err.message : 'Failed to load worksheet');
+      } finally {
+        setIsLoading(false);
+      }
+    }
+
+    fetchWorksheet();
+  }, [worksheetId, session, router]);
+
+  if (sessionStatus === 'loading' || isLoading) {
+    return (
+      <div className="flex items-center justify-center py-12">
+        <Loader2 className="h-8 w-8 animate-spin" />
+        <span className="ml-2">Loading...</span>
+      </div>
+    );
   }
 
-  // Only ADMIN and TECHNICIAN can access QC inspection
-  if (!['ADMIN', 'TECHNICIAN'].includes(session.user.role)) {
-    redirect('/dashboard');
-  }
-
-  const { id } = await params;
-
-  // Fetch worksheet
-  const worksheet = await getWorksheetForQC(id);
-
-  if (!worksheet || worksheet.deletedAt) {
-    notFound();
-  }
-
-  // Check if worksheet is in QC_PENDING status
-  if (worksheet.status !== 'QC_PENDING') {
-    // If already inspected or not ready, redirect to worksheet detail
-    redirect(`/worksheets/${id}?error=not-pending-qc`);
+  if (error || !worksheet) {
+    return (
+      <div className="container mx-auto p-6">
+        <div className="text-center py-12">
+          <h1 className="text-2xl font-bold text-red-600">Error</h1>
+          <p className="text-muted-foreground mt-2">{error || 'Worksheet not found'}</p>
+        </div>
+      </div>
+    );
   }
 
   return (
-    <div className="container mx-auto p-6 space-y-6">
+    <div className="container mx-auto p-6 space-y-2">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold">
-            Quality Control Inspection - {worksheet.worksheetNumber}
+          <h1 className="text-sm font-bold">
+            {t('inspectionPageTitle')} - {worksheet.worksheetNumber}
           </h1>
           <p className="text-muted-foreground mt-1">
-            Review and approve worksheet before invoicing
+            {t('inspectionPageDescription')}
           </p>
         </div>
       </div>

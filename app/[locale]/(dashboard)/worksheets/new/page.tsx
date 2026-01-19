@@ -107,7 +107,7 @@ export default function NewWorksheetPage() {
   const selectedOrder = availableOrders.find((o) => o.id === selectedOrderId);
 
   return (
-    <div className="container mx-auto py-6 space-y-6">
+    <div className="container mx-auto py-6 space-y-2">
       {/* Header */}
       <div className="flex items-center gap-4">
         <Button
@@ -118,7 +118,7 @@ export default function NewWorksheetPage() {
           <ArrowLeft className="h-4 w-4" />
         </Button>
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">{t('worksheet.createWorksheetTitle')}</h1>
+          <h1 className="text-sm font-bold tracking-tight">{t('worksheet.createWorksheetTitle')}</h1>
           <p className="text-muted-foreground mt-1">
             {t('worksheet.createWorksheetSubtitle')}
           </p>

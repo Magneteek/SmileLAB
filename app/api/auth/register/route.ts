@@ -1,127 +1,78 @@
 /**
- * User Registration API Route
+ * User Registration API
  *
- * Creates new user accounts with role-based access.
- * Only accessible by ADMIN users.
+ * Allows self-registration for STAFF role (compliance-only users)
+ * Creates user account with hashed password
  */
 
-import { NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth';
+import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { hashPassword } from '@/lib/auth-utils';
+import { hash } from 'bcryptjs';
 import { z } from 'zod';
-import { Role } from '@prisma/client';
 
 // Validation schema
 const registerSchema = z.object({
-  name: z.string().min(2).max(100),
-  email: z.string().email(),
-  password: z.string().min(8),
-  role: z.enum(['ADMIN', 'TECHNICIAN', 'QC_INSPECTOR', 'INVOICING']),
+  email: z.string().email('Invalid email address'),
+  name: z.string().min(2, 'Name must be at least 2 characters'),
+  password: z.string().min(6, 'Password must be at least 6 characters'),
 });
 
-export async function POST(req: Request) {
+export async function POST(request: NextRequest) {
   try {
-    // Check authentication
-    const session = await getServerSession(authOptions);
+    const body = await request.json();
 
-    if (!session) {
+    // Validate input
+    const validation = registerSchema.safeParse(body);
+    if (!validation.success) {
       return NextResponse.json(
-        { error: 'Unauthorized - Please sign in' },
-        { status: 401 }
-      );
-    }
-
-    // Check if user is ADMIN
-    if (session.user.role !== 'ADMIN') {
-      return NextResponse.json(
-        { error: 'Forbidden - Only administrators can create users' },
-        { status: 403 }
-      );
-    }
-
-    // Parse and validate request body
-    const body = await req.json();
-    const validationResult = registerSchema.safeParse(body);
-
-    if (!validationResult.success) {
-      return NextResponse.json(
-        {
-          error: 'Validation failed',
-          details: validationResult.error.issues,
-        },
+        { error: validation.error.errors[0].message },
         { status: 400 }
       );
     }
 
-    const { name, email, password, role } = validationResult.data;
+    const { email, name, password } = validation.data;
 
     // Check if user already exists
     const existingUser = await prisma.user.findUnique({
-      where: { email },
+      where: { email: email.toLowerCase() },
     });
 
     if (existingUser) {
       return NextResponse.json(
-        { error: 'A user with this email already exists' },
-        { status: 409 }
+        { error: 'Email already registered' },
+        { status: 400 }
       );
     }
 
     // Hash password
-    const hashedPassword = await hashPassword(password);
+    const hashedPassword = await hash(password, 10);
 
-    // Create user
+    // Create user with STAFF role
     const user = await prisma.user.create({
       data: {
+        email: email.toLowerCase(),
         name,
-        email,
         password: hashedPassword,
-        role: role as Role,
+        role: 'STAFF', // Automatically assigned STAFF role
         active: true,
       },
       select: {
         id: true,
-        name: true,
         email: true,
+        name: true,
         role: true,
-        active: true,
-        createdAt: true,
       },
     });
 
-    // Create audit log
-    await prisma.auditLog.create({
-      data: {
-        userId: session.user.id,
-        action: 'CREATE',
-        entityType: 'User',
-        entityId: user.id,
-        newValues: JSON.stringify({
-          name: user.name,
-          email: user.email,
-          role: user.role,
-        }),
-      },
+    return NextResponse.json({
+      success: true,
+      message: 'Account created successfully',
+      user,
     });
-
-    return NextResponse.json(
-      {
-        message: 'User created successfully',
-        user,
-      },
-      { status: 201 }
-    );
-  } catch (error) {
+  } catch (error: any) {
     console.error('Registration error:', error);
-
     return NextResponse.json(
-      {
-        error: 'Internal server error',
-        message:
-          error instanceof Error ? error.message : 'An unexpected error occurred',
-      },
+      { error: 'Failed to create account' },
       { status: 500 }
     );
   }

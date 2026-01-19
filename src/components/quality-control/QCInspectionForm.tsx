@@ -698,7 +698,7 @@ export function QCInspectionForm({
                 <div className="mt-2 flex flex-wrap gap-1">
                   {worksheet.teeth.map((tooth) => (
                     <Badge key={tooth.id} variant="secondary" className="text-xs">
-                      {tooth.toothNumber} - {tooth.workType}
+                      {tooth.toothNumber} - {t(`fdi.workTypes.${tooth.workType}`)}
                     </Badge>
                   ))}
                 </div>

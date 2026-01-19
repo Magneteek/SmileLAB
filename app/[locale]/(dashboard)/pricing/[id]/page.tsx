@@ -115,7 +115,7 @@ export default function ProductDetailPage({ params }: ProductDetailPageProps) {
   }
 
   return (
-    <div className="space-y-6 max-w-5xl">
+    <div className="space-y-2 max-w-5xl">
       {/* Back Button */}
       <Button
         variant="ghost"
@@ -130,7 +130,7 @@ export default function ProductDetailPage({ params }: ProductDetailPageProps) {
       <div className="flex justify-between items-start">
         <div className="space-y-1">
           <div className="flex items-center gap-3">
-            <h1 className="text-3xl font-bold tracking-tight">{product.name}</h1>
+            <h1 className="text-sm font-bold tracking-tight">{product.name}</h1>
             <Badge variant={product.active ? 'default' : 'secondary'}>
               {product.active ? 'Active' : 'Inactive'}
             </Badge>
@@ -173,7 +173,7 @@ export default function ProductDetailPage({ params }: ProductDetailPageProps) {
         )}
       </div>
 
-      <Tabs defaultValue="details" className="space-y-6">
+      <Tabs defaultValue="details" className="space-y-2">
         <TabsList>
           <TabsTrigger value="details">Details</TabsTrigger>
           <TabsTrigger value="price-history">
@@ -183,7 +183,7 @@ export default function ProductDetailPage({ params }: ProductDetailPageProps) {
         </TabsList>
 
         {/* Details Tab */}
-        <TabsContent value="details" className="space-y-6">
+        <TabsContent value="details" className="space-y-2">
           {editMode && isAdmin ? (
             <Card>
               <CardHeader>

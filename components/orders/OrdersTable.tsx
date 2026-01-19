@@ -83,8 +83,8 @@ export function OrdersTable({ orders, onDelete }: OrdersTableProps) {
   });
 
   return (
-    <div className="rounded-md border">
-      <Table>
+    <div className="rounded-md border overflow-x-auto">
+      <Table className="min-w-full">
         <TableHeader>
           <TableRow>
             <SortableTableHeader
