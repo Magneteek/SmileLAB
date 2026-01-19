@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useTranslations, useLocale } from 'next-intl';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -83,7 +83,7 @@ interface Document {
   };
 }
 
-const documentTypeIcons: Record<DocumentType, JSX.Element> = {
+const documentTypeIcons: Record<DocumentType, React.ReactElement> = {
   ANNEX_XIII: <FileCheck className="h-3 w-3" />,
   INVOICE: <Receipt className="h-3 w-3" />,
   DELIVERY_NOTE: <ClipboardList className="h-3 w-3" />,
