@@ -5,12 +5,10 @@ import { prisma } from '@/lib/prisma';
 import Anthropic from '@anthropic-ai/sdk';
 
 // Initialize Anthropic client
+// SDK automatically handles x-api-key, anthropic-version, and content-type headers
 const anthropic = process.env.ANTHROPIC_API_KEY
   ? new Anthropic({
       apiKey: process.env.ANTHROPIC_API_KEY,
-      defaultHeaders: {
-        'anthropic-version': '2023-06-01',
-      },
     })
   : null;
 
@@ -126,7 +124,7 @@ export async function POST(request: NextRequest) {
     console.log('🤖 Step 1: Extracting structured data with AI...');
 
     const extractionMessage = await anthropic.messages.create({
-      model: 'claude-3-5-sonnet-20241022',
+      model: 'claude-sonnet-4-5-20250929',
       max_tokens: 1024,
       messages: [
         {
@@ -196,7 +194,7 @@ Respond with ONLY a JSON object (no markdown):
     console.log('🤖 Step 3: Using AI to find best match...');
 
     const matchingMessage = await anthropic.messages.create({
-      model: 'claude-3-5-sonnet-20241022',
+      model: 'claude-sonnet-4-5-20250929',
       max_tokens: 1024,
       messages: [
         {
