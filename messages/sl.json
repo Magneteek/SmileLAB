@@ -1292,7 +1292,8 @@
     "toastSuccessTitle": "LOT uspešno dodan",
     "toastSuccessDesc": "Prihod materiala je bil zabeležen",
     "toastErrorTitle": "Napaka",
-    "toastErrorDesc": "Napaka pri beleženju prihoda materiala"
+    "toastErrorDesc": "Napaka pri beleženju prihoda materiala",
+    "toastDuplicateLOT": "LOT številka že obstaja za ta material. Prosimo, preverite obstoječe LOT-e ali uporabite drugo številko."
   },
   "teethSelector": {
     "shadeNotesTitle": "Barva in opombe (velja za vse izbrane zobe)",

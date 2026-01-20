@@ -1290,7 +1290,8 @@
     "toastSuccessTitle": "LOT Added Successfully",
     "toastSuccessDesc": "Stock arrival has been recorded",
     "toastErrorTitle": "Error",
-    "toastErrorDesc": "Failed to record stock arrival"
+    "toastErrorDesc": "Failed to record stock arrival",
+    "toastDuplicateLOT": "LOT number already exists for this material. Please check existing LOTs or use a different number."
   },
   "teethSelector": {
     "shadeNotesTitle": "Shade & Notes (applies to all selected teeth)",

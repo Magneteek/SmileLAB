@@ -181,6 +181,12 @@ export function QuickAddLotModal({
 
       if (!response.ok) {
         const error = await response.json();
+
+        // Check if it's a duplicate LOT error (409 Conflict)
+        if (response.status === 409) {
+          throw new Error(t('toastDuplicateLOT'));
+        }
+
         throw new Error(error.error || 'Failed to record stock arrival');
       }
 
@@ -321,7 +327,9 @@ export function QuickAddLotModal({
 
             {/* Supplier Field with Autocomplete */}
             <div className="space-y-2 relative">
-              <Label htmlFor="supplierName">{t('arrivalFormSupplierLabel')}</Label>
+              <Label htmlFor="supplierName">
+                {t('arrivalFormSupplierLabel')} <span className="text-red-500">*</span>
+              </Label>
               <Input
                 id="supplierName"
                 value={form.watch('supplierName') || ''}
@@ -330,6 +338,11 @@ export function QuickAddLotModal({
                 onBlur={() => setTimeout(() => setShowSupplierDropdown(false), 200)}
                 placeholder={t('quickAddSupplierPlaceholder')}
               />
+              {form.formState.errors.supplierName && (
+                <p className="text-sm text-red-600">
+                  {form.formState.errors.supplierName.message}
+                </p>
+              )}
 
               {/* Autocomplete Dropdown */}
               {showSupplierDropdown && supplierSuggestions.length > 0 && (
