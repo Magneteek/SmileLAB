@@ -30,12 +30,23 @@ interface OCRScannerProps {
   onScan: (data: OCRResult) => void;
   title?: string;
   description?: string;
+  /** When true, hides LOT-related fields (LOT number, expiry, quantity) in verification UI */
+  hideLotFields?: boolean;
 }
 
 export interface OCRResult {
+  // LOT-related fields
   lotNumber?: string;
   expiryDate?: Date;
   quantity?: number;
+  // Material-related fields (for material scanning)
+  materialName?: string;
+  manufacturer?: string;
+  materialType?: string;
+  unit?: string;
+  // Metadata
+  confidence?: 'high' | 'medium' | 'low';
+  reasoning?: string;
   rawText: string;
 }
 
@@ -58,6 +69,7 @@ export function OCRScanner({
   onScan,
   title,
   description,
+  hideLotFields = false,
 }: OCRScannerProps) {
   const t = useTranslations('scanner');
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -218,9 +230,18 @@ export function OCRScanner({
   // Confirm and submit verified data
   const handleConfirm = () => {
     const result: OCRResult = {
+      // LOT-related fields (from editable inputs)
       lotNumber: editedLotNumber || undefined,
       expiryDate: editedExpiryDate ? new Date(editedExpiryDate) : undefined,
       quantity: editedQuantity ? parseFloat(editedQuantity) : undefined,
+      // Material-related fields (from OCR analysis)
+      materialName: ocrData?.materialName || undefined,
+      manufacturer: ocrData?.manufacturer || undefined,
+      materialType: ocrData?.materialType || undefined,
+      unit: ocrData?.unit || undefined,
+      // Metadata
+      confidence: ocrData?.confidence,
+      reasoning: ocrData?.reasoning,
       rawText: ocrData?.rawText || '',
     };
 
@@ -398,41 +419,43 @@ export function OCRScanner({
                   </div>
                 )}
 
-                {/* Editable fields */}
-                <div className="grid grid-cols-1 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="lotNumber">{t('verifyLotNumber')}</Label>
-                    <Input
-                      id="lotNumber"
-                      value={editedLotNumber}
-                      onChange={(e) => setEditedLotNumber(e.target.value.toUpperCase())}
-                      placeholder={t('lotNumberPlaceholder')}
-                      className="font-mono"
-                    />
-                  </div>
+                {/* Editable LOT fields - hidden when scanning for materials only */}
+                {!hideLotFields && (
+                  <div className="grid grid-cols-1 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="lotNumber">{t('verifyLotNumber')}</Label>
+                      <Input
+                        id="lotNumber"
+                        value={editedLotNumber}
+                        onChange={(e) => setEditedLotNumber(e.target.value.toUpperCase())}
+                        placeholder={t('lotNumberPlaceholder')}
+                        className="font-mono"
+                      />
+                    </div>
 
-                  <div className="space-y-2">
-                    <Label htmlFor="expiryDate">{t('verifyExpiryDate')}</Label>
-                    <Input
-                      id="expiryDate"
-                      type="date"
-                      value={editedExpiryDate}
-                      onChange={(e) => setEditedExpiryDate(e.target.value)}
-                    />
-                  </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="expiryDate">{t('verifyExpiryDate')}</Label>
+                      <Input
+                        id="expiryDate"
+                        type="date"
+                        value={editedExpiryDate}
+                        onChange={(e) => setEditedExpiryDate(e.target.value)}
+                      />
+                    </div>
 
-                  <div className="space-y-2">
-                    <Label htmlFor="quantity">{t('verifyQuantity')} ({ocrData.unit || 'units'})</Label>
-                    <Input
-                      id="quantity"
-                      type="number"
-                      step="0.01"
-                      value={editedQuantity}
-                      onChange={(e) => setEditedQuantity(e.target.value)}
-                      placeholder={t('enterQuantityPlaceholder')}
-                    />
+                    <div className="space-y-2">
+                      <Label htmlFor="quantity">{t('verifyQuantity')} ({ocrData.unit || 'units'})</Label>
+                      <Input
+                        id="quantity"
+                        type="number"
+                        step="0.01"
+                        value={editedQuantity}
+                        onChange={(e) => setEditedQuantity(e.target.value)}
+                        placeholder={t('enterQuantityPlaceholder')}
+                      />
+                    </div>
                   </div>
-                </div>
+                )}
 
                 {/* Additional info (read-only) */}
                 {(ocrData.manufacturer || ocrData.materialName) && (

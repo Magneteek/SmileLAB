@@ -4,10 +4,10 @@
  * Toast Hook - ShadCN UI Toast Component
  *
  * This is a simplified toast notification system.
- * For full functionality, install ShadCN UI toast component.
+ * Uses a pub/sub pattern to sync state across components.
  */
 
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, useRef, useSyncExternalStore } from 'react';
 
 export interface Toast {
   id: string;
@@ -17,59 +17,66 @@ export interface Toast {
   duration?: number;
 }
 
-interface ToastState {
-  toasts: Toast[];
+// Module-level state
+let toasts: Toast[] = [];
+let listeners: Set<() => void> = new Set();
+
+function notifyListeners() {
+  console.log('🍞 Notifying', listeners.size, 'listeners, toasts:', toasts.length);
+  listeners.forEach((listener) => listener());
 }
 
-const toastState: ToastState = {
-  toasts: [],
-};
+function getSnapshot() {
+  return toasts;
+}
 
-let listeners: Array<(state: ToastState) => void> = [];
+function subscribe(callback: () => void) {
+  listeners.add(callback);
+  console.log('🍞 Listener subscribed, total:', listeners.size);
+  return () => {
+    listeners.delete(callback);
+    console.log('🍞 Listener unsubscribed, remaining:', listeners.size);
+  };
+}
 
-function dispatch(toast: Omit<Toast, 'id'>) {
-  const id = Math.random().toString(36).substr(2, 9);
-  toastState.toasts = [...toastState.toasts, { ...toast, id }];
+function addToast(toast: Omit<Toast, 'id'>) {
+  const id = Math.random().toString(36).substring(2, 11);
+  const newToast: Toast = { ...toast, id };
 
-  // Pass a NEW object reference to trigger React re-render
-  listeners.forEach((listener) => listener({ ...toastState }));
+  // Create new array to trigger re-render
+  toasts = [...toasts, newToast];
 
-  // Auto-dismiss after specified duration (default 3 seconds)
-  const duration = toast.duration || 3000;
+  console.log('🍞 Toast ADDED:', { id, title: toast.title, variant: toast.variant, totalToasts: toasts.length });
+
+  notifyListeners();
+
+  // Auto-dismiss after specified duration (default 5 seconds)
+  const duration = toast.duration ?? 5000;
   setTimeout(() => {
-    dismiss(id);
+    dismissToast(id);
   }, duration);
 
   return id;
 }
 
-function dismiss(toastId: string) {
-  toastState.toasts = toastState.toasts.filter((t) => t.id !== toastId);
-  // Pass a NEW object reference to trigger React re-render
-  listeners.forEach((listener) => listener({ ...toastState }));
+function dismissToast(toastId: string) {
+  const before = toasts.length;
+  toasts = toasts.filter((t) => t.id !== toastId);
+  console.log('🍞 Toast DISMISSED:', toastId, 'before:', before, 'after:', toasts.length);
+  notifyListeners();
 }
 
 export function useToast() {
-  const [state, setState] = useState<ToastState>(toastState);
+  // useSyncExternalStore ensures proper synchronization with React
+  const currentToasts = useSyncExternalStore(subscribe, getSnapshot, getSnapshot);
 
-  // Subscribe to state changes on mount
-  useEffect(() => {
-    listeners.push(setState);
-    return () => {
-      listeners = listeners.filter((l) => l !== setState);
-    };
+  const toast = useCallback((props: Omit<Toast, 'id'>) => {
+    return addToast(props);
   }, []);
-
-  const toast = useCallback(
-    (props: Omit<Toast, 'id'>) => {
-      return dispatch(props);
-    },
-    []
-  );
 
   return {
     toast,
-    toasts: state.toasts,
-    dismiss,
+    toasts: currentToasts,
+    dismiss: dismissToast,
   };
 }

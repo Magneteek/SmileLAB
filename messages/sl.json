@@ -1337,7 +1337,17 @@
     "unitGram": "gram",
     "unitMl": "ml",
     "unitPiece": "kos",
-    "unitDisc": "disk"
+    "unitDisc": "disk",
+    "lots": "LOT-i",
+    "smartScanning": "AI preverja ujemanje z obstoječimi materiali...",
+    "duplicateFound": "Najden obstoječi material",
+    "duplicateFoundDesc": "Material, ki se ujema s tem skenom, že obstaja v bazi podatkov",
+    "existingMaterialFound": "Material že obstaja",
+    "existingMaterialFoundDesc": "AI je zaznal ujemajoči material v bazi podatkov. Lahko dodate nov LOT k obstoječemu materialu ali pa ustvarite nov material.",
+    "scannedLotInfo": "Skenirani podatki LOT",
+    "addLotToExisting": "Dodaj LOT k obstoječemu materialu",
+    "createNewAnyway": "Ustvari nov material",
+    "matchScore": "ujemanje"
   },
   "scanner": {
     "scanButton": "Skeniraj",
@@ -1391,7 +1401,11 @@
     "instructionClearText": "• Poskrbi, da je besedilo jasno in berljivo",
     "poweredByGPT4": "✨ Podprto z GPT-4 Vision za 90%+ natančnost",
     "retakePhoto": "Ponovno zajemi fotografijo",
-    "analyzeWithAI": "Analiziraj z AI"
+    "analyzeWithAI": "Analiziraj z AI",
+    "ocrScannerLotDescription": "Skeniraj LOT oznako za samodejno izvlečenje podatkov o seriji",
+    "highConfidence": "Visoka zanesljivost",
+    "mediumConfidence": "Srednja zanesljivost",
+    "lowConfidence": "Nizka zanesljivost"
   },
   "teethSelector": {
     "shadeNotesTitle": "Barva in opombe (velja za vse izbrane zobe)",

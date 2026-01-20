@@ -71,10 +71,23 @@ export function MaterialForm({
   // Update form when initialData changes (e.g., from scan)
   useEffect(() => {
     if (initialData) {
-      if (initialData.name) form.setValue('name', initialData.name);
-      if (initialData.manufacturer) form.setValue('manufacturer', initialData.manufacturer);
-      if (initialData.type) form.setValue('type', initialData.type);
-      if (initialData.unit) form.setValue('unit', initialData.unit as any);
+      console.log('📝 MaterialForm received initialData:', initialData);
+      if (initialData.name) {
+        console.log('  → Setting name:', initialData.name);
+        form.setValue('name', initialData.name);
+      }
+      if (initialData.manufacturer) {
+        console.log('  → Setting manufacturer:', initialData.manufacturer);
+        form.setValue('manufacturer', initialData.manufacturer);
+      }
+      if (initialData.type) {
+        console.log('  → Setting type:', initialData.type);
+        form.setValue('type', initialData.type);
+      }
+      if (initialData.unit) {
+        console.log('  → Setting unit:', initialData.unit);
+        form.setValue('unit', initialData.unit as any);
+      }
     }
   }, [initialData, form]);
 

@@ -1335,7 +1335,17 @@
     "unitGram": "gram",
     "unitMl": "ml",
     "unitPiece": "piece",
-    "unitDisc": "disc"
+    "unitDisc": "disc",
+    "lots": "LOTs",
+    "smartScanning": "AI matching against existing materials...",
+    "duplicateFound": "Existing Material Found",
+    "duplicateFoundDesc": "A material matching this scan already exists in the database",
+    "existingMaterialFound": "Material Already Exists",
+    "existingMaterialFoundDesc": "AI detected a matching material in the database. You can add a new LOT to this existing material, or create a new material anyway.",
+    "scannedLotInfo": "Scanned LOT Information",
+    "addLotToExisting": "Add LOT to Existing Material",
+    "createNewAnyway": "Create New Material Anyway",
+    "matchScore": "match"
   },
   "scanner": {
     "scanButton": "Scan Label",
@@ -1389,7 +1399,11 @@
     "instructionClearText": "• Make sure text is clear and readable",
     "poweredByGPT4": "✨ Powered by GPT-4 Vision for 90%+ accuracy",
     "retakePhoto": "Retake Photo",
-    "analyzeWithAI": "Analyze with AI"
+    "analyzeWithAI": "Analyze with AI",
+    "ocrScannerLotDescription": "Scan the LOT label to automatically extract batch information",
+    "highConfidence": "High Confidence",
+    "mediumConfidence": "Medium Confidence",
+    "lowConfidence": "Low Confidence"
   },
   "teethSelector": {
     "shadeNotesTitle": "Shade & Notes (applies to all selected teeth)",

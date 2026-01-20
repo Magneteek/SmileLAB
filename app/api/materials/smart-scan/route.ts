@@ -13,6 +13,41 @@ const anthropic = process.env.ANTHROPIC_API_KEY
   : null;
 
 /**
+ * Retry wrapper for Anthropic API calls
+ * Handles 529 (overloaded) and 429 (rate limit) with exponential backoff
+ */
+async function withRetry<T>(
+  fn: () => Promise<T>,
+  maxRetries: number = 3,
+  initialDelay: number = 1000
+): Promise<T> {
+  let lastError: Error | unknown;
+
+  for (let attempt = 0; attempt < maxRetries; attempt++) {
+    try {
+      return await fn();
+    } catch (error: any) {
+      lastError = error;
+
+      // Check if it's a retryable error (429 or 529)
+      const status = error?.status || error?.statusCode;
+      const isRetryable = status === 429 || status === 529;
+
+      if (!isRetryable || attempt === maxRetries - 1) {
+        throw error;
+      }
+
+      // Exponential backoff: 1s, 2s, 4s
+      const delay = initialDelay * Math.pow(2, attempt);
+      console.log(`⏳ API overloaded (${status}), retrying in ${delay}ms... (attempt ${attempt + 1}/${maxRetries})`);
+      await new Promise(resolve => setTimeout(resolve, delay));
+    }
+  }
+
+  throw lastError;
+}
+
+/**
  * Safely extract JSON from AI response
  * Handles markdown code blocks: ```json { ... } ```
  */
@@ -72,12 +107,15 @@ interface SmartScanResult {
  *
  * POST /api/materials/smart-scan
  *
- * Analyzes OCR text from material label and determines:
- * 1. What material this is (name, type, manufacturer)
- * 2. Whether it exists in database
- * 3. LOT information to add
+ * Receives ALREADY EXTRACTED data from GPT-4 Vision OCR Scanner
+ * and uses Claude AI for SMART MATCHING against database.
  *
- * Returns decision path: "add-lot" or "create-material"
+ * This is a single-purpose AI call: intelligent fuzzy matching
+ * - Handles name variations (e.g., "IPS emax" vs "IPS e.max CAD")
+ * - Considers manufacturer + type combinations
+ * - Understands dental material naming conventions
+ *
+ * GPT-4 Vision handles extraction, Claude handles matching logic.
  */
 export async function POST(request: NextRequest) {
   try {
@@ -90,11 +128,24 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const { ocrText, locale = 'en' } = await request.json();
+    const body = await request.json();
+    const { locale = 'en' } = body;
 
-    if (!ocrText || typeof ocrText !== 'string') {
+    // Accept pre-extracted data from GPT-4 Vision OR raw OCR text for backwards compatibility
+    const extractedData = {
+      materialName: body.materialName || body.name,
+      manufacturer: body.manufacturer,
+      materialType: body.materialType || body.type,
+      lotNumber: body.lotNumber,
+      expiryDate: body.expiryDate,
+      quantity: body.quantity,
+      unit: body.unit,
+    };
+
+    // Need at least name or manufacturer to do matching
+    if (!extractedData.materialName && !extractedData.manufacturer) {
       return NextResponse.json(
-        { error: 'Invalid request: ocrText is required' },
+        { error: 'Invalid request: materialName or manufacturer is required' },
         { status: 400 }
       );
     }
@@ -109,71 +160,11 @@ export async function POST(request: NextRequest) {
     };
     const responseLanguage = languageMap[locale] || 'English';
 
-    if (!anthropic) {
-      return NextResponse.json(
-        { error: 'AI parsing not configured. Please set ANTHROPIC_API_KEY.' },
-        { status: 500 }
-      );
-    }
-
-    console.log('🔍 Smart scanning material label...');
-    console.log('📄 OCR Text:', ocrText);
+    console.log('🔍 Smart matching material against database...');
+    console.log('📦 Extracted data from GPT-4 Vision:', extractedData);
     console.log('🌐 Response Language:', responseLanguage);
 
-    // Step 1: Use AI to extract structured data from OCR text
-    console.log('🤖 Step 1: Extracting structured data with AI...');
-
-    const extractionMessage = await anthropic.messages.create({
-      model: 'claude-sonnet-4-5-20250929',
-      max_tokens: 1024,
-      messages: [
-        {
-          role: 'user',
-          content: `You are analyzing text extracted from a dental material label using OCR. The OCR may have errors.
-
-Extract and correct the following information:
-1. Material name (e.g., "IPS e.max CAD", "Vita Enamic", "Zirconia HT")
-2. Manufacturer (e.g., "Ivoclar Vivadent", "Vita Zahnfabrik", "3M")
-3. Material type (classify as one of: CERAMIC, METAL, RESIN, COMPOSITE, PORCELAIN, ZIRCONIA, TITANIUM, ALLOY, ACRYLIC, WAX, OTHER)
-4. LOT/Batch number
-5. Expiry date
-6. Quantity with unit (g, ml, kg, units)
-
-OCR Text:
-"""
-${ocrText}
-"""
-
-IMPORTANT: Write the "reasoning" field in ${responseLanguage}.
-
-Respond with ONLY a JSON object (no markdown):
-{
-  "materialName": "string or null",
-  "manufacturer": "string or null",
-  "materialType": "CERAMIC|METAL|RESIN|etc or null",
-  "lotNumber": "string or null",
-  "expiryDate": "YYYY-MM-DD or null",
-  "quantity": number or null,
-  "unit": "g|ml|kg|units or null",
-  "confidence": "high|medium|low",
-  "reasoning": "what you found and corrections made (write this in ${responseLanguage})"
-}`,
-        },
-      ],
-    });
-
-    const extractedText = extractionMessage.content[0].type === 'text'
-      ? extractionMessage.content[0].text
-      : '';
-
-    console.log('📝 Raw AI response (extraction):', extractedText.substring(0, 200));
-
-    const extractedData = extractJSON(extractedText);
-    console.log('✅ Extracted data:', extractedData);
-
-    // Step 2: Search for matching materials in database
-    console.log('🔎 Step 2: Searching for matching materials in database...');
-
+    // Step 1: Get all active materials from database
     const materials = await prisma.material.findMany({
       where: {
         active: true,
@@ -190,70 +181,87 @@ Respond with ONLY a JSON object (no markdown):
 
     console.log(`📊 Found ${materials.length} active materials in database`);
 
-    // Step 3: Use AI to find best match
-    console.log('🤖 Step 3: Using AI to find best match...');
+    // If no materials in database, no need for AI matching
+    if (materials.length === 0) {
+      return NextResponse.json({
+        success: true,
+        data: {
+          materialExists: false,
+          extractedData,
+          confidence: 'high',
+          reasoning: 'No materials in database to match against',
+        } as SmartScanResult,
+      });
+    }
 
-    const matchingMessage = await anthropic.messages.create({
+    if (!anthropic) {
+      return NextResponse.json(
+        { error: 'AI matching not configured. Please set ANTHROPIC_API_KEY.' },
+        { status: 500 }
+      );
+    }
+
+    // Step 2: Use Claude AI for intelligent fuzzy matching (SINGLE API CALL)
+    console.log('🤖 Using Claude AI for smart matching...');
+
+    const matchingMessage = await withRetry(() => anthropic.messages.create({
       model: 'claude-sonnet-4-5-20250929',
       max_tokens: 1024,
       messages: [
         {
           role: 'user',
-          content: `You are matching a scanned dental material against an existing database.
+          content: `You are an expert dental materials specialist matching a scanned material against an existing inventory database.
 
-SCANNED MATERIAL:
-- Name: ${extractedData.materialName || 'unknown'}
-- Manufacturer: ${extractedData.manufacturer || 'unknown'}
-- Type: ${extractedData.materialType || 'unknown'}
+SCANNED MATERIAL (from label):
+- Name: ${extractedData.materialName || 'not detected'}
+- Manufacturer: ${extractedData.manufacturer || 'not detected'}
+- Type: ${extractedData.materialType || 'not detected'}
 
-DATABASE MATERIALS:
-${materials.map(m => `- ID: ${m.id}, Code: ${m.code}, Name: ${m.name}, Type: ${m.type}, Manufacturer: ${m.manufacturer}`).join('\n')}
+EXISTING MATERIALS IN DATABASE:
+${materials.map(m => `- ID: ${m.id}, Code: ${m.code}, Name: "${m.name}", Type: ${m.type}, Manufacturer: "${m.manufacturer}"`).join('\n')}
 
-Task: Determine if the scanned material matches any database material.
+YOUR TASK: Determine if the scanned material is the SAME as any material in the database.
 
-Consider:
-- Exact name matches (highest confidence)
-- Similar names (e.g., "IPS emax" vs "IPS e.max CAD")
-- Same manufacturer + similar type
-- Common abbreviations and variations
+MATCHING CRITERIA (in order of importance):
+1. **Exact name match** → 100% confidence
+2. **Same material, different naming** (e.g., "IPS emax" = "IPS e.max CAD", "Zirconia" = "Zirconia HT") → high confidence
+3. **Same manufacturer + similar product line** → medium confidence
+4. **Similar name but different manufacturer** → likely different material, low confidence
 
-IMPORTANT: Write the "reasoning" field in ${responseLanguage}.
+IMPORTANT DENTAL KNOWLEDGE:
+- Product names often have variations: "IPS e.max CAD" vs "IPS emax" vs "e.max"
+- Manufacturers matter: "Vita Enamic" (Vita) ≠ "Enamic" (other brand)
+- Type helps disambiguate: same name + same type = likely same material
 
-Respond with ONLY a JSON object (no markdown):
+Write your "reasoning" in ${responseLanguage}.
+
+Respond with ONLY JSON (no markdown):
 {
   "materialExists": boolean,
-  "matchedMaterialId": "string or null",
-  "matchScore": number (0-100, where 100 is perfect match),
-  "confidence": "high|medium|low",
-  "reasoning": "why this is or isn't a match (write this in ${responseLanguage})"
+  "matchedMaterialId": "exact ID from database or null",
+  "matchScore": number (0-100),
+  "confidence": "high" | "medium" | "low",
+  "reasoning": "explain your matching logic in ${responseLanguage}"
 }
 
-If no good match (score < 60), set materialExists to false.`,
+Set materialExists=false if matchScore < 60 or no confident match found.`,
         },
       ],
-    });
+    }));
 
     const matchText = matchingMessage.content[0].type === 'text'
       ? matchingMessage.content[0].text
       : '';
 
-    console.log('📝 Raw AI response (matching):', matchText.substring(0, 200));
+    console.log('📝 AI matching response:', matchText.substring(0, 300));
 
     const matchResult = extractJSON(matchText);
     console.log('✅ Match result:', matchResult);
 
-    // Step 4: Build response
+    // Step 3: Build response
     const result: SmartScanResult = {
       materialExists: matchResult.materialExists,
-      extractedData: {
-        materialName: extractedData.materialName,
-        manufacturer: extractedData.manufacturer,
-        materialType: extractedData.materialType,
-        lotNumber: extractedData.lotNumber,
-        expiryDate: extractedData.expiryDate,
-        quantity: extractedData.quantity,
-        unit: extractedData.unit,
-      },
+      extractedData,
       confidence: matchResult.confidence,
       reasoning: matchResult.reasoning,
       matchScore: matchResult.matchScore,
@@ -264,6 +272,10 @@ If no good match (score < 60), set materialExists to false.`,
       const matchedMaterial = materials.find(m => m.id === matchResult.matchedMaterialId);
       if (matchedMaterial) {
         result.matchedMaterial = matchedMaterial;
+      } else {
+        // AI returned an ID that doesn't exist - treat as no match
+        console.warn('⚠️ AI returned non-existent material ID:', matchResult.matchedMaterialId);
+        result.materialExists = false;
       }
     }
 
