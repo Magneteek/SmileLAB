@@ -203,6 +203,7 @@ export function QuickAddLotModal({
         title: t('toastErrorTitle'),
         description: error instanceof Error ? error.message : t('toastErrorDesc'),
         variant: 'destructive',
+        duration: 10000, // Show for 10 seconds so user can read the message
       });
     } finally {
       setIsLoading(false);
