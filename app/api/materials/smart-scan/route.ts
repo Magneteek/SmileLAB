@@ -117,6 +117,7 @@ export async function POST(request: NextRequest) {
 
     console.log('🔍 Smart scanning material label...');
     console.log('📄 OCR Text:', ocrText);
+    console.log('🌐 Response Language:', responseLanguage);
 
     // Step 1: Use AI to extract structured data from OCR text
     console.log('🤖 Step 1: Extracting structured data with AI...');
@@ -163,6 +164,8 @@ Respond with ONLY a JSON object (no markdown):
     const extractedText = extractionMessage.content[0].type === 'text'
       ? extractionMessage.content[0].text
       : '';
+
+    console.log('📝 Raw AI response (extraction):', extractedText.substring(0, 200));
 
     const extractedData = extractJSON(extractedText);
     console.log('✅ Extracted data:', extractedData);
@@ -232,6 +235,8 @@ If no good match (score < 60), set materialExists to false.`,
     const matchText = matchingMessage.content[0].type === 'text'
       ? matchingMessage.content[0].text
       : '';
+
+    console.log('📝 Raw AI response (matching):', matchText.substring(0, 200));
 
     const matchResult = extractJSON(matchText);
     console.log('✅ Match result:', matchResult);
