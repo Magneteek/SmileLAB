@@ -1332,6 +1332,14 @@
     "unitDisc": "disc"
   },
   "scanner": {
+    "scanButton": "Scan Label",
+    "scanTitle": "Scan Material Label",
+    "scanDescription": "Scan the material label to automatically extract data",
+    "analyzing": "AI analysis in progress...",
+    "scanComplete": "Scan Complete",
+    "dataPrefilled": "Data has been automatically filled in the form",
+    "dataScanned": "Scanned",
+    "aiAnalysis": "AI Analysis",
     "materialInformationTitle": "Material Information",
     "materialInformationDesc": "Verify and edit data extracted from optical character recognition",
     "iso10993Placeholder": "e.g., ISO 10993-1:2018",

@@ -1334,6 +1334,14 @@
     "unitDisc": "disk"
   },
   "scanner": {
+    "scanButton": "Skeniraj",
+    "scanTitle": "Skeniraj oznako materiala",
+    "scanDescription": "Skenirajte oznako materiala, da samodejno izvlečete podatke",
+    "analyzing": "AI analiza v teku...",
+    "scanComplete": "Skeniranje uspešno",
+    "dataPrefilled": "Podatki so bili samodejno vneseni v obrazec",
+    "dataScanned": "Skenirano",
+    "aiAnalysis": "AI analiza",
     "materialInformationTitle": "Informacije o materialu",
     "materialInformationDesc": "Preverite in uredite podatke, izvlečene iz optičnega prepoznavanja znakov",
     "iso10993Placeholder": "npr. ISO 10993-1:2018",
