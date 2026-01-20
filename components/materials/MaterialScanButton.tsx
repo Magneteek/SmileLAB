@@ -116,35 +116,29 @@ export function MaterialScanButton({ onScanComplete, disabled }: MaterialScanBut
         {tScanner('scanButton')}
       </Button>
 
-      <Dialog open={isOpen} onOpenChange={setIsOpen}>
+      {/* OCRScanner has its own Dialog - don't wrap it */}
+      <OCRScanner
+        isOpen={showOCRScanner}
+        onClose={() => {
+          setShowOCRScanner(false);
+          setIsOpen(false);
+        }}
+        onScan={handleOCRScan}
+        title={tScanner('scanTitle')}
+        description={tScanner('scanDescription')}
+      />
+
+      {/* Analyzing state overlay */}
+      <Dialog open={isAnalyzing} onOpenChange={() => {}}>
         <DialogContent className="max-w-xl">
-          <DialogHeader>
-            <DialogTitle>{tScanner('scanTitle')}</DialogTitle>
-            <DialogDescription>
-              {tScanner('scanDescription')}
-            </DialogDescription>
-          </DialogHeader>
-
-          {showOCRScanner && (
-            <OCRScanner
-              onScanComplete={handleOCRScan}
-              onCancel={() => {
-                setShowOCRScanner(false);
-                setIsOpen(false);
-              }}
-            />
-          )}
-
-          {isAnalyzing && (
-            <div className="flex items-center justify-center py-8">
-              <div className="text-center space-y-3">
-                <Loader2 className="h-8 w-8 animate-spin text-blue-500 mx-auto" />
-                <p className="text-sm text-muted-foreground">
-                  {tScanner('analyzing')}
-                </p>
-              </div>
+          <div className="flex items-center justify-center py-8">
+            <div className="text-center space-y-3">
+              <Loader2 className="h-8 w-8 animate-spin text-blue-500 mx-auto" />
+              <p className="text-sm text-muted-foreground">
+                {tScanner('analyzing')}
+              </p>
             </div>
-          )}
+          </div>
         </DialogContent>
       </Dialog>
     </>
