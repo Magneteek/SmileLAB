@@ -14,6 +14,7 @@ export interface Toast {
   title?: string;
   description?: string;
   variant?: 'default' | 'destructive';
+  duration?: number;
 }
 
 interface ToastState {
@@ -32,10 +33,11 @@ function dispatch(toast: Omit<Toast, 'id'>) {
 
   listeners.forEach((listener) => listener(toastState));
 
-  // Auto-dismiss after 3 seconds
+  // Auto-dismiss after specified duration (default 3 seconds)
+  const duration = toast.duration || 3000;
   setTimeout(() => {
     dismiss(id);
-  }, 3000);
+  }, duration);
 
   return id;
 }
