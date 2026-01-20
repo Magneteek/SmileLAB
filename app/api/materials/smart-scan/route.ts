@@ -11,6 +11,32 @@ const anthropic = process.env.ANTHROPIC_API_KEY
     })
   : null;
 
+/**
+ * Safely extract JSON from AI response
+ * Handles markdown code blocks: ```json { ... } ```
+ */
+function extractJSON(text: string): any {
+  try {
+    // First try direct parse
+    return JSON.parse(text);
+  } catch {
+    // Try to extract JSON from markdown code block
+    const jsonMatch = text.match(/```(?:json)?\s*\n?([\s\S]*?)\n?```/);
+    if (jsonMatch) {
+      return JSON.parse(jsonMatch[1]);
+    }
+
+    // Try to find JSON object boundaries
+    const jsonStart = text.indexOf('{');
+    const jsonEnd = text.lastIndexOf('}');
+    if (jsonStart !== -1 && jsonEnd !== -1) {
+      return JSON.parse(text.slice(jsonStart, jsonEnd + 1));
+    }
+
+    throw new Error('No valid JSON found in response');
+  }
+}
+
 interface SmartScanResult {
   // Material identification
   materialExists: boolean;
@@ -126,7 +152,7 @@ Respond with ONLY a JSON object (no markdown):
       ? extractionMessage.content[0].text
       : '';
 
-    const extractedData = JSON.parse(extractedText);
+    const extractedData = extractJSON(extractedText);
     console.log('✅ Extracted data:', extractedData);
 
     // Step 2: Search for matching materials in database
@@ -193,7 +219,7 @@ If no good match (score < 60), set materialExists to false.`,
       ? matchingMessage.content[0].text
       : '';
 
-    const matchResult = JSON.parse(matchText);
+    const matchResult = extractJSON(matchText);
     console.log('✅ Match result:', matchResult);
 
     // Step 4: Build response
@@ -231,10 +257,21 @@ If no good match (score < 60), set materialExists to false.`,
   } catch (error) {
     console.error('❌ Smart scan error:', error);
 
+    // Log detailed error info for debugging
+    if (error instanceof Error) {
+      console.error('Error name:', error.name);
+      console.error('Error message:', error.message);
+      console.error('Error stack:', error.stack);
+    }
+
     return NextResponse.json(
       {
         success: false,
         error: error instanceof Error ? error.message : 'Unknown error',
+        details: process.env.NODE_ENV === 'development' ? {
+          name: error instanceof Error ? error.name : 'Unknown',
+          stack: error instanceof Error ? error.stack : undefined,
+        } : undefined,
       },
       { status: 500 }
     );
