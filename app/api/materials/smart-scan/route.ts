@@ -89,7 +89,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const { ocrText } = await request.json();
+    const { ocrText, locale = 'en' } = await request.json();
 
     if (!ocrText || typeof ocrText !== 'string') {
       return NextResponse.json(
@@ -97,6 +97,16 @@ export async function POST(request: NextRequest) {
         { status: 400 }
       );
     }
+
+    // Map locale to language name for AI instructions
+    const languageMap: Record<string, string> = {
+      'en': 'English',
+      'sl': 'Slovenian',
+      'es': 'Spanish',
+      'de': 'German',
+      'fr': 'French',
+    };
+    const responseLanguage = languageMap[locale] || 'English';
 
     if (!anthropic) {
       return NextResponse.json(
@@ -132,6 +142,8 @@ OCR Text:
 ${ocrText}
 """
 
+IMPORTANT: Write the "reasoning" field in ${responseLanguage}.
+
 Respond with ONLY a JSON object (no markdown):
 {
   "materialName": "string or null",
@@ -142,7 +154,7 @@ Respond with ONLY a JSON object (no markdown):
   "quantity": number or null,
   "unit": "g|ml|kg|units or null",
   "confidence": "high|medium|low",
-  "reasoning": "what you found and corrections made"
+  "reasoning": "what you found and corrections made (write this in ${responseLanguage})"
 }`,
         },
       ],
@@ -201,13 +213,15 @@ Consider:
 - Same manufacturer + similar type
 - Common abbreviations and variations
 
+IMPORTANT: Write the "reasoning" field in ${responseLanguage}.
+
 Respond with ONLY a JSON object (no markdown):
 {
   "materialExists": boolean,
   "matchedMaterialId": "string or null",
   "matchScore": number (0-100, where 100 is perfect match),
   "confidence": "high|medium|low",
-  "reasoning": "why this is or isn't a match"
+  "reasoning": "why this is or isn't a match (write this in ${responseLanguage})"
 }
 
 If no good match (score < 60), set materialExists to false.`,

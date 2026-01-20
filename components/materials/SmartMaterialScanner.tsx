@@ -18,7 +18,7 @@
  */
 
 import React, { useState } from 'react';
-import { useTranslations } from 'next-intl';
+import { useTranslations, useLocale } from 'next-intl';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
@@ -77,6 +77,7 @@ interface SmartScanResult {
 export function SmartMaterialScanner({ isOpen, onClose, onSuccess }: SmartScannerProps) {
   const t = useTranslations();
   const tScanner = useTranslations('scanner');
+  const locale = useLocale();
   const router = useRouter();
   const { toast } = useToast();
 
@@ -108,7 +109,10 @@ export function SmartMaterialScanner({ isOpen, onClose, onSuccess }: SmartScanne
       const response = await fetch('/api/materials/smart-scan', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ocrText: ocr.rawText }),
+        body: JSON.stringify({
+          ocrText: ocr.rawText,
+          locale: locale, // Pass locale for AI response translation
+        }),
       });
 
       if (!response.ok) {
