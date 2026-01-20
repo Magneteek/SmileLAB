@@ -401,7 +401,7 @@ export function MaterialFormClient() {
               name: scannedData.name,
               manufacturer: scannedData.manufacturer,
               type: scannedData.type,
-              unit: scannedData.unit,
+              unit: scannedData.unit as 'gram' | 'ml' | 'piece' | 'disc' | undefined,
             } : undefined}
             onSubmit={handleSubmit}
             onCancel={() => router.push('/materials')}
