@@ -43,7 +43,6 @@ interface MaterialsTableProps {
   onDelete?: (id: string) => void;
   onToggleActive?: (id: string, currentActive: boolean) => void;
   onQuickAddLot?: (material: MaterialWithLots) => void;
-  onOpenSmartScanner?: () => void;
   onSearch?: (search: string) => void;
   onFilterType?: (type: MaterialType | 'all') => void;
   onFilterActive?: (active: boolean | 'all') => void;
@@ -71,7 +70,6 @@ export function MaterialsTable({
   onDelete,
   onToggleActive,
   onQuickAddLot,
-  onOpenSmartScanner,
   onSearch,
   onFilterType,
   onFilterActive,
@@ -166,18 +164,6 @@ export function MaterialsTable({
               <SelectItem value="false">{t('material.inactive')}</SelectItem>
             </SelectContent>
           </Select>
-
-          {/* Smart Scanner Button */}
-          {onOpenSmartScanner && (
-            <Button
-              onClick={onOpenSmartScanner}
-              variant="default"
-              className="w-full md:w-auto bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
-            >
-              <Scan className="h-4 w-4 mr-2" />
-              Smart Scan
-            </Button>
-          )}
         </div>
       </div>
 

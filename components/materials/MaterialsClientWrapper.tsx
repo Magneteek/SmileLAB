@@ -4,7 +4,6 @@ import { useState, useEffect } from 'react';
 import { useTranslations } from 'next-intl';
 import { MaterialsTable } from './MaterialsTable';
 import { QuickAddLotModal } from './QuickAddLotModal';
-import { SmartMaterialScanner } from './SmartMaterialScanner';
 import { MaterialWithLots } from '@/types/material';
 import { Loader2 } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
@@ -24,9 +23,6 @@ export function MaterialsClientWrapper() {
     name: string;
     unit: string;
   } | null>(null);
-
-  // Smart scanner state
-  const [smartScannerOpen, setSmartScannerOpen] = useState(false);
 
   useEffect(() => {
     fetchMaterials();
@@ -144,7 +140,6 @@ export function MaterialsClientWrapper() {
         onToggleActive={handleToggleActive}
         onDelete={handleDelete}
         onQuickAddLot={handleQuickAddLot}
-        onOpenSmartScanner={() => setSmartScannerOpen(true)}
       />
 
       {/* Quick-add LOT Modal */}
@@ -158,15 +153,6 @@ export function MaterialsClientWrapper() {
           onSuccess={handleQuickAddSuccess}
         />
       )}
-
-      {/* Smart Material Scanner */}
-      <SmartMaterialScanner
-        isOpen={smartScannerOpen}
-        onClose={() => setSmartScannerOpen(false)}
-        onSuccess={() => {
-          fetchMaterials();
-        }}
-      />
     </>
   );
 }
