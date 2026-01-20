@@ -31,7 +31,8 @@ function dispatch(toast: Omit<Toast, 'id'>) {
   const id = Math.random().toString(36).substr(2, 9);
   toastState.toasts = [...toastState.toasts, { ...toast, id }];
 
-  listeners.forEach((listener) => listener(toastState));
+  // Pass a NEW object reference to trigger React re-render
+  listeners.forEach((listener) => listener({ ...toastState }));
 
   // Auto-dismiss after specified duration (default 3 seconds)
   const duration = toast.duration || 3000;
@@ -44,7 +45,8 @@ function dispatch(toast: Omit<Toast, 'id'>) {
 
 function dismiss(toastId: string) {
   toastState.toasts = toastState.toasts.filter((t) => t.id !== toastId);
-  listeners.forEach((listener) => listener(toastState));
+  // Pass a NEW object reference to trigger React re-render
+  listeners.forEach((listener) => listener({ ...toastState }));
 }
 
 export function useToast() {
