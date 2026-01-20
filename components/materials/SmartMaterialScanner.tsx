@@ -76,6 +76,7 @@ interface SmartScanResult {
 
 export function SmartMaterialScanner({ isOpen, onClose, onSuccess }: SmartScannerProps) {
   const t = useTranslations();
+  const tScanner = useTranslations('scanner');
   const router = useRouter();
   const { toast } = useToast();
 
@@ -545,8 +546,8 @@ export function SmartMaterialScanner({ isOpen, onClose, onSuccess }: SmartScanne
           isOpen={showOCRScanner}
           onClose={() => setShowOCRScanner(false)}
           onScan={handleOCRScan}
-          title="Scan Material Label"
-          description="Position the material label within the frame and capture a clear photo"
+          title={tScanner('ocrScannerTitle')}
+          description={tScanner('ocrScannerDescription')}
         />
       )}
 

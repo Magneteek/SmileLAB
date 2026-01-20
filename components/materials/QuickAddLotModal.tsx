@@ -71,6 +71,7 @@ export function QuickAddLotModal({
   initialData,
 }: QuickAddLotModalProps) {
   const t = useTranslations('material');
+  const tScanner = useTranslations('scanner');
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
   const [showScanner, setShowScanner] = useState(false);
@@ -385,8 +386,8 @@ export function QuickAddLotModal({
         isOpen={showScanner}
         onClose={() => setShowScanner(false)}
         onScan={handleOCRScan}
-        title="Scan Material Label"
-        description="Take a photo of the material label to automatically extract LOT information"
+        title={tScanner('ocrScannerTitle')}
+        description={tScanner('ocrScannerLotDescription')}
       />
     </>
   );

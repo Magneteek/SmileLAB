@@ -2408,6 +2408,7 @@
     "toastErrorDesc": "Ni bilo mogoče ustvariti materiala in LOT-a",
     "ocrScannerTitle": "Skeniraj oznako materiala",
     "ocrScannerDescription": "Postavi oznako materiala v okvir in zajemi jasno fotografijo",
+    "ocrScannerLotDescription": "Fotografiraj oznako materiala za samodejno pridobitev LOT informacij",
     "cameraAccessDenied": "Dostop do kamere zavrnjen",
     "cameraAccessDesc": "Prosim, omogoči dostop do kamere v nastavitvah brskalnika za uporabo te funkcije.",
     "cameraUnavailable": "Kamera ni na voljo",

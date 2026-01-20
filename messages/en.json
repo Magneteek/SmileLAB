@@ -2406,6 +2406,7 @@
     "toastErrorDesc": "Could not create material and LOT",
     "ocrScannerTitle": "Scan Material Label",
     "ocrScannerDescription": "Position the material label within the frame and capture a clear photo",
+    "ocrScannerLotDescription": "Take a photo of the material label to automatically extract LOT information",
     "cameraAccessDenied": "Camera Access Denied",
     "cameraAccessDesc": "Please enable camera access in your browser settings to use this feature.",
     "cameraUnavailable": "Camera Unavailable",
