@@ -279,6 +279,20 @@ export function OCRScanner({
     }
   };
 
+  // Get confidence text (translated)
+  const getConfidenceText = (confidence: string) => {
+    switch (confidence) {
+      case 'high':
+        return t('highConfidence');
+      case 'medium':
+        return t('mediumConfidence');
+      case 'low':
+        return t('lowConfidence');
+      default:
+        return confidence.toUpperCase();
+    }
+  };
+
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
       <DialogContent className="max-w-2xl w-[95vw] sm:w-full max-h-[90vh] overflow-y-auto">
@@ -361,7 +375,7 @@ export function OCRScanner({
                     variant="outline"
                     className={`${getConfidenceColor(ocrData.confidence)} border`}
                   >
-                    {ocrData.confidence.toUpperCase()}
+                    {getConfidenceText(ocrData.confidence)}
                   </Badge>
                 </CardTitle>
               </CardHeader>
