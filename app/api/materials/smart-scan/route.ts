@@ -123,7 +123,7 @@ export async function POST(request: NextRequest) {
     console.log('🤖 Step 1: Extracting structured data with AI...');
 
     const extractionMessage = await anthropic.messages.create({
-      model: 'claude-3-5-sonnet-20241022',
+      model: 'claude-3-5-sonnet-20240620',
       max_tokens: 1024,
       messages: [
         {
@@ -193,7 +193,7 @@ Respond with ONLY a JSON object (no markdown):
     console.log('🤖 Step 3: Using AI to find best match...');
 
     const matchingMessage = await anthropic.messages.create({
-      model: 'claude-3-5-sonnet-20241022',
+      model: 'claude-3-5-sonnet-20240620',
       max_tokens: 1024,
       messages: [
         {
