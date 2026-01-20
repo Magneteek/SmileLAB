@@ -68,6 +68,16 @@ export function MaterialForm({
 
   const currentType = form.watch('type');
 
+  // Update form when initialData changes (e.g., from scan)
+  useEffect(() => {
+    if (initialData) {
+      if (initialData.name) form.setValue('name', initialData.name);
+      if (initialData.manufacturer) form.setValue('manufacturer', initialData.manufacturer);
+      if (initialData.type) form.setValue('type', initialData.type);
+      if (initialData.unit) form.setValue('unit', initialData.unit as any);
+    }
+  }, [initialData, form]);
+
   // Auto-generate code when type changes (only for new materials)
   useEffect(() => {
     if (isEditMode) return; // Don't regenerate for existing materials
