@@ -37,7 +37,7 @@ const createQuickAddLotSchema = (t: any) =>
       (date) => !date || date > new Date(),
       { message: t('arrivalValidationExpiryDateRequired') }
     ),
-    supplierName: z.string().optional(),
+    supplierName: z.string().min(1, t('arrivalValidationSupplierRequired')),
     quantityReceived: z.number().positive(t('arrivalValidationQuantityMin')),
     notes: z.string().optional(),
   });
