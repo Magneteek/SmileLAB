@@ -59,7 +59,7 @@ export function OCRScanner({
   title,
   description,
 }: OCRScannerProps) {
-  const t = useTranslations('material');
+  const t = useTranslations('scanner');
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
@@ -285,13 +285,16 @@ export function OCRScanner({
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Camera className="h-5 w-5" />
-            {title || 'Scan Material Label'}
+            {title || t('ocrScannerTitle')}
           </DialogTitle>
         </DialogHeader>
 
         <div className="space-y-4">
           {description && (
             <p className="text-sm text-muted-foreground">{description}</p>
+          )}
+          {!description && (
+            <p className="text-sm text-muted-foreground">{t('ocrScannerDescription')}</p>
           )}
 
           {/* Camera/Preview Area */}
@@ -321,8 +324,8 @@ export function OCRScanner({
               {isProcessing && (
                 <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/80">
                   <Loader2 className="h-12 w-12 text-white animate-spin mb-4" />
-                  <p className="text-white text-lg font-semibold">Analyzing with AI...</p>
-                  <p className="text-white/70 text-sm mt-2">GPT-4 Vision processing</p>
+                  <p className="text-white text-lg font-semibold">{t('analyzingWithAI')}</p>
+                  <p className="text-white/70 text-sm mt-2">{t('gpt4Processing')}</p>
                 </div>
               )}
 
@@ -338,7 +341,7 @@ export function OCRScanner({
                   </div>
 
                   <p className="mt-4 text-white text-sm font-medium bg-black/50 px-4 py-2 rounded">
-                    Position label within frame
+                    {t('cameraReady')}
                   </p>
                 </div>
               )}
@@ -352,7 +355,7 @@ export function OCRScanner({
                 <CardTitle className="flex items-center justify-between text-base">
                   <span className="flex items-center gap-2">
                     <Edit className="h-5 w-5 text-blue-600" />
-                    Verify Extracted Data
+                    {t('verifyExtractedData')}
                   </span>
                   <Badge
                     variant="outline"
@@ -366,7 +369,7 @@ export function OCRScanner({
                 {/* AI Reasoning */}
                 <Alert>
                   <AlertDescription className="text-xs">
-                    <strong>AI Analysis:</strong> {ocrData.reasoning}
+                    <strong>{t('aiAnalysis')}</strong> {ocrData.reasoning}
                   </AlertDescription>
                 </Alert>
 
@@ -384,18 +387,18 @@ export function OCRScanner({
                 {/* Editable fields */}
                 <div className="grid grid-cols-1 gap-4">
                   <div className="space-y-2">
-                    <Label htmlFor="lotNumber">LOT Number *</Label>
+                    <Label htmlFor="lotNumber">{t('verifyLotNumber')}</Label>
                     <Input
                       id="lotNumber"
                       value={editedLotNumber}
                       onChange={(e) => setEditedLotNumber(e.target.value.toUpperCase())}
-                      placeholder="Enter LOT number"
+                      placeholder={t('lotNumberPlaceholder')}
                       className="font-mono"
                     />
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="expiryDate">Expiry Date</Label>
+                    <Label htmlFor="expiryDate">{t('verifyExpiryDate')}</Label>
                     <Input
                       id="expiryDate"
                       type="date"
@@ -405,14 +408,14 @@ export function OCRScanner({
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="quantity">Quantity ({ocrData.unit || 'units'})</Label>
+                    <Label htmlFor="quantity">{t('verifyQuantity')} ({ocrData.unit || 'units'})</Label>
                     <Input
                       id="quantity"
                       type="number"
                       step="0.01"
                       value={editedQuantity}
                       onChange={(e) => setEditedQuantity(e.target.value)}
-                      placeholder="Enter quantity"
+                      placeholder={t('enterQuantityPlaceholder')}
                     />
                   </div>
                 </div>
@@ -421,18 +424,18 @@ export function OCRScanner({
                 {(ocrData.manufacturer || ocrData.materialName) && (
                   <div className="pt-3 border-t">
                     <p className="text-xs font-semibold text-muted-foreground mb-2">
-                      Additional Information:
+                      {t('additionalInformation')}
                     </p>
                     <div className="grid grid-cols-2 gap-2 text-sm">
                       {ocrData.materialName && (
                         <div>
-                          <span className="text-muted-foreground">Material:</span>
+                          <span className="text-muted-foreground">{t('materialLabel')}</span>
                           <p className="font-semibold">{ocrData.materialName}</p>
                         </div>
                       )}
                       {ocrData.manufacturer && (
                         <div>
-                          <span className="text-muted-foreground">Manufacturer:</span>
+                          <span className="text-muted-foreground">{t('manufacturerLabel')}</span>
                           <p className="font-semibold">{ocrData.manufacturer}</p>
                         </div>
                       )}
@@ -448,7 +451,7 @@ export function OCRScanner({
                     className="flex-1"
                   >
                     <RotateCcw className="h-4 w-4 mr-2" />
-                    Retake Photo
+                    {t('retakePhoto')}
                   </Button>
                   <Button
                     onClick={handleConfirm}
@@ -456,7 +459,7 @@ export function OCRScanner({
                     className="flex-1"
                   >
                     <CheckCircle2 className="h-4 w-4 mr-2" />
-                    Confirm & Continue
+                    {t('confirmAndContinue')}
                   </Button>
                 </div>
               </CardContent>
@@ -477,11 +480,11 @@ export function OCRScanner({
           {/* Instructions */}
           {!capturedImage && !isProcessing && !showVerification && (
             <div className="text-sm text-muted-foreground space-y-1">
-              <p>• Hold camera steady and ensure good lighting</p>
-              <p>• Position the label within the frame</p>
-              <p>• Make sure text is clear and readable</p>
+              <p>{t('instructionHoldSteady')}</p>
+              <p>{t('instructionPositionLabel')}</p>
+              <p>{t('instructionClearText')}</p>
               <p className="text-xs pt-2 text-blue-600">
-                ✨ Powered by GPT-4 Vision for 90%+ accuracy
+                {t('poweredByGPT4')}
               </p>
             </div>
           )}
@@ -491,13 +494,13 @@ export function OCRScanner({
             <div className="flex flex-col-reverse sm:flex-row justify-end gap-2">
               <Button type="button" variant="outline" onClick={handleClose} className="w-full sm:w-auto">
                 <X className="h-4 w-4 mr-2" />
-                Cancel
+                {t('cancel')}
               </Button>
 
               {cameraActive && !capturedImage && (
                 <Button type="button" onClick={capturePhoto} className="w-full sm:w-auto">
                   <Camera className="h-4 w-4 mr-2" />
-                  Capture Photo
+                  {t('capturePhoto')}
                 </Button>
               )}
 
@@ -505,11 +508,11 @@ export function OCRScanner({
                 <>
                   <Button type="button" variant="outline" onClick={retakePhoto} className="w-full sm:w-auto">
                     <RotateCcw className="h-4 w-4 mr-2" />
-                    Retake
+                    {t('recapture')}
                   </Button>
                   <Button type="button" onClick={processImage} className="w-full sm:w-auto">
                     <CheckCircle2 className="h-4 w-4 mr-2" />
-                    Analyze with AI
+                    {t('analyzeWithAI')}
                   </Button>
                 </>
               )}

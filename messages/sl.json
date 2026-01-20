@@ -2425,7 +2425,19 @@
     "cancel": "Prekliči",
     "ocrError": "OCR napaka",
     "ocrErrorRetry": "Obdelava slike ni uspela. Prosim, poskusi ponovno.",
-    "tryAgain": "Poskusi ponovno"
+    "tryAgain": "Poskusi ponovno",
+    "enterQuantityPlaceholder": "Vnesi količino",
+    "additionalInformation": "Dodatne informacije:",
+    "materialLabel": "Material:",
+    "manufacturerLabel": "Proizvajalec:",
+    "analyzingWithAI": "Analiziranje z AI...",
+    "gpt4Processing": "GPT-4 Vision obdelava",
+    "instructionHoldSteady": "• Drži kamero stabilno in poskrbi za dobro osvetlitev",
+    "instructionPositionLabel": "• Postavi oznako v okvir",
+    "instructionClearText": "• Poskrbi, da je besedilo jasno in berljivo",
+    "poweredByGPT4": "✨ Podprto z GPT-4 Vision za 90%+ natančnost",
+    "retakePhoto": "Ponovno zajemi fotografijo",
+    "analyzeWithAI": "Analiziraj z AI"
   },
   "orders": {
     "priorityNormal": "Normalno",

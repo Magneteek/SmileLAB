@@ -2423,7 +2423,19 @@
     "cancel": "Cancel",
     "ocrError": "OCR Error",
     "ocrErrorRetry": "Failed to process image. Please try again.",
-    "tryAgain": "Try Again"
+    "tryAgain": "Try Again",
+    "enterQuantityPlaceholder": "Enter quantity",
+    "additionalInformation": "Additional Information:",
+    "materialLabel": "Material:",
+    "manufacturerLabel": "Manufacturer:",
+    "analyzingWithAI": "Analyzing with AI...",
+    "gpt4Processing": "GPT-4 Vision processing",
+    "instructionHoldSteady": "• Hold camera steady and ensure good lighting",
+    "instructionPositionLabel": "• Position the label within the frame",
+    "instructionClearText": "• Make sure text is clear and readable",
+    "poweredByGPT4": "✨ Powered by GPT-4 Vision for 90%+ accuracy",
+    "retakePhoto": "Retake Photo",
+    "analyzeWithAI": "Analyze with AI"
   },
   "orders": {
     "priorityNormal": "Normal",
