@@ -7,7 +7,7 @@
  * For full functionality, install ShadCN UI toast component.
  */
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 
 export interface Toast {
   id: string;
@@ -50,10 +50,11 @@ function dismiss(toastId: string) {
 export function useToast() {
   const [state, setState] = useState<ToastState>(toastState);
 
-  const subscribe = useCallback((listener: (state: ToastState) => void) => {
-    listeners.push(listener);
+  // Subscribe to state changes on mount
+  useEffect(() => {
+    listeners.push(setState);
     return () => {
-      listeners = listeners.filter((l) => l !== listener);
+      listeners = listeners.filter((l) => l !== setState);
     };
   }, []);
 
