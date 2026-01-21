@@ -316,10 +316,10 @@ export function OCRScanner({
 
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
-      <DialogContent className="max-w-2xl w-[95vw] sm:w-full max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-lg w-[95vw] sm:w-full max-h-[90vh] overflow-y-auto p-4 sm:p-6">
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            <Camera className="h-5 w-5" />
+          <DialogTitle className="flex items-center gap-2 text-base sm:text-lg">
+            <Camera className="h-4 w-4 sm:h-5 sm:w-5" />
             {title || t('ocrScannerTitle')}
           </DialogTitle>
         </DialogHeader>
@@ -386,21 +386,21 @@ export function OCRScanner({
           {/* Verification UI */}
           {showVerification && ocrData && (
             <Card className="border-blue-200">
-              <CardHeader>
-                <CardTitle className="flex items-center justify-between text-base">
+              <CardHeader className="pb-2 sm:pb-4">
+                <CardTitle className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-sm sm:text-base">
                   <span className="flex items-center gap-2">
-                    <Edit className="h-5 w-5 text-blue-600" />
+                    <Edit className="h-4 w-4 sm:h-5 sm:w-5 text-blue-600" />
                     {t('verifyExtractedData')}
                   </span>
                   <Badge
                     variant="outline"
-                    className={`${getConfidenceColor(ocrData.confidence)} border`}
+                    className={`${getConfidenceColor(ocrData.confidence)} border w-fit`}
                   >
                     {getConfidenceText(ocrData.confidence)}
                   </Badge>
                 </CardTitle>
               </CardHeader>
-              <CardContent className="space-y-4">
+              <CardContent className="space-y-3 sm:space-y-4 pt-0">
                 {/* AI Reasoning */}
                 <Alert>
                   <AlertDescription className="text-xs">
@@ -410,7 +410,7 @@ export function OCRScanner({
 
                 {/* Thumbnail of captured image */}
                 {capturedImage && (
-                  <div className="relative w-full h-32 bg-black rounded-lg overflow-hidden">
+                  <div className="relative w-full h-24 sm:h-32 bg-black rounded-lg overflow-hidden">
                     <img
                       src={capturedImage}
                       alt="Captured label"
@@ -492,7 +492,7 @@ export function OCRScanner({
                   </Button>
                   <Button
                     onClick={handleConfirm}
-                    disabled={!editedLotNumber}
+                    disabled={!hideLotFields && !editedLotNumber}
                     className="flex-1"
                   >
                     <CheckCircle2 className="h-4 w-4 mr-2" />

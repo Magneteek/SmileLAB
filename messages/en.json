@@ -1201,7 +1201,7 @@
     "arrivalFormSavingButton": "Saving...",
     "arrivalValidationLOTRequired": "LOT number is required",
     "arrivalValidationArrivalDateRequired": "Arrival date is required",
-    "arrivalValidationExpiryDateRequired": "Expiry date is required",
+    "arrivalValidationExpiryDateFuture": "Expiry date must be in the future",
     "arrivalValidationSupplierRequired": "Supplier name is required",
     "arrivalValidationQuantityRequired": "Quantity is required",
     "arrivalValidationQuantityMin": "Quantity must be greater than 0",

@@ -35,7 +35,7 @@ const createQuickAddLotSchema = (t: any) =>
     lotNumber: z.string().min(1, t('arrivalValidationLOTRequired')).max(100),
     expiryDate: z.date().optional().refine(
       (date) => !date || date > new Date(),
-      { message: t('arrivalValidationExpiryDateRequired') }
+      { message: t('arrivalValidationExpiryDateFuture') }
     ),
     supplierName: z.string().min(1, t('arrivalValidationSupplierRequired')),
     quantityReceived: z.number().positive(t('arrivalValidationQuantityMin')),

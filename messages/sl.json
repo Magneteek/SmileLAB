@@ -1203,7 +1203,7 @@
     "arrivalFormSavingButton": "Shranjujem...",
     "arrivalValidationLOTRequired": "LOT številka je obvezna",
     "arrivalValidationArrivalDateRequired": "Datum prihoda je obvezen",
-    "arrivalValidationExpiryDateRequired": "Rok trajanja je obvezen",
+    "arrivalValidationExpiryDateFuture": "Rok trajanja mora biti v prihodnosti",
     "arrivalValidationSupplierRequired": "Ime dobavitelja je obvezno",
     "arrivalValidationQuantityRequired": "Količina je obvezna",
     "arrivalValidationQuantityMin": "Količina mora biti večja od 0",
