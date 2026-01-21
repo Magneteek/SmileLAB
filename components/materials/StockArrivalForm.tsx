@@ -18,7 +18,7 @@ const createStockArrivalSchema = (t: any) => z.object({
   lotNumber: z.string().min(1, t('material.arrivalValidationLOTRequired')).max(100),
   expiryDate: z.date().optional().refine(
     (date) => !date || date > new Date(),
-    { message: t('material.arrivalValidationExpiryDateRequired') }
+    { message: t('material.arrivalValidationExpiryDateFuture') }
   ),
   supplierName: z.string().optional(),
   quantityReceived: z.number().positive(t('material.arrivalValidationQuantityMin')),
