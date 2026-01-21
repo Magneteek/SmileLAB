@@ -19,9 +19,8 @@
 set -e
 
 # Configuration
-CONTAINER_NAME="smilelab-postgres"
 DB_NAME="smilelab_mdr"
-DB_USER="postgres"
+DB_USER="smilelab_user"
 LOCAL_BACKUP_DIR="/var/backups/smilelab"
 TEMP_DIR="/tmp/smilelab-restore"
 
@@ -47,8 +46,8 @@ log_error() { echo -e "${RED}[ERROR]${NC} $1"; }
 check_prerequisites() {
     log_info "Checking prerequisites..."
 
-    if ! docker ps --format '{{.Names}}' | grep -q "^${CONTAINER_NAME}$"; then
-        log_error "PostgreSQL container '${CONTAINER_NAME}' is not running!"
+    if ! systemctl is-active --quiet postgresql; then
+        log_error "PostgreSQL service is not running!"
         exit 1
     fi
 
@@ -141,7 +140,7 @@ create_safety_backup() {
     mkdir -p "$LOCAL_BACKUP_DIR"
 
     SAFETY_FILE="$LOCAL_BACKUP_DIR/pre_restore_$(date +%Y%m%d_%H%M%S).sql.gz"
-    docker exec "$CONTAINER_NAME" pg_dump -U "$DB_USER" -d "$DB_NAME" | gzip > "$SAFETY_FILE"
+    sudo -u postgres pg_dump "$DB_NAME" | gzip > "$SAFETY_FILE"
 
     SIZE=$(du -h "$SAFETY_FILE" | cut -f1)
     log_info "Safety backup created: $SAFETY_FILE ($SIZE)"
@@ -152,20 +151,20 @@ restore_database() {
     pm2 stop dental-lab-mdr 2>/dev/null || true
 
     log_info "Dropping existing database..."
-    docker exec "$CONTAINER_NAME" psql -U "$DB_USER" -c "DROP DATABASE IF EXISTS $DB_NAME WITH (FORCE);"
+    sudo -u postgres psql -c "DROP DATABASE IF EXISTS $DB_NAME WITH (FORCE);"
 
     log_info "Creating fresh database..."
-    docker exec "$CONTAINER_NAME" psql -U "$DB_USER" -c "CREATE DATABASE $DB_NAME;"
+    sudo -u postgres psql -c "CREATE DATABASE $DB_NAME OWNER $DB_USER;"
 
     log_info "Restoring data (this may take a moment)..."
-    gunzip -c "$TEMP_DIR/$BACKUP_FILENAME" | docker exec -i "$CONTAINER_NAME" psql -U "$DB_USER" -d "$DB_NAME" > /dev/null 2>&1
+    gunzip -c "$TEMP_DIR/$BACKUP_FILENAME" | sudo -u postgres psql -d "$DB_NAME" > /dev/null 2>&1
 
     log_info "Database restored ✓"
 }
 
 verify_and_restart() {
     log_info "Verifying restoration..."
-    USER_COUNT=$(docker exec "$CONTAINER_NAME" psql -U "$DB_USER" -d "$DB_NAME" -t -c "SELECT COUNT(*) FROM \"User\";" | tr -d ' ')
+    USER_COUNT=$(sudo -u postgres psql -d "$DB_NAME" -t -c "SELECT COUNT(*) FROM \"User\";" | tr -d ' ')
     log_info "User count: $USER_COUNT ✓"
 
     log_info "Starting application..."

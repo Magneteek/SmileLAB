@@ -14,7 +14,7 @@
 #    - Default Region: ams3
 #    - S3 Endpoint: ams3.digitaloceanspaces.com
 #    - DNS-style: %(bucket)s.ams3.digitaloceanspaces.com
-# 3. Create DO Spaces bucket: smilelab-backups
+# 3. Create DO Spaces bucket: smilelabv1
 # 4. Make script executable: chmod +x backup-production.sh
 # 5. Add to crontab for daily backups (see bottom of script)
 #
@@ -24,9 +24,8 @@
 set -e
 
 # Configuration
-CONTAINER_NAME="smilelab-postgres"
 DB_NAME="smilelab_mdr"
-DB_USER="postgres"
+DB_USER="smilelab_user"
 BACKUP_DIR="/var/backups/smilelab"
 DATE=$(date +%Y%m%d_%H%M%S)
 BACKUP_FILENAME="smilelab_backup_${DATE}.sql.gz"
@@ -59,8 +58,8 @@ log_info "========================================="
 # Step 1: Check prerequisites
 log_info "Checking prerequisites..."
 
-if ! docker ps --format '{{.Names}}' | grep -q "^${CONTAINER_NAME}$"; then
-    log_error "PostgreSQL container '${CONTAINER_NAME}' is not running!"
+if ! command -v pg_dump &> /dev/null; then
+    log_error "pg_dump is not installed!"
     exit 1
 fi
 
@@ -74,6 +73,12 @@ if [ ! -f "$HOME/.s3cfg" ]; then
     exit 1
 fi
 
+# Check if PostgreSQL is running
+if ! systemctl is-active --quiet postgresql; then
+    log_error "PostgreSQL service is not running!"
+    exit 1
+fi
+
 log_info "Prerequisites OK ✓"
 
 # Step 2: Create backup directory
@@ -81,7 +86,7 @@ mkdir -p "$BACKUP_DIR"
 
 # Step 3: Create database backup
 log_info "Creating database backup..."
-docker exec "$CONTAINER_NAME" pg_dump -U "$DB_USER" -d "$DB_NAME" | gzip > "$BACKUP_DIR/$BACKUP_FILENAME"
+sudo -u postgres pg_dump "$DB_NAME" | gzip > "$BACKUP_DIR/$BACKUP_FILENAME"
 
 if [ -f "$BACKUP_DIR/$BACKUP_FILENAME" ]; then
     BACKUP_SIZE=$(du -h "$BACKUP_DIR/$BACKUP_FILENAME" | cut -f1)
@@ -142,7 +147,7 @@ exit 0
 #    crontab -e
 #
 # 2. Add this line:
-#    0 2 * * * /path/to/dental-lab-mdr/scripts/backup-production.sh >> /var/log/smilelab-backup.log 2>&1
+#    0 2 * * * /var/www/smilelab-mdr/scripts/backup-production.sh >> /var/log/smilelab-backup.log 2>&1
 #
 # 3. Verify crontab:
 #    crontab -l
