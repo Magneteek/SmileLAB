@@ -374,20 +374,20 @@ export function MaterialFormClient() {
               )}
 
               {/* Action Buttons */}
-              <div className="flex gap-3 pt-2">
-                <Button
-                  onClick={handleAddLotToExisting}
-                  className="flex-1"
-                >
-                  <Package className="mr-2 h-4 w-4" />
-                  {t('material.addLotToExisting')}
-                </Button>
+              <div className="flex flex-col-reverse sm:flex-row gap-2 sm:gap-3 pt-2">
                 <Button
                   variant="outline"
                   onClick={handleCreateNewAnyway}
-                  className="flex-1"
+                  className="w-full sm:flex-1"
                 >
                   {t('material.createNewAnyway')}
+                </Button>
+                <Button
+                  onClick={handleAddLotToExisting}
+                  className="w-full sm:flex-1"
+                >
+                  <Package className="mr-2 h-4 w-4" />
+                  {t('material.addLotToExisting')}
                 </Button>
               </div>
             </CardContent>
