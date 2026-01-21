@@ -34,7 +34,7 @@ LOCAL_RETENTION_DAYS=7      # Keep local backups for 7 days
 SPACES_RETENTION_DAYS=90    # Keep Spaces backups for 90 days
 
 # Digital Ocean Spaces configuration
-SPACES_BUCKET="s3://smilelab-backups"
+SPACES_BUCKET="s3://smilelabv1"
 SPACES_ENDPOINT="ams3.digitaloceanspaces.com"
 
 # Colors for output

@@ -26,7 +26,7 @@ LOCAL_BACKUP_DIR="/var/backups/smilelab"
 TEMP_DIR="/tmp/smilelab-restore"
 
 # Digital Ocean Spaces configuration
-SPACES_BUCKET="s3://smilelab-backups"
+SPACES_BUCKET="s3://smilelabv1"
 SPACES_ENDPOINT="ams3.digitaloceanspaces.com"
 
 # Colors
