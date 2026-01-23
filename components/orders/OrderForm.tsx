@@ -31,7 +31,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Loader2 } from 'lucide-react';
@@ -240,26 +239,34 @@ export function OrderForm({
           render={({ field }) => (
             <FormItem className="space-y-3">
               <FormLabel>{t('order.formImpressionLabel')}</FormLabel>
-              <FormControl>
-                <RadioGroup
-                  onValueChange={field.onChange}
-                  value={field.value}
-                  className="flex gap-4"
-                >
-                  <div className="flex items-center space-x-2">
-                    <RadioGroupItem value="PHYSICAL_IMPRINT" id="physical" />
-                    <Label htmlFor="physical" className="font-normal cursor-pointer">
-                      {t('order.formImpressionPhysical')}
-                    </Label>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <RadioGroupItem value="DIGITAL_SCAN" id="digital" />
-                    <Label htmlFor="digital" className="font-normal cursor-pointer">
-                      {t('order.formImpressionDigital')}
-                    </Label>
-                  </div>
-                </RadioGroup>
-              </FormControl>
+              <div className="flex gap-4">
+                <div className="flex items-center space-x-2">
+                  <input
+                    type="radio"
+                    id="physical"
+                    value="PHYSICAL_IMPRINT"
+                    checked={field.value === 'PHYSICAL_IMPRINT'}
+                    onChange={(e) => field.onChange(e.target.value)}
+                    className="h-4 w-4 border-gray-300 text-primary focus:ring-2 focus:ring-primary cursor-pointer"
+                  />
+                  <Label htmlFor="physical" className="font-normal cursor-pointer">
+                    {t('order.formImpressionPhysical')}
+                  </Label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <input
+                    type="radio"
+                    id="digital"
+                    value="DIGITAL_SCAN"
+                    checked={field.value === 'DIGITAL_SCAN'}
+                    onChange={(e) => field.onChange(e.target.value)}
+                    className="h-4 w-4 border-gray-300 text-primary focus:ring-2 focus:ring-primary cursor-pointer"
+                  />
+                  <Label htmlFor="digital" className="font-normal cursor-pointer">
+                    {t('order.formImpressionDigital')}
+                  </Label>
+                </div>
+              </div>
               <FormDescription>
                 {t('order.formImpressionDescription')}
               </FormDescription>
