@@ -93,6 +93,7 @@ export function WorkTypeToolbar({
           return (
             <button
               key={workType}
+              type="button"
               onClick={() => !disabled && onSelectWorkType(workType)}
               disabled={disabled}
               className={cn(
