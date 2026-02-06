@@ -186,7 +186,7 @@ function NavigationContent({ onNavigate }: { onNavigate?: () => void }) {
           {navItems
             .filter((item) => {
               if (session?.user?.role === 'TECHNICIAN') {
-                return ['/orders', '/worksheets', '/quality-control', '/materials', '/settings/sops'].includes(item.href);
+                return ['/dashboard', '/orders', '/worksheets', '/quality-control', '/materials'].includes(item.href);
               }
               return true;
             })
