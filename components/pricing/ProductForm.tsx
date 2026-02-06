@@ -43,7 +43,7 @@ const productFormSchema = z.object({
   code: z
     .string()
     .min(1, 'Product code is required')
-    .max(5, 'Product code must be 5 characters or less'),
+    .max(20, 'Product code must be 20 characters or less'),
   name: z.string().min(1, 'Product name is required').max(200),
   description: z.string().max(1000).optional().or(z.literal('')),
   category: z.nativeEnum(ProductCategory),
