@@ -1835,6 +1835,7 @@
     "unitHour": "Hour",
     "unitGram": "Gram",
     "unitMl": "Milliliter",
+    "unitTeeth": "Teeth",
     "productCodeLabel": "Product Code",
     "productCodePlaceholder": "CR-001",
     "productCodeDescription": "Format: 2-3 letters, dash, 3 digits (e.g., CR-001, BRI-002)",

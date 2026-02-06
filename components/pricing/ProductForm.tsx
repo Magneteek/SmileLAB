@@ -314,7 +314,7 @@ export default function ProductForm({
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
-                    {['piece', 'hour', 'gram', 'ml'].map((unit) => (
+                    {['piece', 'hour', 'gram', 'ml', 'teeth'].map((unit) => (
                       <SelectItem key={unit} value={unit}>
                         {t(`unit${unit.charAt(0).toUpperCase() + unit.slice(1)}` as any)}
                       </SelectItem>
