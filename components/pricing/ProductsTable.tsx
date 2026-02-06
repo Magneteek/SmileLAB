@@ -359,7 +359,9 @@ export default function ProductsTable({
               <TableCell className="text-right font-semibold">
                 {formatCurrency(parseFloat(product.currentPrice.toString()))}
               </TableCell>
-              <TableCell className="capitalize">{product.unit}</TableCell>
+              <TableCell className="capitalize">
+                {t(`unit${product.unit.charAt(0).toUpperCase() + product.unit.slice(1)}` as any)}
+              </TableCell>
               <TableCell>
                 <Badge variant={product.active ? 'default' : 'secondary'}>
                   {product.active ? t('active') : t('inactive')}
