@@ -162,17 +162,15 @@ export function OrdersTable({ orders, onDelete }: OrdersTableProps) {
                     {order.orderNumber}
                   </Link>
                 </TableCell>
-                <TableCell onClick={(e) => e.stopPropagation()}>
-                  <Link href={`/dentists/${order.dentist.id}`}>
-                    <div className="hover:underline">
-                      <div className="font-medium">
-                        {order.dentist.clinicName}
-                      </div>
-                      <div className="text-sm text-muted-foreground">
-                        {order.dentist.dentistName}
-                      </div>
+                <TableCell>
+                  <div>
+                    <div className="font-medium">
+                      {order.dentist.clinicName}
                     </div>
-                  </Link>
+                    <div className="text-sm text-muted-foreground">
+                      {order.dentist.dentistName}
+                    </div>
+                  </div>
                 </TableCell>
                 <TableCell>
                   {order.patientName || ((order as any).worksheets?.[0]?.patientName) ? (
