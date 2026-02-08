@@ -53,7 +53,7 @@ const LAB_CONFIG = {
   logoPath: null, // e.g., '/uploads/logo.png'
 
   // Invoice Settings
-  defaultPaymentTerms: 30, // Days
+  defaultPaymentTerms: 15, // Days
   defaultTaxRate: 22.00, // Slovenia VAT 22%
   invoiceLegalTerms: `Znesek računa plačajte v navedenem roku sicer bomo zaračunali zakonske zamudne obresti.
 

@@ -213,7 +213,7 @@ export async function createDentist(
         country: data.country?.trim() || 'Slovenia',
         taxNumber: data.taxNumber?.trim() || null,
         businessRegistration: data.businessRegistration?.trim() || null,
-        paymentTerms: data.paymentTerms ?? 30,
+        paymentTerms: data.paymentTerms ?? 15,
         requiresInvoicing: data.requiresInvoicing !== undefined ? data.requiresInvoicing : true,
         notes: data.notes?.trim() || null,
         active: data.active !== undefined ? data.active : true,

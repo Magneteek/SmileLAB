@@ -90,7 +90,7 @@ export function DentistForm({
       country: dentist?.country || 'Slovenia',
       taxNumber: dentist?.taxNumber || '',
       businessRegistration: dentist?.businessRegistration || '',
-      paymentTerms: dentist?.paymentTerms || 30,
+      paymentTerms: dentist?.paymentTerms || 15,
       requiresInvoicing: dentist?.requiresInvoicing !== undefined ? dentist.requiresInvoicing : true,
       notes: dentist?.notes || '',
       active: dentist?.active !== undefined ? dentist.active : true,

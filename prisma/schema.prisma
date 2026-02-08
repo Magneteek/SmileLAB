@@ -74,7 +74,7 @@ model Dentist {
 
   // Business fields
   active            Boolean @default(true)
-  paymentTerms      Int     @default(30) // Days
+  paymentTerms      Int     @default(15) // Days
   requiresInvoicing Boolean @default(true) // If false, orders auto-complete after QC (for internal work)
   notes             String? @db.Text
 

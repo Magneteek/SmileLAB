@@ -32,7 +32,7 @@ interface DentistData {
   taxNumber?: string;
   businessRegistration?: string;
   licenseNumber?: string;
-  paymentTerms?: number; // Days (default: 30)
+  paymentTerms?: number; // Days (default: 15)
   requiresInvoicing?: boolean; // Default: true
   notes?: string;
 }
@@ -48,7 +48,7 @@ const DENTISTS: DentistData[] = [
     postalCode: '1000',
     country: 'Slovenia',
     taxNumber: '58461175', // VAT-free tax ID (numbers only) or with prefix if VAT registered
-    paymentTerms: 30,
+    paymentTerms: 15,
     requiresInvoicing: true
   },
   {
@@ -61,7 +61,7 @@ const DENTISTS: DentistData[] = [
     postalCode: '1355',
     country: 'Slovenia',
     taxNumber: '61349607',
-    paymentTerms: 30,
+    paymentTerms: 15,
     requiresInvoicing: true
   },
   {
@@ -74,7 +74,7 @@ const DENTISTS: DentistData[] = [
     postalCode: '5290',
     country: 'Slovenia',
     taxNumber: '99309912',
-    paymentTerms: 30,
+    paymentTerms: 15,
     requiresInvoicing: true
   },
   {
@@ -87,7 +87,7 @@ const DENTISTS: DentistData[] = [
     postalCode: '1000',
     country: 'Slovenia',
     taxNumber: '74971905',
-    paymentTerms: 30,
+    paymentTerms: 15,
     requiresInvoicing: true
   },
   {
@@ -100,7 +100,7 @@ const DENTISTS: DentistData[] = [
     postalCode: '1354',
     country: 'Slovenia',
     taxNumber: '21746028',
-    paymentTerms: 30,
+    paymentTerms: 15,
     requiresInvoicing: true
   },
   {
@@ -113,7 +113,7 @@ const DENTISTS: DentistData[] = [
     postalCode: '1230',
     country: 'Slovenia',
     taxNumber: '49988859',
-    paymentTerms: 30,
+    paymentTerms: 15,
     requiresInvoicing: true
   },
   {
@@ -126,7 +126,7 @@ const DENTISTS: DentistData[] = [
     postalCode: '1355',
     country: 'Slovenia',
     taxNumber: '43542492',
-    paymentTerms: 30,
+    paymentTerms: 15,
     requiresInvoicing: true,
     notes: 'Office rental client - beauty studio'
   },
@@ -198,7 +198,7 @@ async function seedDentists() {
             taxNumber: dentistData.taxNumber,
             businessRegistration: dentistData.businessRegistration,
             licenseNumber: dentistData.licenseNumber,
-            paymentTerms: dentistData.paymentTerms || 30,
+            paymentTerms: dentistData.paymentTerms || 15,
             requiresInvoicing: dentistData.requiresInvoicing !== undefined ? dentistData.requiresInvoicing : true,
             notes: dentistData.notes,
             active: true
@@ -221,7 +221,7 @@ async function seedDentists() {
             taxNumber: dentistData.taxNumber,
             businessRegistration: dentistData.businessRegistration,
             licenseNumber: dentistData.licenseNumber,
-            paymentTerms: dentistData.paymentTerms || 30,
+            paymentTerms: dentistData.paymentTerms || 15,
             requiresInvoicing: dentistData.requiresInvoicing !== undefined ? dentistData.requiresInvoicing : true,
             notes: dentistData.notes,
             active: true
