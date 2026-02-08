@@ -77,7 +77,7 @@ export default function ProductForm({
     code: product?.code || '',
     name: product?.name || '',
     description: product?.description || '',
-    category: product?.category || ProductCategory.CROWN,
+    category: product?.category || ProductCategory.FIKSNA_PROTETIKA,
     currentPrice: product ? parseFloat(product.currentPrice.toString()) : 0,
     unit: product?.unit || 'piece',
     active: product?.active !== undefined ? product.active : true,
@@ -119,7 +119,7 @@ export default function ProductForm({
         code: product.code || '',
         name: product.name || '',
         description: product.description || '',
-        category: product.category || ProductCategory.CROWN,
+        category: product.category || ProductCategory.FIKSNA_PROTETIKA,
         currentPrice: parseFloat(product.currentPrice.toString()),
         unit: product.unit || 'piece',
         active: product.active !== undefined ? product.active : true,
@@ -189,7 +189,7 @@ export default function ProductForm({
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
-                    {(['CROWN', 'BRIDGE', 'FILLING', 'IMPLANT', 'DENTURE', 'INLAY', 'ONLAY', 'VENEER', 'SPLINT', 'PROVISIONAL', 'TEMPLATE', 'ABUTMENT', 'SERVICE', 'REPAIR', 'MODEL'] as ProductCategory[]).map((category) => (
+                    {(['FIKSNA_PROTETIKA', 'SNEMNA_PROTETIKA', 'IMPLANTOLOGIJA', 'ESTETIKA', 'OSTALO'] as ProductCategory[]).map((category) => (
                       <SelectItem key={category} value={category}>
                         {t(`category${category}` as any)}
                       </SelectItem>

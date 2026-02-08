@@ -41,23 +41,11 @@ interface GroupedProducts {
 // ============================================================================
 
 const CATEGORY_NAMES: Record<ProductCategory, string> = {
-  CROWN: 'Crowns',
-  BRIDGE: 'Bridges',
-  FILLING: 'Fillings',
-  IMPLANT: 'Implants',
-  DENTURE: 'Dentures',
-  INLAY: 'Inlays',
-  ONLAY: 'Onlays',
-  VENEER: 'Veneers',
-  SPLINT: 'Splints',
-  PROVISIONAL: 'Provisional Restorations',
-  TEMPLATE: 'Templates',
-  ABUTMENT: 'Abutments',
-  SERVICE: 'Services',
-  REPAIR: 'Repairs',
-  MODEL: 'Models',
-  ORTHODONTICS: 'Orthodontics',
-  OTHER: 'Other',
+  FIKSNA_PROTETIKA: 'Fixed Prosthetics',
+  SNEMNA_PROTETIKA: 'Removable Prosthetics',
+  IMPLANTOLOGIJA: 'Implantology',
+  ESTETIKA: 'Aesthetics',
+  OSTALO: 'Other',
 };
 
 // ============================================================================

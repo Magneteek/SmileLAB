@@ -87,43 +87,19 @@ export interface PriceHistoryEntry {
 // ============================================================================
 
 export const PRODUCT_CATEGORY_LABELS: Record<ProductCategory, string> = {
-  CROWN: 'Crown',
-  BRIDGE: 'Bridge',
-  FILLING: 'Filling',
-  IMPLANT: 'Implant',
-  DENTURE: 'Denture',
-  INLAY: 'Inlay',
-  ONLAY: 'Onlay',
-  VENEER: 'Veneer',
-  SPLINT: 'Splint',
-  PROVISIONAL: 'Provisional',
-  TEMPLATE: 'Template',
-  ABUTMENT: 'Abutment',
-  SERVICE: 'Service',
-  REPAIR: 'Repair',
-  MODEL: 'Model',
-  OTHER: 'Other',
-  ORTHODONTICS: 'Orthodontics',
+  FIKSNA_PROTETIKA: 'Fixed Prosthetics',
+  SNEMNA_PROTETIKA: 'Removable Prosthetics',
+  IMPLANTOLOGIJA: 'Implantology',
+  ESTETIKA: 'Aesthetics',
+  OSTALO: 'Other',
 };
 
 export const PRODUCT_CATEGORY_COLORS: Record<ProductCategory, string> = {
-  CROWN: 'bg-blue-100 text-blue-800',
-  BRIDGE: 'bg-purple-100 text-purple-800',
-  FILLING: 'bg-green-100 text-green-800',
-  IMPLANT: 'bg-red-100 text-red-800',
-  DENTURE: 'bg-yellow-100 text-yellow-800',
-  INLAY: 'bg-indigo-100 text-indigo-800',
-  ONLAY: 'bg-pink-100 text-pink-800',
-  VENEER: 'bg-teal-100 text-teal-800',
-  SPLINT: 'bg-orange-100 text-orange-800',
-  PROVISIONAL: 'bg-amber-100 text-amber-800',
-  TEMPLATE: 'bg-lime-100 text-lime-800',
-  ABUTMENT: 'bg-cyan-100 text-cyan-800',
-  SERVICE: 'bg-slate-100 text-slate-800',
-  REPAIR: 'bg-rose-100 text-rose-800',
-  MODEL: 'bg-gray-100 text-gray-800',
-  OTHER: 'bg-stone-100 text-stone-800',
-  ORTHODONTICS: 'bg-violet-100 text-violet-800',
+  FIKSNA_PROTETIKA: 'bg-blue-100 text-blue-800',
+  SNEMNA_PROTETIKA: 'bg-yellow-100 text-yellow-800',
+  IMPLANTOLOGIJA: 'bg-red-100 text-red-800',
+  ESTETIKA: 'bg-teal-100 text-teal-800',
+  OSTALO: 'bg-stone-100 text-stone-800',
 };
 
 // ============================================================================

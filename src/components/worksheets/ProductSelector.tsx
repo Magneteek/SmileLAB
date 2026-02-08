@@ -115,16 +115,11 @@ interface ProductSelectorProps {
 
 // Product categories for filtering
 const PRODUCT_CATEGORIES: { value: ProductCategory; label: string }[] = [
-  { value: 'CROWN', label: 'Crown' },
-  { value: 'BRIDGE', label: 'Bridge' },
-  { value: 'FILLING', label: 'Filling' },
-  { value: 'IMPLANT', label: 'Implant' },
-  { value: 'DENTURE', label: 'Denture' },
-  { value: 'INLAY', label: 'Inlay' },
-  { value: 'ONLAY', label: 'Onlay' },
-  { value: 'VENEER', label: 'Veneer' },
-  { value: 'ORTHODONTICS', label: 'Orthodontics' },
-  { value: 'OTHER', label: 'Other' },
+  { value: 'FIKSNA_PROTETIKA', label: 'Fixed Prosthetics' },
+  { value: 'SNEMNA_PROTETIKA', label: 'Removable Prosthetics' },
+  { value: 'IMPLANTOLOGIJA', label: 'Implantology' },
+  { value: 'ESTETIKA', label: 'Aesthetics' },
+  { value: 'OSTALO', label: 'Other' },
 ];
 
 // ============================================================================

@@ -13,23 +13,11 @@ import { ProductCategory } from '@prisma/client';
 
 // Category code prefixes for auto-generation
 const CATEGORY_PREFIXES: Record<ProductCategory, string> = {
-  CROWN: 'CRW',
-  BRIDGE: 'BRG',
-  FILLING: 'FIL',
-  IMPLANT: 'IMP',
-  DENTURE: 'DEN',
-  INLAY: 'INL',
-  ONLAY: 'ONL',
-  VENEER: 'VEN',
-  SPLINT: 'SPL',
-  PROVISIONAL: 'PRV',
-  TEMPLATE: 'TPL',
-  ABUTMENT: 'ABT',
-  SERVICE: 'SVC',
-  REPAIR: 'REP',
-  MODEL: 'MDL',
-  OTHER: 'OTH',
-  ORTHODONTICS: 'ORT',
+  FIKSNA_PROTETIKA: 'FIX',
+  SNEMNA_PROTETIKA: 'SNM',
+  IMPLANTOLOGIJA: 'IMP',
+  ESTETIKA: 'EST',
+  OSTALO: 'OST',
 };
 
 interface CsvRow {
@@ -96,34 +84,55 @@ function parseCategory(categoryStr: string): ProductCategory {
     return normalized as ProductCategory;
   }
 
-  // Common mappings
+  // Common mappings to new simplified categories
   const mappings: Record<string, ProductCategory> = {
-    'KRONA': ProductCategory.CROWN,
-    'KRONSKA': ProductCategory.CROWN,
-    'PREVLEKA': ProductCategory.CROWN,
-    'MOST': ProductCategory.BRIDGE,
-    'MOSTIČEK': ProductCategory.BRIDGE,
-    'ZALIVKA': ProductCategory.FILLING,
-    'IMPLANTAT': ProductCategory.IMPLANT,
-    'PROTEZA': ProductCategory.DENTURE,
-    'INLAY': ProductCategory.INLAY,
-    'ONLAY': ProductCategory.ONLAY,
-    'LUSKA': ProductCategory.VENEER,
-    'FASETA': ProductCategory.VENEER,
-    'OPORNICA': ProductCategory.SPLINT,
-    'ŠČITNIK': ProductCategory.SPLINT,
-    'PROVIZORIJ': ProductCategory.PROVISIONAL,
-    'ŠABLONA': ProductCategory.TEMPLATE,
-    'ŽLICA': ProductCategory.TEMPLATE,
-    'ABUTMENT': ProductCategory.ABUTMENT,
-    'STORITEV': ProductCategory.SERVICE,
-    'SERVIS': ProductCategory.SERVICE,
-    'REPARATURA': ProductCategory.REPAIR,
-    'POPRAVILO': ProductCategory.REPAIR,
-    'MODEL': ProductCategory.MODEL,
-    'ORTODONTIJA': ProductCategory.ORTHODONTICS,
-    'DRUGO': ProductCategory.OTHER,
-    'OSTALO': ProductCategory.OTHER,
+    // FIKSNA_PROTETIKA (Fixed Prosthetics)
+    'KRONA': ProductCategory.FIKSNA_PROTETIKA,
+    'CROWN': ProductCategory.FIKSNA_PROTETIKA,
+    'KRONSKA': ProductCategory.FIKSNA_PROTETIKA,
+    'PREVLEKA': ProductCategory.FIKSNA_PROTETIKA,
+    'MOST': ProductCategory.FIKSNA_PROTETIKA,
+    'BRIDGE': ProductCategory.FIKSNA_PROTETIKA,
+    'MOSTIČEK': ProductCategory.FIKSNA_PROTETIKA,
+    'ZALIVKA': ProductCategory.FIKSNA_PROTETIKA,
+    'FILLING': ProductCategory.FIKSNA_PROTETIKA,
+    'INLAY': ProductCategory.FIKSNA_PROTETIKA,
+    'ONLAY': ProductCategory.FIKSNA_PROTETIKA,
+    'PROVIZORIJ': ProductCategory.FIKSNA_PROTETIKA,
+    'PROVISIONAL': ProductCategory.FIKSNA_PROTETIKA,
+
+    // SNEMNA_PROTETIKA (Removable Prosthetics)
+    'PROTEZA': ProductCategory.SNEMNA_PROTETIKA,
+    'DENTURE': ProductCategory.SNEMNA_PROTETIKA,
+
+    // IMPLANTOLOGIJA (Implantology)
+    'IMPLANTAT': ProductCategory.IMPLANTOLOGIJA,
+    'IMPLANT': ProductCategory.IMPLANTOLOGIJA,
+    'ABUTMENT': ProductCategory.IMPLANTOLOGIJA,
+
+    // ESTETIKA (Aesthetics)
+    'LUSKA': ProductCategory.ESTETIKA,
+    'FASETA': ProductCategory.ESTETIKA,
+    'VENEER': ProductCategory.ESTETIKA,
+
+    // OSTALO (Other)
+    'OPORNICA': ProductCategory.OSTALO,
+    'ŠČITNIK': ProductCategory.OSTALO,
+    'SPLINT': ProductCategory.OSTALO,
+    'ŠABLONA': ProductCategory.OSTALO,
+    'ŽLICA': ProductCategory.OSTALO,
+    'TEMPLATE': ProductCategory.OSTALO,
+    'STORITEV': ProductCategory.OSTALO,
+    'SERVICE': ProductCategory.OSTALO,
+    'SERVIS': ProductCategory.OSTALO,
+    'REPARATURA': ProductCategory.OSTALO,
+    'REPAIR': ProductCategory.OSTALO,
+    'POPRAVILO': ProductCategory.OSTALO,
+    'MODEL': ProductCategory.OSTALO,
+    'ORTODONTIJA': ProductCategory.OSTALO,
+    'ORTHODONTICS': ProductCategory.OSTALO,
+    'DRUGO': ProductCategory.OSTALO,
+    'OTHER': ProductCategory.OSTALO,
   };
 
   for (const [key, value] of Object.entries(mappings)) {
@@ -132,7 +141,7 @@ function parseCategory(categoryStr: string): ProductCategory {
     }
   }
 
-  return ProductCategory.OTHER;
+  return ProductCategory.OSTALO;
 }
 
 /**

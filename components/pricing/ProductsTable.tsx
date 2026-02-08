@@ -100,7 +100,7 @@ export default function ProductsTable({
   const [bulkStatusDialogOpen, setBulkStatusDialogOpen] = useState(false);
   const [bulkCategoryDialogOpen, setBulkCategoryDialogOpen] = useState(false);
   const [bulkStatus, setBulkStatus] = useState<boolean>(true);
-  const [bulkCategory, setBulkCategory] = useState<ProductCategory>('CROWN');
+  const [bulkCategory, setBulkCategory] = useState<ProductCategory>('FIKSNA_PROTETIKA');
   const [bulkProcessing, setBulkProcessing] = useState(false);
 
   // Multi-select handlers

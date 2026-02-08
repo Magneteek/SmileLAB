@@ -29,24 +29,14 @@ import { Decimal } from '@prisma/client/runtime/library';
 // ============================================================================
 
 /**
- * Product category to 3-letter prefix mapping
+ * Product category to 3-letter prefix mapping (simplified categories)
  */
 const PRODUCT_CATEGORY_PREFIXES: Record<string, string> = {
-  CROWN: 'CRO',
-  BRIDGE: 'BRI',
-  FILLING: 'FIL',
-  IMPLANT: 'IMP',
-  DENTURE: 'DEN',
-  INLAY: 'INL',
-  ONLAY: 'ONL',
-  VENEER: 'VEN',
-  SPLINT: 'SPL',
-  PROVISIONAL: 'PRV',
-  TEMPLATE: 'TMP',
-  ABUTMENT: 'ABT',
-  SERVICE: 'SVC',
-  REPAIR: 'REP',
-  MODEL: 'MOD',
+  FIKSNA_PROTETIKA: 'FIX', // Fixed prosthetics
+  SNEMNA_PROTETIKA: 'SNM', // Removable prosthetics
+  IMPLANTOLOGIJA: 'IMP', // Implantology
+  ESTETIKA: 'EST', // Aesthetics
+  OSTALO: 'OST', // Other
 };
 
 /**

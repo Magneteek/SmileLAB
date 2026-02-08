@@ -19,7 +19,7 @@ export async function seedProducts2025() {
     {
       code: 'FP-001',
       name: 'akrilna funkcijska žlica',
-      category: ProductCategory.TEMPLATE,
+      category: ProductCategory.OSTALO,
       currentPrice: 20.00,
       unit: 'piece',
       active: true,
@@ -27,7 +27,7 @@ export async function seedProducts2025() {
     {
       code: 'FP-002',
       name: 'akrilna grizna šablona',
-      category: ProductCategory.TEMPLATE,
+      category: ProductCategory.OSTALO,
       currentPrice: 20.00,
       unit: 'piece',
       active: true,
@@ -35,7 +35,7 @@ export async function seedProducts2025() {
     {
       code: 'FP-003',
       name: 'Bredent polzilo + montaža za 1 element',
-      category: ProductCategory.SERVICE,
+      category: ProductCategory.OSTALO,
       currentPrice: 60.00,
       unit: 'piece',
       active: true,
@@ -43,7 +43,7 @@ export async function seedProducts2025() {
     {
       code: 'FP-004',
       name: 'frezanje ložev v pripravi za Wizil prot.',
-      category: ProductCategory.SERVICE,
+      category: ProductCategory.OSTALO,
       currentPrice: 20.00,
       unit: 'piece',
       active: true,
@@ -51,7 +51,7 @@ export async function seedProducts2025() {
     {
       code: 'FP-005',
       name: 'izdelava provizorija laboratorijsko, po zobu',
-      category: ProductCategory.PROVISIONAL,
+      category: ProductCategory.FIKSNA_PROTETIKA,
       currentPrice: 30.00,
       unit: 'tooth',
       active: true,
@@ -59,7 +59,7 @@ export async function seedProducts2025() {
     {
       code: 'FP-006',
       name: 'izdelava provizorija PMMA CAD-CAM, po zobu',
-      category: ProductCategory.PROVISIONAL,
+      category: ProductCategory.FIKSNA_PROTETIKA,
       currentPrice: 28.00,
       unit: 'tooth',
       active: true,
@@ -67,7 +67,7 @@ export async function seedProducts2025() {
     {
       code: 'FP-007',
       name: 'keramična faseta',
-      category: ProductCategory.VENEER,
+      category: ProductCategory.ESTETIKA,
       currentPrice: 120.00,
       unit: 'tooth',
       active: true,
@@ -75,7 +75,7 @@ export async function seedProducts2025() {
     {
       code: 'FP-008',
       name: 'keramični inlay (PRESS, E-MAX, GC)',
-      category: ProductCategory.INLAY,
+      category: ProductCategory.FIKSNA_PROTETIKA,
       currentPrice: 120.00,
       unit: 'tooth',
       active: true,
@@ -83,7 +83,7 @@ export async function seedProducts2025() {
     {
       code: 'FP-009',
       name: 'kovinsko keramična prevleka',
-      category: ProductCategory.CROWN,
+      category: ProductCategory.FIKSNA_PROTETIKA,
       currentPrice: 100.00,
       unit: 'tooth',
       active: true,
@@ -91,7 +91,7 @@ export async function seedProducts2025() {
     {
       code: 'FP-010',
       name: 'navosek, po zobu',
-      category: ProductCategory.SERVICE,
+      category: ProductCategory.OSTALO,
       currentPrice: 20.00,
       unit: 'tooth',
       active: true,
@@ -99,7 +99,7 @@ export async function seedProducts2025() {
     {
       code: 'FP-011',
       name: 'nočni ščitnik za bruksiste, mehka folija',
-      category: ProductCategory.SPLINT,
+      category: ProductCategory.OSTALO,
       currentPrice: 60.00,
       unit: 'piece',
       active: true,
@@ -107,7 +107,7 @@ export async function seedProducts2025() {
     {
       code: 'FP-012',
       name: 'omavčevanje v artikulator z obraznim lokom',
-      category: ProductCategory.SERVICE,
+      category: ProductCategory.OSTALO,
       currentPrice: 5.00,
       unit: 'service',
       active: true,
@@ -115,7 +115,7 @@ export async function seedProducts2025() {
     {
       code: 'FP-013',
       name: 'zirkonij monolit',
-      category: ProductCategory.CROWN,
+      category: ProductCategory.FIKSNA_PROTETIKA,
       currentPrice: 100.00,
       unit: 'tooth',
       active: true,
@@ -123,7 +123,7 @@ export async function seedProducts2025() {
     {
       code: 'FP-014',
       name: 'zirkonij monolit + plastenje (E-MAX)',
-      category: ProductCategory.CROWN,
+      category: ProductCategory.FIKSNA_PROTETIKA,
       currentPrice: 120.00,
       unit: 'tooth',
       active: true,
@@ -131,7 +131,7 @@ export async function seedProducts2025() {
     {
       code: 'FP-015',
       name: 'reparatura mostička',
-      category: ProductCategory.REPAIR,
+      category: ProductCategory.OSTALO,
       currentPrice: 20.00,
       unit: 'piece',
       active: true,
@@ -139,7 +139,7 @@ export async function seedProducts2025() {
     {
       code: 'FP-016',
       name: 'shulter keramika gingivalno',
-      category: ProductCategory.SERVICE,
+      category: ProductCategory.OSTALO,
       currentPrice: 10.00,
       unit: 'tooth',
       active: true,
@@ -147,7 +147,7 @@ export async function seedProducts2025() {
     {
       code: 'FP-017',
       name: 'športni / bruksistični ščitnik',
-      category: ProductCategory.SPLINT,
+      category: ProductCategory.OSTALO,
       currentPrice: 60.00,
       unit: 'piece',
       active: true,
@@ -155,7 +155,7 @@ export async function seedProducts2025() {
     {
       code: 'FP-018',
       name: 'žlica za beljenje',
-      category: ProductCategory.TEMPLATE,
+      category: ProductCategory.OSTALO,
       currentPrice: 60.00,
       unit: 'piece',
       active: true,
@@ -163,7 +163,7 @@ export async function seedProducts2025() {
     {
       code: 'FP-019',
       name: 'akrilna bruksistična trda opornica - Michigenska',
-      category: ProductCategory.SPLINT,
+      category: ProductCategory.OSTALO,
       currentPrice: 150.00,
       unit: 'piece',
       active: true,
@@ -171,7 +171,7 @@ export async function seedProducts2025() {
     {
       code: 'FP-020',
       name: 'izdelava študijskega modela',
-      category: ProductCategory.MODEL,
+      category: ProductCategory.OSTALO,
       currentPrice: 5.00,
       unit: 'piece',
       active: true,
@@ -179,7 +179,7 @@ export async function seedProducts2025() {
     {
       code: 'FP-021',
       name: 'hibridna keramika (prevleke,inlay,luske)',
-      category: ProductCategory.CROWN,
+      category: ProductCategory.FIKSNA_PROTETIKA,
       currentPrice: 90.00,
       unit: 'tooth',
       active: true,
@@ -191,7 +191,7 @@ export async function seedProducts2025() {
     {
       code: 'IM-001',
       name: 'akrilna žlica za implantate (za odtis implantata)',
-      category: ProductCategory.TEMPLATE,
+      category: ProductCategory.OSTALO,
       currentPrice: 20.00,
       unit: 'piece',
       active: true,
@@ -199,7 +199,7 @@ export async function seedProducts2025() {
     {
       code: 'IM-002',
       name: 'dodatek na abatmant (pri synconu) locator',
-      category: ProductCategory.ABUTMENT,
+      category: ProductCategory.IMPLANTOLOGIJA,
       currentPrice: 40.00,
       unit: 'piece',
       active: true,
@@ -207,7 +207,7 @@ export async function seedProducts2025() {
     {
       code: 'IM-003',
       name: 'gingivalna maska 1-3 zob',
-      category: ProductCategory.SERVICE,
+      category: ProductCategory.OSTALO,
       currentPrice: 10.00,
       unit: 'piece',
       active: true,
@@ -215,7 +215,7 @@ export async function seedProducts2025() {
     {
       code: 'IM-004',
       name: 'gingivalna maska 3-10 zob',
-      category: ProductCategory.SERVICE,
+      category: ProductCategory.OSTALO,
       currentPrice: 20.00,
       unit: 'piece',
       active: true,
@@ -223,7 +223,7 @@ export async function seedProducts2025() {
     {
       code: 'IM-005',
       name: 'kovinsko keramična prevleka na konfekcijskem abutmentu',
-      category: ProductCategory.IMPLANT,
+      category: ProductCategory.IMPLANTOLOGIJA,
       currentPrice: 120.00,
       unit: 'tooth',
       active: true,
@@ -231,7 +231,7 @@ export async function seedProducts2025() {
     {
       code: 'IM-006',
       name: 'prenosni fiksator iz akrilata - ključek',
-      category: ProductCategory.TEMPLATE,
+      category: ProductCategory.OSTALO,
       currentPrice: 20.00,
       unit: 'piece',
       active: true,
@@ -239,7 +239,7 @@ export async function seedProducts2025() {
     {
       code: 'IM-007',
       name: 'svetovalna ura (60min), pomoč v ordinaciji',
-      category: ProductCategory.SERVICE,
+      category: ProductCategory.OSTALO,
       currentPrice: 60.00,
       unit: 'hour',
       active: true,
@@ -247,7 +247,7 @@ export async function seedProducts2025() {
     {
       code: 'IM-008',
       name: 'šablona za načrtovanje implantata za rentgen - scan proteza',
-      category: ProductCategory.TEMPLATE,
+      category: ProductCategory.OSTALO,
       currentPrice: 150.00,
       unit: 'piece',
       active: true,
@@ -255,7 +255,7 @@ export async function seedProducts2025() {
     {
       code: 'IM-009',
       name: 'zirkon - monolit prevleka na abutmentu',
-      category: ProductCategory.IMPLANT,
+      category: ProductCategory.IMPLANTOLOGIJA,
       currentPrice: 100.00,
       unit: 'tooth',
       active: true,
@@ -263,7 +263,7 @@ export async function seedProducts2025() {
     {
       code: 'IM-010',
       name: 'implantološko podprta totalna proteza',
-      category: ProductCategory.DENTURE,
+      category: ProductCategory.SNEMNA_PROTETIKA,
       currentPrice: 250.00,
       unit: 'piece',
       active: true,
@@ -271,7 +271,7 @@ export async function seedProducts2025() {
     {
       code: 'IM-011',
       name: 'abutment individual. narejen CAD-CAM Atlantis.. (cena od €200 naprej)',
-      category: ProductCategory.ABUTMENT,
+      category: ProductCategory.IMPLANTOLOGIJA,
       currentPrice: 200.00,
       unit: 'piece',
       active: true,
@@ -279,7 +279,7 @@ export async function seedProducts2025() {
     {
       code: 'IM-012',
       name: 'dodatek na abutmant (izbira abumantov)',
-      category: ProductCategory.ABUTMENT,
+      category: ProductCategory.IMPLANTOLOGIJA,
       currentPrice: 20.00,
       unit: 'piece',
       active: true,
@@ -291,7 +291,7 @@ export async function seedProducts2025() {
     {
       code: 'SP-001',
       name: 'akrilna funkcijska žlica',
-      category: ProductCategory.TEMPLATE,
+      category: ProductCategory.OSTALO,
       currentPrice: 20.00,
       unit: 'piece',
       active: true,
@@ -299,7 +299,7 @@ export async function seedProducts2025() {
     {
       code: 'SP-002',
       name: 'faseta akrilna v Wizil protezi',
-      category: ProductCategory.VENEER,
+      category: ProductCategory.ESTETIKA,
       currentPrice: 30.00,
       unit: 'tooth',
       active: true,
@@ -307,7 +307,7 @@ export async function seedProducts2025() {
     {
       code: 'SP-003',
       name: 'grizni robnik na Wizil bazi',
-      category: ProductCategory.SERVICE,
+      category: ProductCategory.OSTALO,
       currentPrice: 5.00,
       unit: 'piece',
       active: true,
@@ -315,7 +315,7 @@ export async function seedProducts2025() {
     {
       code: 'SP-004',
       name: 'imediatna proteza',
-      category: ProductCategory.DENTURE,
+      category: ProductCategory.SNEMNA_PROTETIKA,
       currentPrice: 120.00,
       unit: 'piece',
       active: true,
@@ -323,7 +323,7 @@ export async function seedProducts2025() {
     {
       code: 'SP-005',
       name: 'izgotovitev Wizil proteze',
-      category: ProductCategory.DENTURE,
+      category: ProductCategory.SNEMNA_PROTETIKA,
       currentPrice: 170.00,
       unit: 'piece',
       active: true,
@@ -331,7 +331,7 @@ export async function seedProducts2025() {
     {
       code: 'SP-006',
       name: 'konus prevleka (primarna + sekundarna) + kovina',
-      category: ProductCategory.CROWN,
+      category: ProductCategory.FIKSNA_PROTETIKA,
       currentPrice: 200.00,
       unit: 'piece',
       active: true,
@@ -339,7 +339,7 @@ export async function seedProducts2025() {
     {
       code: 'SP-007',
       name: 'parcialna proteza s kovinskimi zaponami',
-      category: ProductCategory.DENTURE,
+      category: ProductCategory.SNEMNA_PROTETIKA,
       currentPrice: 160.00,
       unit: 'piece',
       active: true,
@@ -347,7 +347,7 @@ export async function seedProducts2025() {
     {
       code: 'SP-008',
       name: 'podložitev totalne proteze',
-      category: ProductCategory.SERVICE,
+      category: ProductCategory.OSTALO,
       currentPrice: 60.00,
       unit: 'piece',
       active: true,
@@ -355,7 +355,7 @@ export async function seedProducts2025() {
     {
       code: 'SP-009',
       name: 'podložitev Wizil proteze',
-      category: ProductCategory.SERVICE,
+      category: ProductCategory.OSTALO,
       currentPrice: 60.00,
       unit: 'piece',
       active: true,
@@ -363,7 +363,7 @@ export async function seedProducts2025() {
     {
       code: 'SP-010',
       name: 'reparatura proteze osnova, + vsak element 6 €',
-      category: ProductCategory.REPAIR,
+      category: ProductCategory.OSTALO,
       currentPrice: 40.00,
       unit: 'piece',
       active: true,
@@ -372,7 +372,7 @@ export async function seedProducts2025() {
     {
       code: 'SP-011',
       name: 'totalna proteza + kompozitni nadstandardni zobi doplačilo',
-      category: ProductCategory.DENTURE,
+      category: ProductCategory.SNEMNA_PROTETIKA,
       currentPrice: 180.00,
       unit: 'piece',
       active: true,
@@ -380,7 +380,7 @@ export async function seedProducts2025() {
     {
       code: 'SP-012',
       name: 'čiščenje in poliranje proteze',
-      category: ProductCategory.SERVICE,
+      category: ProductCategory.OSTALO,
       currentPrice: 20.00,
       unit: 'piece',
       active: true,
@@ -388,7 +388,7 @@ export async function seedProducts2025() {
     {
       code: 'SP-013',
       name: 'Wizil kovinska baza, enostavna',
-      category: ProductCategory.DENTURE,
+      category: ProductCategory.SNEMNA_PROTETIKA,
       currentPrice: 140.00,
       unit: 'piece',
       active: true,
@@ -396,7 +396,7 @@ export async function seedProducts2025() {
     {
       code: 'SP-014',
       name: 'Wizil kovinska baza, z lotanjem',
-      category: ProductCategory.DENTURE,
+      category: ProductCategory.SNEMNA_PROTETIKA,
       currentPrice: 150.00,
       unit: 'piece',
       active: true,
@@ -404,7 +404,7 @@ export async function seedProducts2025() {
     {
       code: 'SP-015',
       name: 'Wizil ogrodje za implantate - mrežica',
-      category: ProductCategory.DENTURE,
+      category: ProductCategory.SNEMNA_PROTETIKA,
       currentPrice: 120.00,
       unit: 'piece',
       active: true,
@@ -412,7 +412,7 @@ export async function seedProducts2025() {
     {
       code: 'SP-016',
       name: 'Wizil kovinska baza - printana 3D',
-      category: ProductCategory.DENTURE,
+      category: ProductCategory.SNEMNA_PROTETIKA,
       currentPrice: 150.00,
       unit: 'piece',
       active: true,
@@ -420,7 +420,7 @@ export async function seedProducts2025() {
     {
       code: 'SP-017',
       name: 'Valplast proteza',
-      category: ProductCategory.DENTURE,
+      category: ProductCategory.SNEMNA_PROTETIKA,
       currentPrice: 220.00,
       unit: 'piece',
       active: true,
@@ -428,7 +428,7 @@ export async function seedProducts2025() {
     {
       code: 'SP-018',
       name: 'izdelava provizorija na trdo folijo',
-      category: ProductCategory.PROVISIONAL,
+      category: ProductCategory.FIKSNA_PROTETIKA,
       currentPrice: 100.00,
       unit: 'piece',
       active: true,

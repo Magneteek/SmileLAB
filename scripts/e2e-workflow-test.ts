@@ -156,7 +156,7 @@ async function main() {
     const product = await prisma.product.findFirst({
       where: {
         active: true,
-        category: ProductCategory.CROWN
+        category: ProductCategory.FIKSNA_PROTETIKA
       }
     });
 
