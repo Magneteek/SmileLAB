@@ -22,31 +22,31 @@ const prisma = new PrismaClient();
 
 const LAB_CONFIG = {
   // Laboratory Information
-  laboratoryName: 'Your Lab Name d.o.o.',
-  laboratoryId: '', // Official laboratory registration ID
+  laboratoryName: 'DENTRO, zobozdravstvene storitve in svetovanje, d.o.o.',
+  laboratoryId: '55230', // Official laboratory registration ID
   laboratoryLicense: '', // License number
-  registrationNumber: '', // Business registration number (Matična številka)
-  taxId: '', // Tax ID (Davčna številka) - format: SIXXXXXXXX
-  technicianIdNumber: '', // Technician ID/License number
+  registrationNumber: '6567452000', // Business registration number (Matična številka)
+  taxId: 'SI57425132', // Tax ID (Davčna številka)
+  technicianIdNumber: '42555', // Technician ID/License number
 
   // Laboratory Address
-  street: 'Your Street Address',
-  city: 'Your City',
-  postalCode: '0000',
+  street: 'Podreber 14D',
+  city: 'Polhov Gradec',
+  postalCode: '1355',
   country: 'Slovenia',
   region: '', // Optional: region/county
 
   // Contact Information
-  phone: '+386 X XXX XXXX',
-  email: 'info@yourlab.si',
-  website: 'https://www.yourlab.si',
+  phone: '041 706 148',
+  email: 'info@dentro.si',
+  website: 'https://dentro.si',
 
   // Responsible Person (for EU MDR Annex XIII)
-  responsiblePersonName: 'Your Name',
-  responsiblePersonTitle: 'Quality Manager', // e.g., "Kvalitetni vodja" / "Quality Manager"
-  responsiblePersonLicense: '', // Professional license number
-  responsiblePersonEmail: 'responsible@yourlab.si',
-  responsiblePersonPhone: '+386 X XXX XXXX',
+  responsiblePersonName: 'Rommy Balzan Verbič',
+  responsiblePersonTitle: 'Odgovorni zobni tehnik', // Responsible Dental Technician
+  responsiblePersonLicense: '42555', // Professional license number
+  responsiblePersonEmail: 'info@dentro.si',
+  responsiblePersonPhone: '041 706 148',
 
   // Digital Signature & Logo (file paths - upload these files first)
   signaturePath: null, // e.g., '/uploads/signature.png'
@@ -55,44 +55,39 @@ const LAB_CONFIG = {
   // Invoice Settings
   defaultPaymentTerms: 30, // Days
   defaultTaxRate: 22.00, // Slovenia VAT 22%
-  invoiceLegalTerms: `Payment terms: 30 days from invoice date.
-Late payments subject to statutory interest.
-Goods remain property of laboratory until full payment received.`
+  invoiceLegalTerms: `Rok plačila: 30 dni od datuma računa.
+Zamudne obresti po zakonski obrestni meri.
+Blago ostane last laboratorija do polnega plačila.
+
+DENTRO, zobozdravstvene storitve in svetovanje, d.o.o.
+Podreber 14D, 1355 Polhov Gradec
+Davčna številka: SI57425132
+Matična št: 6567452000`
 };
 
 // Bank Accounts (can have multiple)
 const BANK_ACCOUNTS = [
   {
-    bankName: 'NLB d.d.',
-    iban: 'SI56 XXXX XXXX XXXX XXX', // Full IBAN
-    swiftBic: 'LJBASI2X', // SWIFT/BIC code
+    bankName: 'BKS Bank',
+    iban: 'SI56 3500 1000 2788 759', // Full IBAN
+    swiftBic: 'BFKKSI22', // SWIFT/BIC code for BKS Bank Slovenia
     accountType: 'PRIMARY', // PRIMARY, SECONDARY, EUR, USD, etc.
     isPrimary: true, // Mark as primary account for invoices
     displayOrder: 1,
     notes: 'Main business account'
-  },
-  // Add more bank accounts if needed
-  // {
-  //   bankName: 'UniCredit Banka Slovenija d.d.',
-  //   iban: 'SI56 XXXX XXXX XXXX XXX',
-  //   swiftBic: 'BACXSI22',
-  //   accountType: 'SECONDARY',
-  //   isPrimary: false,
-  //   displayOrder: 2,
-  //   notes: 'Secondary account'
-  // }
+  }
 ];
 
 // System Configuration (key-value pairs)
 const SYSTEM_CONFIG = [
   {
     key: 'company_slogan',
-    value: 'Your company slogan here',
+    value: 'Zobozdravstvene storitve in svetovanje',
     description: 'Company slogan or tagline'
   },
   {
     key: 'invoice_footer_text',
-    value: 'Thank you for your business!',
+    value: 'Hvala za vaše zaupanje! / Thank you for your trust!',
     description: 'Text displayed at bottom of invoices'
   },
   {
@@ -100,7 +95,21 @@ const SYSTEM_CONFIG = [
     value: 'EUR',
     description: 'Default currency for invoices'
   },
-  // Add more custom settings as needed
+  {
+    key: 'lab_code',
+    value: '55230',
+    description: 'Laboratory identification code'
+  },
+  {
+    key: 'technician_code',
+    value: '42555',
+    description: 'Responsible technician identification code'
+  },
+  {
+    key: 'company_representative',
+    value: 'Ema Balzan',
+    description: 'Company legal representative'
+  }
 ];
 
 // ============================================================================
