@@ -61,15 +61,15 @@ model Dentist {
   clinicName    String
   dentistName   String
   licenseNumber String? // Professional license number
-  email         String
-  phone         String
-  address       String
+  email         String? // Contact email (optional)
+  phone         String? // Contact phone (optional)
+  address       String? // Contact address (optional)
   city          String
   postalCode    String
   country       String  @default("Slovenia")
 
   // Business identification
-  taxNumber            String? // VAT/Tax number (e.g., SI12345678)
+  taxNumber            String? // Tax ID number (flexible format - can be VAT number, VAT-free tax ID, etc.)
   businessRegistration String? // Company registration number
 
   // Business fields

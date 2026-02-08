@@ -42,12 +42,12 @@ const DENTISTS: DentistData[] = [
     clinicName: 'Zasebna zobna ordinacija dr. Gavran Renata',
     dentistName: 'Gavran Renata dr. dent. med.',
     email: 'dr.renata.gavran@gmail.com',
-    phone: '', // Add later if needed
+    phone: '', // Optional - add if available
     address: 'Linhartova cesta 51',
     city: 'Ljubljana',
     postalCode: '1000',
     country: 'Slovenia',
-    taxNumber: 'SI58461175',
+    taxNumber: '58461175', // VAT-free tax ID (numbers only) or with prefix if VAT registered
     paymentTerms: 30,
     requiresInvoicing: true
   },
@@ -60,7 +60,7 @@ const DENTISTS: DentistData[] = [
     city: 'Polhov Gradec',
     postalCode: '1355',
     country: 'Slovenia',
-    taxNumber: 'SI61349607',
+    taxNumber: '61349607',
     paymentTerms: 30,
     requiresInvoicing: true
   },
@@ -73,7 +73,7 @@ const DENTISTS: DentistData[] = [
     city: 'Šempeter pri Gorici',
     postalCode: '5290',
     country: 'Slovenia',
-    taxNumber: 'SI99309912',
+    taxNumber: '99309912',
     paymentTerms: 30,
     requiresInvoicing: true
   },
@@ -86,7 +86,7 @@ const DENTISTS: DentistData[] = [
     city: 'Ljubljana',
     postalCode: '1000',
     country: 'Slovenia',
-    taxNumber: 'SI74971905',
+    taxNumber: '74971905',
     paymentTerms: 30,
     requiresInvoicing: true
   },
@@ -99,7 +99,7 @@ const DENTISTS: DentistData[] = [
     city: 'Horjul',
     postalCode: '1354',
     country: 'Slovenia',
-    taxNumber: 'SI21746028',
+    taxNumber: '21746028',
     paymentTerms: 30,
     requiresInvoicing: true
   },
@@ -112,20 +112,20 @@ const DENTISTS: DentistData[] = [
     city: 'Domžale',
     postalCode: '1230',
     country: 'Slovenia',
-    taxNumber: 'SI49988859',
+    taxNumber: '49988859',
     paymentTerms: 30,
     requiresInvoicing: true
   },
   {
     clinicName: 'Studio lepote Ubeauty',
     dentistName: 'Urša Trnovec s.p.',
-    email: 'ursa.trnovec@ubeauty.si', // Placeholder - no email in 2026!
+    email: 'ursa.trnovec@ubeauty.si',
     phone: '',
     address: 'Srednja vas pri Polhovem Gradcu 4',
     city: 'Polhov Gradec',
     postalCode: '1355',
     country: 'Slovenia',
-    taxNumber: 'SI43542492',
+    taxNumber: '43542492',
     paymentTerms: 30,
     requiresInvoicing: true,
     notes: 'Office rental client - beauty studio'
