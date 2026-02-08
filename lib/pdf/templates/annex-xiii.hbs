@@ -515,10 +515,18 @@
             <td>{{dentist.address}}, {{dentist.postalCode}} {{dentist.city}}</td>
           </tr>
           {{/if}}
+          {{#if dentist.email}}
           <tr>
-            <td>{{t.dentistEmail}} / {{t.dentistPhone}}</td>
-            <td>{{dentist.email}} / {{dentist.phone}}</td>
+            <td>{{t.dentistEmail}}</td>
+            <td>{{dentist.email}}</td>
           </tr>
+          {{/if}}
+          {{#if dentist.phone}}
+          <tr>
+            <td>{{t.dentistPhone}}</td>
+            <td>{{dentist.phone}}</td>
+          </tr>
+          {{/if}}
         </table>
       </section>
     </div>
