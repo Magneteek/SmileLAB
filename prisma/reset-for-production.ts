@@ -29,6 +29,22 @@ import { PrismaClient } from '@prisma/client';
 
 const prisma = new PrismaClient();
 
+// Helper function to safely delete from tables (handles missing tables)
+async function safeDelete(tableName: string, deleteFn: () => Promise<any>): Promise<number> {
+  try {
+    const result = await deleteFn();
+    const count = result.count || 0;
+    console.log(`   ✅ Deleted ${count} ${tableName}`);
+    return count;
+  } catch (error: any) {
+    if (error.code === 'P2021') {
+      console.log(`   ⚠️  Skipped ${tableName} (table doesn't exist)`);
+      return 0;
+    }
+    throw error;
+  }
+}
+
 async function resetForProduction() {
   console.log('🚀 Starting production database reset...\n');
 
@@ -37,76 +53,58 @@ async function resetForProduction() {
     console.log('📋 Step 1: Deleting transactional data...');
 
     // Delete SOP acknowledgments first
-    const sopAcks = await prisma.sOPAcknowledgment.deleteMany({});
-    console.log(`   ✅ Deleted ${sopAcks.count} SOP acknowledgments`);
+    await safeDelete('SOP acknowledgments', () => prisma.sOPAcknowledgment.deleteMany({}));
 
     // Delete SOPs
-    const sops = await prisma.sOP.deleteMany({});
-    console.log(`   ✅ Deleted ${sops.count} SOPs`);
+    await safeDelete('SOPs', () => prisma.sOP.deleteMany({}));
 
     // Delete email logs
-    const emails = await prisma.emailLog.deleteMany({});
-    console.log(`   ✅ Deleted ${emails.count} email logs`);
+    await safeDelete('email logs', () => prisma.emailLog.deleteMany({}));
 
     // Delete invoice line items
-    const lineItems = await prisma.invoiceLineItem.deleteMany({});
-    console.log(`   ✅ Deleted ${lineItems.count} invoice line items`);
+    await safeDelete('invoice line items', () => prisma.invoiceLineItem.deleteMany({}));
 
     // Delete invoices
-    const invoices = await prisma.invoice.deleteMany({});
-    console.log(`   ✅ Deleted ${invoices.count} invoices`);
+    const invoices = await safeDelete('invoices', () => prisma.invoice.deleteMany({}));
 
     // Delete documents
-    const docs = await prisma.document.deleteMany({});
-    console.log(`   ✅ Deleted ${docs.count} documents`);
+    const docs = await safeDelete('documents', () => prisma.document.deleteMany({}));
 
     // Delete QC records
-    const qcs = await prisma.qualityControl.deleteMany({});
-    console.log(`   ✅ Deleted ${qcs.count} quality control records`);
+    await safeDelete('quality control records', () => prisma.qualityControl.deleteMany({}));
 
     // Delete worksheet-material junction table
-    const wsMaterials = await prisma.worksheetMaterial.deleteMany({});
-    console.log(`   ✅ Deleted ${wsMaterials.count} worksheet-material associations`);
+    await safeDelete('worksheet-material associations', () => prisma.worksheetMaterial.deleteMany({}));
 
     // Delete worksheet-product-material junction table
-    const wsProductMaterials = await prisma.worksheetProductMaterial.deleteMany({});
-    console.log(`   ✅ Deleted ${wsProductMaterials.count} worksheet-product-material associations`);
+    await safeDelete('worksheet-product-material associations', () => prisma.worksheetProductMaterial.deleteMany({}));
 
     // Delete worksheet products
-    const wsProducts = await prisma.worksheetProduct.deleteMany({});
-    console.log(`   ✅ Deleted ${wsProducts.count} worksheet products`);
+    await safeDelete('worksheet products', () => prisma.worksheetProduct.deleteMany({}));
 
     // Delete worksheet teeth
-    const wsTeeth = await prisma.worksheetTooth.deleteMany({});
-    console.log(`   ✅ Deleted ${wsTeeth.count} worksheet teeth selections`);
+    await safeDelete('worksheet teeth selections', () => prisma.worksheetTooth.deleteMany({}));
 
     // Delete worksheets
-    const worksheets = await prisma.workSheet.deleteMany({});
-    console.log(`   ✅ Deleted ${worksheets.count} worksheets`);
+    const worksheets = await safeDelete('worksheets', () => prisma.workSheet.deleteMany({}));
 
     // Delete orders
-    const orders = await prisma.order.deleteMany({});
-    console.log(`   ✅ Deleted ${orders.count} orders`);
+    const orders = await safeDelete('orders', () => prisma.order.deleteMany({}));
 
     // Delete material lots (inventory)
-    const lots = await prisma.materialLot.deleteMany({});
-    console.log(`   ✅ Deleted ${lots.count} material lots (inventory)`);
+    const lots = await safeDelete('material lots (inventory)', () => prisma.materialLot.deleteMany({}));
 
     // Delete patients
-    const patients = await prisma.patient.deleteMany({});
-    console.log(`   ✅ Deleted ${patients.count} patients`);
+    await safeDelete('patients', () => prisma.patient.deleteMany({}));
 
     // Delete dentists
-    const dentists = await prisma.dentist.deleteMany({});
-    console.log(`   ✅ Deleted ${dentists.count} dentists`);
+    const dentists = await safeDelete('dentists', () => prisma.dentist.deleteMany({}));
 
     // Delete audit logs
-    const audits = await prisma.auditLog.deleteMany({});
-    console.log(`   ✅ Deleted ${audits.count} audit log entries`);
+    await safeDelete('audit log entries', () => prisma.auditLog.deleteMany({}));
 
     // Delete password resets
-    const passwordResets = await prisma.passwordReset.deleteMany({});
-    console.log(`   ✅ Deleted ${passwordResets.count} password reset tokens`);
+    await safeDelete('password reset tokens', () => prisma.passwordReset.deleteMany({}));
 
     console.log('\n✅ Step 1 complete: All transactional data deleted\n');
 
@@ -192,16 +190,12 @@ async function resetForProduction() {
     console.log(`   • ${systemConfigCount} System settings\n`);
 
     console.log('🗑️  DELETED DATA:');
-    console.log(`   • ${orders.count} Orders`);
-    console.log(`   • ${worksheets.count} Worksheets`);
-    console.log(`   • ${invoices.count} Invoices`);
-    console.log(`   • ${dentists.count} Dentists`);
-    console.log(`   • ${patients.count} Patients`);
-    console.log(`   • ${docs.count} Documents`);
-    console.log(`   • ${lots.count} Material lots (inventory)`);
-    console.log(`   • ${qcs.count} QC records`);
-    console.log(`   • ${emails.count} Email logs`);
-    console.log(`   • ${audits.count} Audit logs\n`);
+    console.log(`   • ${orders} Orders`);
+    console.log(`   • ${worksheets} Worksheets`);
+    console.log(`   • ${invoices} Invoices`);
+    console.log(`   • ${dentists} Dentists`);
+    console.log(`   • ${docs} Documents`);
+    console.log(`   • ${lots} Material lots (inventory)\n`);
 
     console.log('🔢 RESET SEQUENCES:');
     console.log('   • Next order: 001');
