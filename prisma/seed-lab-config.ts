@@ -26,7 +26,7 @@ const LAB_CONFIG = {
   laboratoryId: '55230', // Official laboratory registration ID
   laboratoryLicense: '', // License number
   registrationNumber: '6567452000', // Business registration number (Matična številka)
-  taxId: 'SI57425132', // Tax ID (Davčna številka)
+  taxId: '57425132', // Tax ID (Davčna številka) - numbers only, VAT-free
   technicianIdNumber: '42555', // Technician ID/License number
 
   // Laboratory Address

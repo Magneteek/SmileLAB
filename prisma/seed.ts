@@ -472,7 +472,7 @@ async function main() {
       laboratoryId: 'SI-LAB-2024-001',
       laboratoryLicense: 'ZT-SI-12345',
       registrationNumber: '1234567000',
-      taxId: 'SI12345678',
+      taxId: '12345678', // Tax ID without SI prefix (VAT-free)
       technicianIdNumber: 'ZT-12345',
 
       // Address
