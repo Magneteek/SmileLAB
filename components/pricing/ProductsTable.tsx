@@ -501,21 +501,11 @@ export default function ProductsTable({
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="CROWN">{t('categoryCROWN')}</SelectItem>
-                  <SelectItem value="BRIDGE">{t('categoryBRIDGE')}</SelectItem>
-                  <SelectItem value="FILLING">{t('categoryFILLING')}</SelectItem>
-                  <SelectItem value="IMPLANT">{t('categoryIMPLANT')}</SelectItem>
-                  <SelectItem value="DENTURE">{t('categoryDENTURE')}</SelectItem>
-                  <SelectItem value="INLAY">{t('categoryINLAY')}</SelectItem>
-                  <SelectItem value="ONLAY">{t('categoryONLAY')}</SelectItem>
-                  <SelectItem value="VENEER">{t('categoryVENEER')}</SelectItem>
-                  <SelectItem value="SPLINT">{t('categorySPLINT')}</SelectItem>
-                  <SelectItem value="PROVISIONAL">{t('categoryPROVISIONAL')}</SelectItem>
-                  <SelectItem value="TEMPLATE">{t('categoryTEMPLATE')}</SelectItem>
-                  <SelectItem value="ABUTMENT">{t('categoryABUTMENT')}</SelectItem>
-                  <SelectItem value="SERVICE">{t('categorySERVICE')}</SelectItem>
-                  <SelectItem value="REPAIR">{t('categoryREPAIR')}</SelectItem>
-                  <SelectItem value="MODEL">{t('categoryMODEL')}</SelectItem>
+                  <SelectItem value="FIKSNA_PROTETIKA">{t('categoryFIKSNA_PROTETIKA')}</SelectItem>
+                  <SelectItem value="SNEMNA_PROTETIKA">{t('categorySNEMNA_PROTETIKA')}</SelectItem>
+                  <SelectItem value="IMPLANTOLOGIJA">{t('categoryIMPLANTOLOGIJA')}</SelectItem>
+                  <SelectItem value="ESTETIKA">{t('categoryESTETIKA')}</SelectItem>
+                  <SelectItem value="OSTALO">{t('categoryOSTALO')}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
