@@ -182,18 +182,20 @@ export async function createDentist(
   data: CreateDentistDto,
   userId: string
 ): Promise<Dentist> {
-  // Validate email uniqueness
-  const existingDentist = await prisma.dentist.findFirst({
-    where: {
-      email: data.email.toLowerCase().trim(),
-      deletedAt: null,
-    },
-  });
+  // Validate email uniqueness (only if email provided)
+  if (data.email) {
+    const existingDentist = await prisma.dentist.findFirst({
+      where: {
+        email: data.email.toLowerCase().trim(),
+        deletedAt: null,
+      },
+    });
 
-  if (existingDentist) {
-    throw new Error(
-      `A dentist with email ${data.email} already exists: ${existingDentist.clinicName}`
-    );
+    if (existingDentist) {
+      throw new Error(
+        `A dentist with email ${data.email} already exists: ${existingDentist.clinicName}`
+      );
+    }
   }
 
   const dentist = await prisma.$transaction(async (tx) => {
@@ -203,9 +205,9 @@ export async function createDentist(
         clinicName: data.clinicName.trim(),
         dentistName: data.dentistName.trim(),
         licenseNumber: data.licenseNumber?.trim() || null,
-        email: data.email.toLowerCase().trim(),
-        phone: data.phone.trim(),
-        address: data.address.trim(),
+        email: data.email?.toLowerCase().trim() || null,
+        phone: data.phone?.trim() || null,
+        address: data.address?.trim() || null,
         city: data.city.trim(),
         postalCode: data.postalCode.trim(),
         country: data.country?.trim() || 'Slovenia',
@@ -295,15 +297,15 @@ export async function updateDentist(
     }
 
     if (data.email !== undefined) {
-      updateData.email = data.email.toLowerCase().trim();
+      updateData.email = data.email ? data.email.toLowerCase().trim() : null;
     }
 
     if (data.phone !== undefined) {
-      updateData.phone = data.phone.trim();
+      updateData.phone = data.phone ? data.phone.trim() : null;
     }
 
     if (data.address !== undefined) {
-      updateData.address = data.address.trim();
+      updateData.address = data.address ? data.address.trim() : null;
     }
 
     if (data.city !== undefined) {

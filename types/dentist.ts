@@ -15,9 +15,9 @@ export interface CreateDentistDto {
   clinicName: string;
   dentistName: string;
   licenseNumber?: string;
-  email: string;
-  phone: string;
-  address: string;
+  email?: string; // Optional contact info
+  phone?: string; // Optional contact info
+  address?: string; // Optional contact info
   city: string;
   postalCode: string;
   country?: string;
@@ -119,7 +119,7 @@ export interface SimpleDentistDto {
   id: string;
   clinicName: string;
   dentistName: string;
-  email: string;
+  email: string | null; // Nullable since email is optional
   paymentTerms: number;
 }
 
