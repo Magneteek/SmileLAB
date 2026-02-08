@@ -55,14 +55,9 @@ const LAB_CONFIG = {
   // Invoice Settings
   defaultPaymentTerms: 30, // Days
   defaultTaxRate: 22.00, // Slovenia VAT 22%
-  invoiceLegalTerms: `Rok plačila: 30 dni od datuma računa.
-Zamudne obresti po zakonski obrestni meri.
-Blago ostane last laboratorija do polnega plačila.
-
-DENTRO, zobozdravstvene storitve in svetovanje, d.o.o.
-Podreber 14D, 1355 Polhov Gradec
-Davčna številka: SI57425132
-Matična št: 6567452000`
+  invoiceLegalTerms: `Payment terms: 30 days from invoice date.
+Late payments subject to statutory interest.
+Goods remain property of laboratory until full payment received.`
 };
 
 // Bank Accounts (can have multiple)
