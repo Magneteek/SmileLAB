@@ -275,23 +275,11 @@ model WorksheetTooth {
 // ============================================================================
 
 enum ProductCategory {
-  CROWN // Prevleke (kovinsko keramične, zirkonij, hibridne)
-  BRIDGE // Mostički
-  FILLING // Polnila
-  IMPLANT // Implantološke komponente (abutments, etc)
-  DENTURE // Proteze (totalne, parcialne, Wizil, Valplast)
-  INLAY // Inlayi in onlayi
-  ONLAY // Onlayi
-  VENEER // Fasete (keramične, akrilne)
-  SPLINT // Ščitniki (bruksistični, športni, nočni)
-  PROVISIONAL // Provizoriji (začasne prevleke)
-  TEMPLATE // Šablone (kirurške, beljenje, načrtovanje)
-  ABUTMENT // Nastavki za implantate
-  SERVICE // Storitve (svetovanje, montaža, frezanje)
-  REPAIR // Reparature
-  MODEL // Modeli (študijski, delovni)
-  ORTHODONTICS // Ortodontija
-  OTHER // Drugo
+  FIKSNA_PROTETIKA // Fixed prosthetics (prevleke, mostički, inlayi, fasete)
+  SNEMNA_PROTETIKA // Removable prosthetics (proteze, Wizil, Valplast)
+  IMPLANTOLOGIJA // Implantology (abutmenti, prevleke na implantih)
+  ESTETIKA // Aesthetics (beljenje, estetske prevleke, fasete)
+  OSTALO // Other (reparature, modeli, ščitniki, storitve)
 }
 
 model Product {
