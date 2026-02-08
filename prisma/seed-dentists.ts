@@ -129,6 +129,35 @@ const DENTISTS: DentistData[] = [
     paymentTerms: 30,
     requiresInvoicing: true,
     notes: 'Office rental client - beauty studio'
+  },
+  // Internal dentists - no invoicing required
+  {
+    clinicName: 'Hiša Lepega Nasmeha PG - Dentro d.o.o.',
+    dentistName: 'Sara Vivoda dr.dent.med.',
+    email: 'sara.vivoda@dentro.si',
+    phone: '041 706 148',
+    address: 'Podrebed 14D',
+    city: 'Polhov Gradec',
+    postalCode: '1355',
+    country: 'Slovenia',
+    taxNumber: '57425132',
+    paymentTerms: 0, // Internal work - no payment terms needed
+    requiresInvoicing: false,
+    notes: 'Internal dentist - no invoicing required'
+  },
+  {
+    clinicName: 'Hiša Lepega Nasmeha PG - Dentro d.o.o.',
+    dentistName: 'Primož Gregorčič dr.dent.med.',
+    email: 'primoz.gregorcic@dentro.si',
+    phone: '041 706 148',
+    address: 'Podrebed 14D',
+    city: 'Polhov Gradec',
+    postalCode: '1355',
+    country: 'Slovenia',
+    taxNumber: '57425132',
+    paymentTerms: 0, // Internal work - no payment terms needed
+    requiresInvoicing: false,
+    notes: 'Internal dentist - no invoicing required'
   }
 ];
 
