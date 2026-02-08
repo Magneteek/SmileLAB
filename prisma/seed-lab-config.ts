@@ -55,9 +55,13 @@ const LAB_CONFIG = {
   // Invoice Settings
   defaultPaymentTerms: 30, // Days
   defaultTaxRate: 22.00, // Slovenia VAT 22%
-  invoiceLegalTerms: `Payment terms: 30 days from invoice date.
-Late payments subject to statutory interest.
-Goods remain property of laboratory until full payment received.`
+  invoiceLegalTerms: `Znesek računa plačajte v navedenem roku sicer bomo zaračunali zakonske zamudne obresti.
+
+V skladu s prvim odstavkom 94.člena z DDV-1 opravljam dejavnost oproščeno obračunavanja DDV.
+
+Izjavljam in prevzemam vso odgovornost za skladnost izdelka(ov) z bistvenimi zahtevami Pravilnika o medicinskih pripomočkih (Ur. l. RS št. 71/03).
+
+Obveznosti za pogojnih zavez (UL) R.S. št 54/2021) ter Uredbe (UE) R.S. št 2017/745 o medicinskih pripomočkih.`
 };
 
 // Bank Accounts (can have multiple)
