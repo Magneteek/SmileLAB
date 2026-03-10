@@ -18,7 +18,7 @@ import { WorksheetForm } from '@/src/components/worksheets/WorksheetForm';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { AlertCircle } from 'lucide-react';
 import { useTranslations } from 'next-intl';
-import type { WorksheetWithRelations } from '@/src/types/worksheet';
+
 
 export default function EditWorksheetPage() {
   const router = useRouter();
@@ -26,7 +26,7 @@ export default function EditWorksheetPage() {
   const worksheetId = params.id as string;
   const t = useTranslations();
 
-  const [worksheet, setWorksheet] = useState<WorksheetWithRelations | null>(null);
+  const [worksheet, setWorksheet] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 

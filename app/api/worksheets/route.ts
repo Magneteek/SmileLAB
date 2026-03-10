@@ -5,27 +5,12 @@
  * POST /api/worksheets - Create new worksheet from order
  */
 
-import { NextRequest } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
-import { requireAuth, requireRole } from '@/lib/api/auth-middleware';
-import { validateRequestBody, parsePaginationParams } from '@/lib/api/validation';
-import {
-  successResponse,
-  handleApiError,
-} from '@/lib/api/responses';
-import {
-  getWorksheets,
-  createWorksheetFromOrder,
-} from '@/src/lib/services/worksheet-service';
-import { WorksheetStatus } from '@/src/types/worksheet';
+import { getServerSession } from 'next-auth';
+import { authOptions } from '@/lib/auth';
+import { prisma } from '@/lib/prisma';
 
-// ============================================================================
-// VALIDATION SCHEMAS
-// ============================================================================
-
-/**
- * Schema for creating a new worksheet
- */
 const createWorksheetSchema = z.object({
   orderId: z.string().min(1, 'Order ID is required'),
   deviceDescription: z.string().optional(),
@@ -37,63 +22,53 @@ const createWorksheetSchema = z.object({
 // GET /api/worksheets
 // ============================================================================
 
-/**
- * GET /api/worksheets
- * List worksheets with filters and pagination
- *
- * Query params:
- * - status: WorksheetStatus (single or comma-separated)
- * - dentistId: string
- * - patientId: string
- * - dateFrom: ISO date string
- * - dateTo: ISO date string
- * - search: string (worksheet number, patient name, etc.)
- * - page: number (default: 1)
- * - limit: number (default: 20)
- * - sortBy: string (default: 'createdAt')
- * - sortOrder: 'asc' | 'desc' (default: 'desc')
- */
 export async function GET(request: NextRequest) {
   try {
-    // Check authentication
-    await requireAuth();
-
-    // Parse query parameters
-    const searchParams = request.nextUrl.searchParams;
-    const pagination = parsePaginationParams(searchParams);
-
-    // Parse status (can be single or comma-separated)
-    let status: WorksheetStatus | WorksheetStatus[] | undefined;
-    const statusParam = searchParams.get('status');
-    if (statusParam) {
-      const statusArray = statusParam.split(',') as WorksheetStatus[];
-      status = statusArray.length === 1 ? statusArray[0] : statusArray;
+    const session = await getServerSession(authOptions);
+    if (!session) {
+      return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
     }
 
-    // Parse date filters
-    const dateFrom = searchParams.get('dateFrom')
-      ? new Date(searchParams.get('dateFrom')!)
-      : undefined;
-    const dateTo = searchParams.get('dateTo')
-      ? new Date(searchParams.get('dateTo')!)
-      : undefined;
+    const searchParams = request.nextUrl.searchParams;
+    const page = Math.max(1, parseInt(searchParams.get('page') || '1', 10));
+    const limit = Math.min(100, Math.max(1, parseInt(searchParams.get('limit') || '20', 10)));
+    const skip = (page - 1) * limit;
 
-    // Build filters
-    const filters = {
-      status,
-      dentistId: searchParams.get('dentistId') || undefined,
-      patientId: searchParams.get('patientId') || undefined,
-      dateFrom,
-      dateTo,
-      search: searchParams.get('search') || undefined,
-    };
+    const statusParam = searchParams.get('status');
+    const statusFilter = statusParam ? statusParam.split(',') : undefined;
 
-    // Fetch worksheets
-    const result = await getWorksheets(filters, pagination);
+    const where: any = { deletedAt: null };
+    if (statusFilter) where.status = { in: statusFilter };
+    if (searchParams.get('dentistId')) where.dentistId = searchParams.get('dentistId');
+    if (searchParams.get('search')) {
+      where.OR = [
+        { worksheetNumber: { contains: searchParams.get('search'), mode: 'insensitive' } },
+        { patientName: { contains: searchParams.get('search'), mode: 'insensitive' } },
+      ];
+    }
 
-    return successResponse(result);
+    const [total, worksheets] = await Promise.all([
+      prisma.workSheet.count({ where }),
+      prisma.workSheet.findMany({
+        where,
+        skip,
+        take: limit,
+        orderBy: { createdAt: 'desc' },
+        include: {
+          order: { select: { id: true, orderNumber: true, dueDate: true } },
+          dentist: { select: { id: true, clinicName: true, dentistName: true } },
+          products: { include: { product: true }, take: 3 },
+        },
+      }),
+    ]);
+
+    return NextResponse.json({
+      success: true,
+      data: { worksheets, total, page, limit, totalPages: Math.ceil(total / limit) },
+    });
   } catch (error) {
-    return handleApiError(error);
+    console.error('GET /api/worksheets error:', error);
+    return NextResponse.json({ success: false, error: 'Failed to fetch worksheets' }, { status: 500 });
   }
 }
 
@@ -101,37 +76,107 @@ export async function GET(request: NextRequest) {
 // POST /api/worksheets
 // ============================================================================
 
-/**
- * POST /api/worksheets
- * Create new worksheet from an order
- *
- * Required permissions: ADMIN or TECHNICIAN
- *
- * Request body:
- * {
- *   orderId: string,
- *   deviceDescription?: string,
- *   intendedUse?: string,
- *   technicalNotes?: string
- * }
- */
 export async function POST(request: NextRequest) {
   try {
-    // Check authentication and permissions
-    const session = await requireRole(['ADMIN', 'TECHNICIAN']);
+    const session = await getServerSession(authOptions);
+    if (!session) {
+      return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
+    }
+    if (!['ADMIN', 'TECHNICIAN'].includes(session.user.role)) {
+      return NextResponse.json({ success: false, error: 'Forbidden' }, { status: 403 });
+    }
 
-    // Validate request body
-    const data = await validateRequestBody(request, createWorksheetSchema);
+    const body = await request.json();
+    const result = createWorksheetSchema.safeParse(body);
+    if (!result.success) {
+      return NextResponse.json(
+        { success: false, error: 'Validation failed', details: result.error.issues },
+        { status: 400 }
+      );
+    }
 
-    // Create worksheet
-    const worksheet = await createWorksheetFromOrder(data, session.user.id);
+    const { orderId, deviceDescription, intendedUse, technicalNotes } = result.data;
 
-    return successResponse(
-      worksheet,
-      `Worksheet ${worksheet.worksheetNumber} created successfully`,
-      201
-    );
+    // Validate order exists and is in a valid state
+    const order = await prisma.order.findFirst({
+      where: { id: orderId, deletedAt: null },
+      include: { dentist: true },
+    });
+
+    if (!order) {
+      return NextResponse.json({ success: false, error: 'Order not found' }, { status: 404 });
+    }
+
+    // Check if order already has an active worksheet
+    const existingWorksheet = await prisma.workSheet.findFirst({
+      where: {
+        orderId,
+        deletedAt: null,
+        status: { notIn: ['VOIDED', 'CANCELLED'] },
+      },
+    });
+
+    if (existingWorksheet) {
+      return NextResponse.json(
+        { success: false, error: 'Order already has an active worksheet' },
+        { status: 409 }
+      );
+    }
+
+    // Get next revision number
+    const lastRevision = await prisma.workSheet.findFirst({
+      where: { orderId },
+      orderBy: { revision: 'desc' },
+      select: { revision: true },
+    });
+    const revision = (lastRevision?.revision ?? 0) + 1;
+
+    // Generate worksheet number: DN-YYXXX (same year+seq as order number)
+    const worksheetNumber = `DN-${order.orderNumber}`;
+
+    const worksheet = await prisma.$transaction(async (tx) => {
+      const ws = await tx.workSheet.create({
+        data: {
+          worksheetNumber,
+          revision,
+          orderId,
+          dentistId: order.dentistId,
+          createdById: session.user.id,
+          patientName: order.patientName,
+          status: 'DRAFT',
+          deviceDescription: deviceDescription ?? null,
+          intendedUse: intendedUse ?? null,
+          technicalNotes: technicalNotes ?? null,
+        },
+        include: {
+          order: { select: { id: true, orderNumber: true } },
+          dentist: { select: { id: true, clinicName: true, dentistName: true } },
+        },
+      });
+
+      // Update order status to IN_PRODUCTION
+      await tx.order.update({
+        where: { id: orderId },
+        data: { status: 'IN_PRODUCTION' },
+      });
+
+      // Audit log
+      await tx.auditLog.create({
+        data: {
+          userId: session.user.id,
+          action: 'CREATE',
+          entityType: 'WorkSheet',
+          entityId: ws.id,
+          newValues: JSON.stringify({ worksheetNumber, orderId, revision }),
+        },
+      });
+
+      return ws;
+    });
+
+    return NextResponse.json({ success: true, data: worksheet }, { status: 201 });
   } catch (error) {
-    return handleApiError(error);
+    console.error('POST /api/worksheets error:', error);
+    return NextResponse.json({ success: false, error: 'Failed to create worksheet' }, { status: 500 });
   }
 }

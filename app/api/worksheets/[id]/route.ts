@@ -16,7 +16,7 @@ import {
   assignTeeth,
   assignProducts,
   assignMaterials
-} from '@/src/lib/services/worksheet-service';
+} from '@/lib/services/worksheet-service';
 
 /**
  * GET /api/worksheets/[id]

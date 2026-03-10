@@ -1,0 +1,7 @@
+-- Rename ProductCategory enum to new Slovenian names
+-- First add new values
+ALTER TYPE "ProductCategory" ADD VALUE IF NOT EXISTS 'FIKSNA_PROTETIKA';
+ALTER TYPE "ProductCategory" ADD VALUE IF NOT EXISTS 'SNEMNA_PROTETIKA';
+ALTER TYPE "ProductCategory" ADD VALUE IF NOT EXISTS 'IMPLANTOLOGIJA';
+ALTER TYPE "ProductCategory" ADD VALUE IF NOT EXISTS 'ESTETIKA';
+ALTER TYPE "ProductCategory" ADD VALUE IF NOT EXISTS 'OSTALO';

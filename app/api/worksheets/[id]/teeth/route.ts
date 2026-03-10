@@ -13,8 +13,7 @@ import {
   handleApiError,
   badRequestResponse,
 } from '@/lib/api/responses';
-import { assignTeeth } from '@/src/lib/services/worksheet-service';
-import { WorkType } from '@/src/types/worksheet';
+import { assignTeeth } from '@/lib/services/worksheet-service';
 
 // ============================================================================
 // VALIDATION SCHEMAS

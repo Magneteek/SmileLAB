@@ -22,13 +22,13 @@ import { getServerSession } from 'next-auth';
 import { getTranslations } from 'next-intl/server';
 import { authOptions } from '@/lib/auth';
 import { redirect } from 'next/navigation';
-import { getWorksheets } from '@/src/lib/services/worksheet-service';
+import { getWorksheets } from '@/lib/services/worksheet-service';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { WorksheetsTable } from '@/components/worksheets/WorksheetsTable';
 import { WorksheetFilters } from '@/components/worksheets/WorksheetFilters';
 import { Plus } from 'lucide-react';
-import type { WorksheetStatus } from '@/src/types/worksheet';
+import type { WorksheetStatus } from '@/lib/services/worksheet-service';
 
 // ============================================================================
 // TYPES
@@ -76,12 +76,11 @@ export default async function WorksheetsPage({
     {
       page,
       limit: 20,
-      sortBy: 'createdAt',
-      sortOrder: 'desc',
     }
   );
 
-  const { data: worksheets, pagination } = result;
+  const { worksheets, total, totalPages } = result;
+  const pagination = { page, totalPages, total };
 
   return (
     <div className="w-full max-w-full py-6 space-y-2">

@@ -22,7 +22,7 @@ import { notFound, redirect } from 'next/navigation';
 import { getServerSession } from 'next-auth';
 import { getTranslations } from 'next-intl/server';
 import { authOptions } from '@/lib/auth';
-import { getWorksheetById } from '@/src/lib/services/worksheet-service';
+import { getWorksheetById } from '@/lib/services/worksheet-service';
 import Link from 'next/link';
 import { ArrowLeft, Edit, FileText, Printer } from 'lucide-react';
 import { Button } from '@/components/ui/button';

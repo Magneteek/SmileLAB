@@ -41,6 +41,7 @@ import {
   FileEdit,
   FileText,
   ArrowRight,
+  Factory,
 } from 'lucide-react';
 import {
   Table,
@@ -462,6 +463,14 @@ export default function SettingsPage() {
           >
             <FileText className="h-4 w-4 flex-shrink-0" />
             <span className="truncate">{t('sopSection')}</span>
+          </button>
+        </Link>
+        <Link href={`/${locale}/settings/partners`}>
+          <button
+            className="flex items-center gap-2 px-3 md:px-4 py-2 border-b-2 border-transparent hover:border-gray-300 text-gray-600 hover:text-gray-900 font-medium text-xs md:text-sm transition-colors whitespace-nowrap"
+          >
+            <Factory className="h-4 w-4 flex-shrink-0" />
+            <span className="truncate">External Partners</span>
           </button>
         </Link>
       </div>

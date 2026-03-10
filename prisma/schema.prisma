@@ -135,6 +135,26 @@ enum OrderStatus {
 enum ImpressionType {
   PHYSICAL_IMPRINT // Traditional physical impression
   DIGITAL_SCAN // Digital intraoral scan
+  BOTH // Physical impression + digital scan
+}
+
+enum ScanSource {
+  MEDIT // Medit Link cloud
+  SHINING3D // Shining 3D app/cloud
+  GOOGLE_DRIVE // Google Drive (link)
+  THREESHAPE // 3Shape Communicate (closed system)
+  OTHER // Other system
+}
+
+enum ProductionType {
+  INTERNAL // Done in-house
+  EXTERNAL // Sent to external partner
+}
+
+enum PartnerType {
+  DESIGN // Design/CAD only
+  MILLING // Milling/printing only
+  BOTH // Design + milling
 }
 
 model Order {
@@ -206,6 +226,27 @@ model WorkSheet {
   intendedUse       String?         @db.Text // Clinical indication
   manufactureDate   DateTime?
 
+  // Production tracking - digital scan source
+  scanSource    ScanSource? // Where the digital file lives (Medit, 3Shape, etc.)
+  scanReference String? // URL or case ID in the external system
+
+  // Production tracking - design phase
+  designType       ProductionType  @default(INTERNAL)
+  designPartnerId  String?
+  designPartner    ExternalPartner? @relation("DesignPartner", fields: [designPartnerId], references: [id], onDelete: SetNull)
+  designSentAt     DateTime?
+
+  // Production tracking - milling/printing phase
+  millingType      ProductionType  @default(INTERNAL)
+  millingPartnerId String?
+  millingPartner   ExternalPartner? @relation("MillingPartner", fields: [millingPartnerId], references: [id], onDelete: SetNull)
+  millingSentAt    DateTime?
+
+  // Production phase completion timestamps
+  scanReceivedAt    DateTime? // Phase 1: scan/files confirmed received
+  designCompletedAt DateTime? // Phase 2: CAD/design done
+  millingReceivedAt DateTime? // Phase 4: received back from milling
+
   // Technical notes
   technicalNotes String? @db.Text
   qcNotes        String? @db.Text
@@ -236,7 +277,34 @@ model WorkSheet {
   @@index([dentistId])
   @@index([status])
   @@index([manufactureDate])
+  @@index([designPartnerId])
+  @@index([millingPartnerId])
   @@map("worksheets")
+}
+
+// ============================================================================
+// EXTERNAL PARTNERS (MILLING CENTRES & DESIGN PARTNERS)
+// ============================================================================
+
+model ExternalPartner {
+  id       String      @id @default(cuid())
+  name     String
+  type     PartnerType
+  email    String?
+  phone    String?
+  notes    String?     @db.Text
+  isActive Boolean     @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  designWorksheets  WorkSheet[] @relation("DesignPartner")
+  millingWorksheets WorkSheet[] @relation("MillingPartner")
+
+  @@index([isActive])
+  @@index([type])
+  @@map("external_partners")
 }
 
 // ============================================================================

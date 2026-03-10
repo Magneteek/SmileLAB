@@ -30,6 +30,7 @@ import {
   Menu,
   BookOpen,
   FolderOpen,
+  Factory,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
@@ -80,6 +81,11 @@ const navItems: NavItem[] = [
     translationKey: 'nav.worksheets',
     href: '/worksheets',
     icon: ClipboardList,
+  },
+  {
+    translationKey: 'nav.production',
+    href: '/production',
+    icon: Factory,
   },
   {
     translationKey: 'nav.qualityControl',
@@ -186,7 +192,7 @@ function NavigationContent({ onNavigate }: { onNavigate?: () => void }) {
           {navItems
             .filter((item) => {
               if (session?.user?.role === 'TECHNICIAN') {
-                return ['/dashboard', '/orders', '/worksheets', '/quality-control', '/materials'].includes(item.href);
+                return ['/dashboard', '/orders', '/worksheets', '/production', '/quality-control', '/materials'].includes(item.href);
               }
               return true;
             })

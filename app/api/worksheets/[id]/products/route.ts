@@ -12,7 +12,7 @@ import {
   successResponse,
   handleApiError,
 } from '@/lib/api/responses';
-import { assignProducts } from '@/src/lib/services/worksheet-service';
+import { assignProducts } from '@/lib/services/worksheet-service';
 
 // ============================================================================
 // VALIDATION SCHEMAS

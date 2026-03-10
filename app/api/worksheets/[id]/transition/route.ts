@@ -13,8 +13,8 @@ import {
   handleApiError,
   forbiddenResponse,
 } from '@/lib/api/responses';
-import { transitionWorksheetStatus } from '@/src/lib/services/worksheet-service';
-import { WorksheetStatus } from '@/src/types/worksheet';
+import { transitionWorksheetStatus } from '@/lib/services/worksheet-service';
+import type { WorksheetStatus } from '@/lib/services/worksheet-service';
 import { canTransition } from '@/src/lib/state-machines/worksheet-state-machine';
 
 // ============================================================================
@@ -160,9 +160,9 @@ export async function POST(
     // Perform transition
     const updatedWorksheet = await transitionWorksheetStatus(
       worksheetId,
-      { newStatus: newStatus as WorksheetStatus, notes },
+      newStatus as WorksheetStatus,
       session.user.id,
-      session.user.role
+      notes
     );
 
     // Update order status based on worksheet transition

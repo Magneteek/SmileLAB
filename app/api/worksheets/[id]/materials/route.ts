@@ -12,7 +12,7 @@ import {
   successResponse,
   handleApiError,
 } from '@/lib/api/responses';
-import { assignMaterials } from '@/src/lib/services/worksheet-service';
+import { assignMaterials } from '@/lib/services/worksheet-service';
 
 // ============================================================================
 // VALIDATION SCHEMAS
@@ -29,10 +29,16 @@ const assignMaterialsSchema = z.object({
   materials: z.array(
     z.object({
       materialId: z.string().min(1, 'Material ID is required'),
-      quantityNeeded: z.number().positive('Quantity must be positive'),
-      materialLotId: z.string().optional(), // Optional LOT selection (defaults to FIFO if not provided)
-    })
-  ), // Allow empty array to delete all materials (replace-all pattern)
+      // Accept both field names (quantityNeeded from form, quantityUsed from API spec)
+      quantityNeeded: z.number().positive().optional(),
+      quantityUsed: z.number().positive().optional(),
+      materialLotId: z.string().optional(),
+      worksheetProductId: z.string().optional(),
+    }).transform((m) => ({
+      ...m,
+      quantityUsed: m.quantityUsed ?? m.quantityNeeded ?? 0,
+    }))
+  ),
 });
 
 // ============================================================================
