@@ -8,7 +8,7 @@
  * - Mobile/Tablet (<1024px): Drawer menu
  */
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useSession, signOut } from 'next-auth/react';
@@ -31,6 +31,7 @@ import {
   BookOpen,
   FolderOpen,
   Factory,
+  Inbox,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
@@ -71,6 +72,11 @@ const navItems: NavItem[] = [
     translationKey: 'nav.dashboard',
     href: '/dashboard',
     icon: LayoutDashboard,
+  },
+  {
+    translationKey: 'nav.incoming',
+    href: '/incoming',
+    icon: Inbox,
   },
   {
     translationKey: 'nav.orders',
@@ -142,6 +148,14 @@ function NavigationContent({ onNavigate }: { onNavigate?: () => void }) {
   const locale = useLocale();
   const t = useTranslations();
   const [showSignOutDialog, setShowSignOutDialog] = useState(false);
+  const [incomingCount, setIncomingCount] = useState(0);
+
+  useEffect(() => {
+    fetch('/api/incoming/count')
+      .then((r) => r.json())
+      .then((d) => setIncomingCount(d.count ?? 0))
+      .catch(() => {});
+  }, [pathname]); // refetch on navigation
 
   const handleLogout = async () => {
     const callbackUrl = `${window.location.origin}/${locale}/login`;
@@ -192,7 +206,7 @@ function NavigationContent({ onNavigate }: { onNavigate?: () => void }) {
           {navItems
             .filter((item) => {
               if (session?.user?.role === 'TECHNICIAN') {
-                return ['/dashboard', '/orders', '/worksheets', '/production', '/quality-control', '/materials'].includes(item.href);
+                return ['/incoming', '/orders', '/worksheets', '/production', '/materials'].includes(item.href);
               }
               return true;
             })
@@ -202,6 +216,8 @@ function NavigationContent({ onNavigate }: { onNavigate?: () => void }) {
                 pathname === localizedHref ||
                 (item.href !== '/dashboard' && pathname?.startsWith(localizedHref));
               const Icon = item.icon;
+
+              const showBadge = item.href === '/incoming' && incomingCount > 0;
 
               return (
                 <li key={item.href}>
@@ -216,7 +232,12 @@ function NavigationContent({ onNavigate }: { onNavigate?: () => void }) {
                     )}
                   >
                     <Icon className="h-4 w-4" />
-                    <span>{t(item.translationKey)}</span>
+                    <span className="flex-1">{t(item.translationKey)}</span>
+                    {showBadge && (
+                      <span className="bg-red-500 text-white text-[10px] font-bold rounded-full min-w-[18px] h-[18px] flex items-center justify-center px-1">
+                        {incomingCount > 99 ? '99+' : incomingCount}
+                      </span>
+                    )}
                   </Link>
                 </li>
               );

@@ -100,6 +100,11 @@ export async function middleware(req: NextRequest) {
       const dashboardUrl = new URL(`/${locale}/dashboard`, req.url);
       return NextResponse.redirect(dashboardUrl);
     }
+
+    // TECHNICIAN: redirect /dashboard to /production (their home page)
+    if (userRole === 'TECHNICIAN' && pathname.match(/^\/(en|sl)\/dashboard$/)) {
+      return NextResponse.redirect(new URL(`/${locale}/production`, req.url));
+    }
   }
 
   return response;

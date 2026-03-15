@@ -119,14 +119,13 @@ export const authOptions: NextAuthOptions = {
       const pathParts = urlObj.pathname.split('/').filter(Boolean);
       const locale = ['en', 'sl'].includes(pathParts[0]) ? pathParts[0] : 'sl';
 
-      // If redirecting after signIn, check the URL
-      // STAFF users go to /staff/dashboard
-      // Production users go to /dashboard
+      // If redirecting after signIn with a callbackUrl, honour it
       if (url.includes('callbackUrl')) {
         return url;
       }
 
-      // Default redirects based on role will be handled by middleware
+      // Default redirects by role
+      // Note: middleware also redirects TECHNICIAN /dashboard → /production as fallback
       return `${baseUrl}/${locale}/dashboard`;
     },
 
