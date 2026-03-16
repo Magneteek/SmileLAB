@@ -17,7 +17,7 @@ export async function GET(request: NextRequest) {
 
     const worksheets = await prisma.workSheet.findMany({
       where: {
-        status: { in: ['IN_PRODUCTION', 'QC_REJECTED'] },
+        status: { in: ['DRAFT', 'IN_PRODUCTION', 'QC_PENDING', 'QC_REJECTED'] },
         deletedAt: null,
       },
       select: {

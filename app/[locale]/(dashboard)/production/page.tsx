@@ -104,7 +104,7 @@ function getStageColumn(ws: { scanReceivedAt: string | null; designCompletedAt: 
 const STAGE_COLUMNS: Column[] = [
   { key: 'scan',     label: 'Čaka sken',    headerColor: 'bg-slate-50 border-slate-200 text-slate-700',  icon: Scan },
   { key: 'design',   label: 'CAD / Design', headerColor: 'bg-indigo-50 border-indigo-200 text-indigo-800', icon: Cpu },
-  { key: 'milling',  label: 'Rezkanje',     headerColor: 'bg-purple-50 border-purple-200 text-purple-800', icon: Hammer },
+  { key: 'milling',  label: 'Izdelava',     headerColor: 'bg-purple-50 border-purple-200 text-purple-800', icon: Hammer },
   { key: 'received', label: 'Prevzem',      headerColor: 'bg-amber-50 border-amber-200 text-amber-800',   icon: PackageCheck },
   { key: 'done',     label: 'Pripravljeno', headerColor: 'bg-green-50 border-green-200 text-green-800',   icon: CheckCircle2 },
 ];
@@ -170,6 +170,8 @@ function WorksheetCard({
     <Card className={cn(
       'p-3 flex flex-col gap-2.5 transition-opacity select-none',
       isUpdating && 'opacity-60',
+      ws.status === 'DRAFT' && 'border-slate-300 bg-slate-50/40',
+      ws.status === 'QC_PENDING' && 'border-blue-300 bg-blue-50/20',
       ws.status === 'QC_REJECTED' && 'border-orange-300 bg-orange-50/40',
       allDone && !isUpdating && 'border-green-300 bg-green-50/20',
     )}>
@@ -184,6 +186,12 @@ function WorksheetCard({
             >
               {ws.worksheetNumber}
             </Link>
+            {ws.status === 'DRAFT' && (
+              <Badge className="bg-slate-100 text-slate-600 border-slate-200 text-[10px] px-1 py-0">Osnutek</Badge>
+            )}
+            {ws.status === 'QC_PENDING' && (
+              <Badge className="bg-blue-100 text-blue-700 border-blue-200 text-[10px] px-1 py-0">QC čaka</Badge>
+            )}
             {ws.status === 'QC_REJECTED' && (
               <Badge className="bg-orange-100 text-orange-700 border-orange-200 text-[10px] px-1 py-0">Popravek</Badge>
             )}
@@ -283,7 +291,7 @@ function WorksheetCard({
       {(ws.millingType === 'EXTERNAL' && ws.millingPartner) && (
         <div className="flex items-center gap-1 text-xs">
           <Hammer className="h-3 w-3 text-purple-500 flex-shrink-0" />
-          <span className="text-purple-700 font-medium truncate">Rezkanje: {ws.millingPartner.name}</span>
+          <span className="text-purple-700 font-medium truncate">Izdelava: {ws.millingPartner.name}</span>
         </div>
       )}
 
@@ -304,7 +312,7 @@ function WorksheetCard({
             sub={ws.designType === 'EXTERNAL' && ws.designPartner ? ws.designPartner.name : null}
           />
           <PhaseStep
-            icon={Hammer} done={!!ws.millingSentAt} label="Rezkanje"
+            icon={Hammer} done={!!ws.millingSentAt} label="Izdelava"
             onToggle={() => onTogglePhase('millingSentAt')} disabled={isUpdating}
             sub={ws.millingType === 'EXTERNAL' && ws.millingPartner ? ws.millingPartner.name : null}
           />
