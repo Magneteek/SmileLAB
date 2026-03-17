@@ -50,6 +50,7 @@ interface ProductionWorksheet {
   designSentAt: string | null;
   designCompletedAt: string | null;
   millingType: string;
+  manufacturingMethod: string;
   millingSentAt: string | null;
   millingReceivedAt: string | null;
   scanReceivedAt: string | null;
@@ -104,7 +105,7 @@ function getStageColumn(ws: { scanReceivedAt: string | null; designCompletedAt: 
 const STAGE_COLUMNS: Column[] = [
   { key: 'scan',     label: 'Čaka sken',    headerColor: 'bg-slate-50 border-slate-200 text-slate-700',  icon: Scan },
   { key: 'design',   label: 'CAD / Design', headerColor: 'bg-indigo-50 border-indigo-200 text-indigo-800', icon: Cpu },
-  { key: 'milling',  label: 'Izdelava',     headerColor: 'bg-purple-50 border-purple-200 text-purple-800', icon: Hammer },
+  { key: 'milling',  label: 'Rezkanje / Tiskanje', headerColor: 'bg-purple-50 border-purple-200 text-purple-800', icon: Hammer },
   { key: 'received', label: 'Prevzem',      headerColor: 'bg-amber-50 border-amber-200 text-amber-800',   icon: PackageCheck },
   { key: 'done',     label: 'Pripravljeno', headerColor: 'bg-green-50 border-green-200 text-green-800',   icon: CheckCircle2 },
 ];
@@ -291,7 +292,7 @@ function WorksheetCard({
       {(ws.millingType === 'EXTERNAL' && ws.millingPartner) && (
         <div className="flex items-center gap-1 text-xs">
           <Hammer className="h-3 w-3 text-purple-500 flex-shrink-0" />
-          <span className="text-purple-700 font-medium truncate">Izdelava: {ws.millingPartner.name}</span>
+          <span className="text-purple-700 font-medium truncate">{ws.manufacturingMethod === 'PRINTING' ? 'Tiskanje' : 'Rezkanje'}: {ws.millingPartner.name}</span>
         </div>
       )}
 
@@ -312,7 +313,7 @@ function WorksheetCard({
             sub={ws.designType === 'EXTERNAL' && ws.designPartner ? ws.designPartner.name : null}
           />
           <PhaseStep
-            icon={Hammer} done={!!ws.millingSentAt} label="Izdelava"
+            icon={Hammer} done={!!ws.millingSentAt} label={ws.manufacturingMethod === 'PRINTING' ? 'Tiskanje' : 'Rezkanje'}
             onToggle={() => onTogglePhase('millingSentAt')} disabled={isUpdating}
             sub={ws.millingType === 'EXTERNAL' && ws.millingPartner ? ws.millingPartner.name : null}
           />
@@ -467,6 +468,7 @@ export default function ProductionPage() {
           designPartnerId: drawerWorksheet.designPartner?.id ?? null,
           designSentAt: drawerWorksheet.designSentAt,
           millingType: drawerWorksheet.millingType,
+          manufacturingMethod: drawerWorksheet.manufacturingMethod ?? 'MILLING',
           millingPartnerId: drawerWorksheet.millingPartner?.id ?? null,
         }),
       });
@@ -704,11 +706,24 @@ export default function ProductionPage() {
 
                 <hr />
 
-                {/* Milling */}
+                {/* Milling / Printing */}
                 <div className="space-y-3">
                   <h3 className="text-sm font-semibold">Rezkanje / tiskanje</h3>
                   <div className="space-y-2">
-                    <Label>Kdo reza</Label>
+                    <Label>Metoda</Label>
+                    <Select
+                      value={drawerWorksheet.manufacturingMethod ?? 'MILLING'}
+                      onValueChange={(v) => setDrawerWorksheet((w) => w ? { ...w, manufacturingMethod: v } : w)}
+                    >
+                      <SelectTrigger><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="MILLING">Rezkanje</SelectItem>
+                        <SelectItem value="PRINTING">Tiskanje / 3D print</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Kdo dela</Label>
                     <Select
                       value={drawerWorksheet.millingType}
                       onValueChange={(v) => setDrawerWorksheet((w) => w ? { ...w, millingType: v, millingPartner: v === 'INTERNAL' ? null : w.millingPartner } : w)}

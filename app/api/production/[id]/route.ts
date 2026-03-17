@@ -23,6 +23,7 @@ const updateSchema = z.object({
 
   // Milling phase
   millingType: z.enum(['INTERNAL', 'EXTERNAL']).optional(),
+  manufacturingMethod: z.enum(['MILLING', 'PRINTING']).optional(),
   millingPartnerId: z.string().nullable().optional(),
 
   // Scan info
@@ -75,6 +76,7 @@ export async function PATCH(
     if (worksheetFields.designPartnerId !== undefined) updateData.designPartnerId = worksheetFields.designPartnerId;
     if (worksheetFields.designSentAt !== undefined) updateData.designSentAt = worksheetFields.designSentAt ? new Date(worksheetFields.designSentAt) : null;
     if (worksheetFields.millingType !== undefined) updateData.millingType = worksheetFields.millingType;
+    if (worksheetFields.manufacturingMethod !== undefined) updateData.manufacturingMethod = worksheetFields.manufacturingMethod;
     if (worksheetFields.millingPartnerId !== undefined) updateData.millingPartnerId = worksheetFields.millingPartnerId;
     if (worksheetFields.scanSource !== undefined) updateData.scanSource = worksheetFields.scanSource;
     if (worksheetFields.scanReference !== undefined) updateData.scanReference = worksheetFields.scanReference;

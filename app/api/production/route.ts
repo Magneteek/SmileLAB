@@ -31,6 +31,7 @@ export async function GET(request: NextRequest) {
         designSentAt: true,
         designCompletedAt: true,
         millingType: true,
+        manufacturingMethod: true,
         millingSentAt: true,
         millingReceivedAt: true,
         scanReceivedAt: true,

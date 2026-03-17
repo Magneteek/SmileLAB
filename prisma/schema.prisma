@@ -151,6 +151,11 @@ enum ProductionType {
   EXTERNAL // Sent to external partner
 }
 
+enum ManufacturingMethod {
+  MILLING  // Rezkanje
+  PRINTING // Tiskanje / 3D print
+}
+
 enum PartnerType {
   DESIGN // Design/CAD only
   MILLING // Milling/printing only
@@ -237,7 +242,8 @@ model WorkSheet {
   designSentAt     DateTime?
 
   // Production tracking - milling/printing phase
-  millingType      ProductionType  @default(INTERNAL)
+  millingType           ProductionType      @default(INTERNAL)
+  manufacturingMethod   ManufacturingMethod @default(MILLING)
   millingPartnerId String?
   millingPartner   ExternalPartner? @relation("MillingPartner", fields: [millingPartnerId], references: [id], onDelete: SetNull)
   millingSentAt    DateTime?
