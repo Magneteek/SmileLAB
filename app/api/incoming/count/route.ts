@@ -13,8 +13,12 @@ export async function GET() {
   if (!session) return NextResponse.json({ count: 0 });
 
   try {
-    const count = await prisma.workSheet.count({
-      where: { status: 'DRAFT', deletedAt: null },
+    const count = await prisma.order.count({
+      where: {
+        status: 'PENDING',
+        deletedAt: null,
+        worksheets: { none: {} },
+      },
     });
     return NextResponse.json({ count });
   } catch {
