@@ -905,10 +905,10 @@ export function WorksheetForm({
                           // Existing material — merge new lots in
                           const updated = [...prev];
                           const existing = updated[idx];
-                          const newLotIds = new Set(newMat.lots.map(l => l.id));
+                          const newLotIds = new Set(newMat.lots.map((l: { id: string }) => l.id));
                           updated[idx] = {
                             ...existing,
-                            lots: [...existing.lots.filter(l => !newLotIds.has(l.id)), ...newMat.lots],
+                            lots: [...existing.lots.filter((l: { id: string }) => !newLotIds.has(l.id)), ...newMat.lots],
                             availableStock: existing.availableStock + newMat.availableStock,
                           };
                           return updated;
