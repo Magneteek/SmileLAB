@@ -12,15 +12,15 @@ const prisma = new PrismaClient();
 
 // ============================================================================
 // DENTIST SEARCH TERMS
-// Maps CSV dentist name → partial string to search in dentistName or clinicName
+// dentistName and/or clinicName must both match if provided (AND logic)
 // ============================================================================
-const DENTIST_SEARCH: Record<string, string> = {
-  'Gregor Knafelc':             'Knafelc',
-  'Hiša lepega nasmeha SARA':   'Sara Vivoda',
-  'Hiša lepega nasmeha PRIMOŽ': 'Primož Gregorčič',
-  'Nuša Zadel':                 'Zadel',
-  'Emident Emilya Naseva':      'Emiliya Naseva',
-  'PREMIODENT':                 'PREMIODENT',
+const DENTIST_SEARCH: Record<string, { dentistName?: string; clinicName?: string }> = {
+  'Gregor Knafelc':             { dentistName: 'Knafelc' },
+  'Hiša lepega nasmeha SARA':   { dentistName: 'Sara Vivoda', clinicName: 'Hiša' },
+  'Hiša lepega nasmeha PRIMOŽ': { dentistName: 'Primož' },
+  'Nuša Zadel':                 { dentistName: 'Zadel' },
+  'Emident Emilya Naseva':      { clinicName: 'EMIDENT' },
+  'PREMIODENT':                 { clinicName: 'PREMIODENT' },
 };
 
 // ============================================================================
@@ -109,17 +109,17 @@ async function main() {
 
   const dentistIdMap: Record<string, string> = {};
   console.log('Resolving dentists:');
-  for (const [csvName, searchTerm] of Object.entries(DENTIST_SEARCH)) {
-    const match = allDentists.find(
-      (d) =>
-        d.dentistName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        d.clinicName.toLowerCase().includes(searchTerm.toLowerCase())
-    );
+  for (const [csvName, search] of Object.entries(DENTIST_SEARCH)) {
+    const match = allDentists.find((d) => {
+      const nameOk = !search.dentistName || d.dentistName.toLowerCase().includes(search.dentistName.toLowerCase());
+      const clinicOk = !search.clinicName || d.clinicName.toLowerCase().includes(search.clinicName.toLowerCase());
+      return nameOk && clinicOk;
+    });
     if (match) {
       dentistIdMap[csvName] = match.id;
       console.log(`  ✅ "${csvName}" → ${match.dentistName} (${match.clinicName})`);
     } else {
-      console.error(`  ❌ No match found for "${csvName}" (search: "${searchTerm}")`);
+      console.error(`  ❌ No match found for "${csvName}" (search: ${JSON.stringify(search)})`);
     }
   }
 
