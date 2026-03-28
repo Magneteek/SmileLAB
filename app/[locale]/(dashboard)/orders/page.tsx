@@ -28,6 +28,8 @@ import { Plus, Loader2 } from 'lucide-react';
 import { OrderStatus } from '@prisma/client';
 import { OrderWithRelations, OrderListResponse } from '@/types/order';
 
+const PAGE_SIZE_OPTIONS = [20, 50, 100];
+
 interface Dentist {
   id: string;
   clinicName: string;
@@ -44,6 +46,9 @@ export default function OrdersPage() {
   const [dentists, setDentists] = useState<Dentist[]>([]);
   const [total, setTotal] = useState(0);
   const [page, setPage] = useState(1);
+  const [limit, setLimit] = useState(20);
+  const [sortBy, setSortBy] = useState<'orderNumber' | 'orderDate' | 'dueDate' | 'status'>('orderDate');
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -85,7 +90,9 @@ export default function OrdersPage() {
       try {
         const params = new URLSearchParams();
         params.set('page', page.toString());
-        params.set('limit', '20');
+        params.set('limit', limit.toString());
+        params.set('sortBy', sortBy);
+        params.set('sortOrder', sortOrder);
 
         if (searchTerm) params.set('search', searchTerm);
         if (statusFilter !== 'ALL') params.set('status', statusFilter);
@@ -112,7 +119,7 @@ export default function OrdersPage() {
     }
 
     fetchOrders();
-  }, [page, searchTerm, statusFilter, dentistFilter, priorityFilter]);
+  }, [page, limit, sortBy, sortOrder, searchTerm, statusFilter, dentistFilter, priorityFilter]);
 
   // Handle delete
   async function handleDelete() {
@@ -143,6 +150,24 @@ export default function OrdersPage() {
     } finally {
       setIsDeleting(false);
     }
+  }
+
+  function handleSort(key: string) {
+    const validKeys = ['orderNumber', 'orderDate', 'dueDate', 'status'] as const;
+    if (!validKeys.includes(key as any)) return;
+    const k = key as typeof sortBy;
+    if (k === sortBy) {
+      setSortOrder((o) => (o === 'asc' ? 'desc' : 'asc'));
+    } else {
+      setSortBy(k);
+      setSortOrder('asc');
+    }
+    setPage(1);
+  }
+
+  function handleLimitChange(newLimit: number) {
+    setLimit(newLimit);
+    setPage(1);
   }
 
   // Reset filters
@@ -209,22 +234,38 @@ export default function OrdersPage() {
         <>
           <OrdersTable
             orders={orders}
+            sortBy={sortBy}
+            sortOrder={sortOrder}
+            onSort={handleSort}
             onDelete={(orderId) => {
               setOrderToDelete(orderId);
               setDeleteDialogOpen(true);
             }}
           />
 
-          {/* Pagination */}
-          {total > 20 && (
-            <div className="flex items-center justify-between">
-              <p className="text-sm text-muted-foreground">
+          {/* Pagination + per-page */}
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+              <span>
                 {t('order.showing', {
-                  from: (page - 1) * 20 + 1,
-                  to: Math.min(page * 20, total),
-                  total: total
+                  from: total === 0 ? 0 : (page - 1) * limit + 1,
+                  to: Math.min(page * limit, total),
+                  total,
                 })}
-              </p>
+              </span>
+              <span>|</span>
+              <span>{t('order.perPage') || 'Per page'}:</span>
+              {PAGE_SIZE_OPTIONS.map((n) => (
+                <button
+                  key={n}
+                  onClick={() => handleLimitChange(n)}
+                  className={`px-2 py-0.5 rounded text-xs border ${limit === n ? 'bg-primary text-primary-foreground border-primary' : 'border-muted-foreground/30 hover:border-primary'}`}
+                >
+                  {n}
+                </button>
+              ))}
+            </div>
+            {total > limit && (
               <div className="flex gap-2">
                 <Button
                   variant="outline"
@@ -236,13 +277,13 @@ export default function OrdersPage() {
                 <Button
                   variant="outline"
                   onClick={() => setPage((p) => p + 1)}
-                  disabled={page * 20 >= total}
+                  disabled={page * limit >= total}
                 >
                   {t('order.next')}
                 </Button>
               </div>
-            </div>
-          )}
+            )}
+          </div>
         </>
       )}
 

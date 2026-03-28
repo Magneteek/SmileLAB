@@ -30,10 +30,12 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { MoreHorizontal, Eye, Edit, Trash2 } from 'lucide-react';
 import { SortableTableHeader } from '@/components/shared/SortableTableHeader';
-import { useTableSort } from '@/lib/hooks/useTableSort';
 
 interface OrdersTableProps {
   orders: OrderWithRelations[];
+  sortBy: string;
+  sortOrder: 'asc' | 'desc';
+  onSort: (key: string) => void;
   onDelete?: (orderId: string) => void;
 }
 
@@ -73,14 +75,8 @@ function formatDate(date: Date | string | null): string {
   });
 }
 
-export function OrdersTable({ orders, onDelete }: OrdersTableProps) {
+export function OrdersTable({ orders, sortBy, sortOrder, onSort, onDelete }: OrdersTableProps) {
   const t = useTranslations();
-
-  const { sortedData: sortedOrders, sortKey, sortDirection, handleSort } = useTableSort({
-    data: orders,
-    initialSortKey: 'orderDate',
-    initialSortDirection: 'desc',
-  });
 
   return (
     <div className="rounded-md border overflow-x-auto">
@@ -89,49 +85,35 @@ export function OrdersTable({ orders, onDelete }: OrdersTableProps) {
           <TableRow>
             <SortableTableHeader
               sortKey="orderNumber"
-              currentSortKey={sortKey}
-              currentSortDirection={sortDirection}
-              onSort={handleSort}
+              currentSortKey={sortBy}
+              currentSortDirection={sortOrder}
+              onSort={onSort}
             >
               {t('order.tableOrderNumber')}
             </SortableTableHeader>
-            <SortableTableHeader
-              sortKey="dentist.clinicName"
-              currentSortKey={sortKey}
-              currentSortDirection={sortDirection}
-              onSort={handleSort}
-            >
-              {t('order.tableDentist')}
-            </SortableTableHeader>
-            <SortableTableHeader
-              sortKey="patientName"
-              currentSortKey={sortKey}
-              currentSortDirection={sortDirection}
-              onSort={handleSort}
-            >
-              {t('order.tablePatient')}
-            </SortableTableHeader>
+            <TableHead>{t('order.tableDentist')}</TableHead>
+            <TableHead>{t('order.tablePatient')}</TableHead>
             <SortableTableHeader
               sortKey="status"
-              currentSortKey={sortKey}
-              currentSortDirection={sortDirection}
-              onSort={handleSort}
+              currentSortKey={sortBy}
+              currentSortDirection={sortOrder}
+              onSort={onSort}
             >
               {t('order.tableStatus')}
             </SortableTableHeader>
             <SortableTableHeader
               sortKey="orderDate"
-              currentSortKey={sortKey}
-              currentSortDirection={sortDirection}
-              onSort={handleSort}
+              currentSortKey={sortBy}
+              currentSortDirection={sortOrder}
+              onSort={onSort}
             >
               {t('order.tableOrderDate')}
             </SortableTableHeader>
             <SortableTableHeader
               sortKey="dueDate"
-              currentSortKey={sortKey}
-              currentSortDirection={sortDirection}
-              onSort={handleSort}
+              currentSortKey={sortBy}
+              currentSortDirection={sortOrder}
+              onSort={onSort}
             >
               {t('order.tableDueDate')}
             </SortableTableHeader>
@@ -140,14 +122,14 @@ export function OrdersTable({ orders, onDelete }: OrdersTableProps) {
           </TableRow>
         </TableHeader>
         <TableBody>
-          {sortedOrders.length === 0 ? (
+          {orders.length === 0 ? (
             <TableRow>
               <TableCell colSpan={8} className="h-24 text-center">
                 {t('order.tableNoOrders')}
               </TableCell>
             </TableRow>
           ) : (
-            sortedOrders.map((order) => (
+            orders.map((order) => (
               <TableRow
                 key={order.id}
                 className="cursor-pointer hover:bg-muted/50"
