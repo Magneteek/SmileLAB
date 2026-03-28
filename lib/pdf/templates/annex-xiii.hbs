@@ -19,21 +19,21 @@
       line-height: 1.4;
     }
 
-    /* Brand Colors */
-    .brand-blue { color: #007289; }
-    .brand-orange { color: #D2804D; }
-    .bg-brand-blue { background-color: #e0f2f7; }
-    .bg-brand-orange { background-color: #fef3e7; }
+    /* Brand Colors - B&W print friendly */
+    .brand-blue { color: #000; }
+    .brand-orange { color: #000; }
+    .bg-brand-blue { background-color: #ebebeb; }
+    .bg-brand-orange { background-color: #f0f0f0; }
 
-    /* Header Section - 2 Column Layout (30-70) */
+    /* Header Section - 3 Column Layout (logo | title | info) */
     .header {
       display: grid;
-      grid-template-columns: 30% 70%;
-      gap: 20px;
+      grid-template-columns: 22% 1fr 34%;
+      gap: 15px;
       margin-bottom: 15px;
       padding-bottom: 10px;
-      border-bottom: 2px solid #007289;
-      align-items: start;
+      border-bottom: 2px solid #000;
+      align-items: center;
     }
 
     .header-left {
@@ -64,7 +64,7 @@
 
     .document-title h1 {
       font-size: 17pt;
-      color: #007289;
+      color: #000;
       margin-bottom: 5px;
       font-weight: 700;
     }
@@ -108,11 +108,11 @@
 
     section h3 {
       font-size: 10pt;
-      color: #007289;
-      border-bottom: 1.5px solid #007289;
+      color: #000;
+      border-bottom: 1.5px solid #000;
       padding-bottom: 3px;
       margin-bottom: 6px;
-      font-weight: 600;
+      font-weight: 700;
     }
 
     /* Info Tables */
@@ -151,7 +151,7 @@
     }
 
     .products-materials-table thead {
-      background: #007289;
+      background: #222;
       color: white;
     }
 
@@ -160,7 +160,7 @@
       text-align: left;
       font-weight: 600;
       font-size: 8pt;
-      border: 1px solid #005666;
+      border: 1px solid #000;
     }
 
     .products-materials-table th.right {
@@ -173,9 +173,9 @@
 
     /* Product Rows */
     .product-row {
-      background: #f0f7f9;
+      background: #ddd;
       font-weight: 600;
-      color: #007289;
+      color: #000;
     }
 
     .product-row td {
@@ -221,18 +221,21 @@
     }
 
     .badge-warning {
-      background: #fef3c7;
-      color: #92400e;
+      background: #e8e8e8;
+      color: #000;
+      border: 1px solid #999;
     }
 
     .badge-success {
-      background: #d1fae5;
-      color: #065f46;
+      background: #e8e8e8;
+      color: #000;
+      border: 1px solid #999;
     }
 
     .badge-info {
-      background: #dbeafe;
-      color: #1e40af;
+      background: #e8e8e8;
+      color: #000;
+      border: 1px solid #999;
     }
 
     .checkmark {
@@ -265,7 +268,7 @@
     }
 
     .declaration strong {
-      color: #92400e;
+      color: #000;
     }
 
     /* Compliance Box */
@@ -283,7 +286,7 @@
     }
 
     .compliance-box strong {
-      color: #075985;
+      color: #000;
     }
 
     /* Retention Notice */
@@ -323,8 +326,8 @@
     }
 
     .signature-block .title {
-      font-weight: 600;
-      color: #007289;
+      font-weight: 700;
+      color: #000;
     }
 
     /* Footer - Same as Invoice */
@@ -341,10 +344,10 @@
     .bottom-footer {
       margin-top: 20px;
       padding-top: 12px;
-      border-top: 2px solid #007289;
+      border-top: 2px solid #000;
       font-size: 8pt;
       text-align: center;
-      color: #333;
+      color: #000;
       line-height: 1.6;
     }
 
@@ -378,32 +381,34 @@
   </style>
 </head>
 <body>
-  <!-- Header Section - 2 Column Layout (30-70) -->
+  <!-- Header Section - 3 Column Layout (logo | title | info) -->
   <div class="header">
-    <!-- Left: Logo (30%) -->
+    <!-- Left: Logo (22%) -->
     <div class="header-left">
       {{#if lab.logoPath}}
       <img src="{{lab.logoPath}}" alt="{{lab.laboratoryName}}" class="logo">
       {{/if}}
     </div>
 
-    <!-- Right: EU MDR Document Info (70%) -->
+    <!-- Middle: Document Title -->
+    <div style="text-align: center; display: flex; align-items: center; justify-content: center;">
+      <div style="font-size: 9.5pt; font-weight: 700; color: #000; line-height: 1.4;">
+        {{t.documentTitle}}
+      </div>
+    </div>
+
+    <!-- Right: EU MDR Document Info (34%) -->
     <div class="header-right">
-      <div style="font-size: 10pt; font-weight: 700; color: #D2804D; margin-bottom: 2px;">
+      <div style="font-size: 13pt; font-weight: 800; color: #000; margin-bottom: 6px; letter-spacing: 0.5px;">
         {{documentId}}
       </div>
-      <div style="color: #666;">
-        {{t.documentNumberLabel}} {{generationDate}}
+      <div style="border-left: 3px solid #000; background: #f0f0f0; padding: 5px 10px; text-align: left; display: inline-block; min-width: 200px;">
+        <div style="font-size: 9pt; font-weight: 700; color: #000; margin-bottom: 2px;">{{patientName}}</div>
+        <div style="font-size: 8.5pt; color: #333; margin-bottom: 2px;">{{dentist.name}}</div>
+        <div style="font-size: 8pt; color: #555;">{{generationDate}}</div>
       </div>
     </div>
   </div>
-
-  <!-- Document Title - Full Width -->
-  <section style="text-align: center; margin-bottom: 15px;">
-    <h3 style="font-size: 10pt; color: #007289; border-bottom: 1.5px solid #007289; padding-bottom: 5px; margin-bottom: 0; text-align: center;">
-      {{t.documentTitle}}
-    </h3>
-  </section>
 
   <!-- Sections 1 & 2: Device Identification + Manufacturer Information (50-50 Grid) -->
   <div class="grid-50-50">
@@ -501,7 +506,7 @@
           </tr>
           {{#if dentist.licenseNumber}}
           <tr>
-            <td>{{t.dentistLicense}}</td>
+            <td>{{t.licenseNumber}}</td>
             <td>{{dentist.licenseNumber}}</td>
           </tr>
           {{/if}}
@@ -541,7 +546,7 @@
             <td><strong>{{qcInspection.emdnCode}}</strong></td>
           </tr>
           <tr>
-            <td>{{t.riskClassification}}</td>
+            <td>{{t.riskClass}}</td>
             <td><span class="badge badge-info">{{qcInspection.riskClass}}</span></td>
           </tr>
         </table>
@@ -588,25 +593,22 @@
     <p style="margin-bottom: 8px; color: #475569;">
       {{t.traceabilityDescription}}
     </p>
-    <h4 style="font-size: 8pt; font-weight: 600; color: #007289; margin-bottom: 6px; background-color: #f1f5f9; padding: 6px;">{{t.productsTableTitle}}</h4>
+    <h4 style="font-size: 8pt; font-weight: 600; color: #000; font-weight: 700; margin-bottom: 6px; background-color: #e8e8e8; padding: 6px;">{{t.productsTableTitle}}</h4>
     <table class="products-materials-table">
       <thead>
         <tr>
-          <th style="width: 12%;">{{t.tableCodeLot}}</th>
-          <th style="width: 16%;">{{t.tableName}}</th>
-          <th style="width: 14%;">{{t.tableManufacturer}}</th>
-          <th class="center" style="width: 8%;">{{t.tableQty}}</th>
-          <th style="width: 10%;">{{t.tableExpiry}}</th>
+          <th style="width: 36%;">{{t.tableName}}</th>
+          <th style="width: 24%;">{{t.tableCodeLot}}</th>
+          <th style="width: 22%;">{{t.tableManufacturer}}</th>
+          <th class="center" style="width: 10%;">{{t.tableQty}}</th>
           <th class="center" style="width: 8%;">{{t.tableTooth}}</th>
-          <th class="center" style="width: 5%;">{{t.tableCE}}</th>
-          <th class="center" style="width: 7%;">{{t.tableBio}}</th>
         </tr>
       </thead>
       <tbody>
         {{#each products}}
         <!-- Product Header Row -->
         <tr class="product-row">
-          <td colspan="8">
+          <td colspan="5">
             {{../t.productLabel}} {{code}} - {{name}} ({{../t.qtyLabel}} {{quantity}}) | {{../t.teethLabel}} {{teeth}}
           </td>
         </tr>
@@ -615,33 +617,17 @@
         {{#each ../materials}}
           {{#if (eq productName ../name)}}
           <tr class="material-row">
+            <td>{{name}}</td>
             <td>
-              {{code}}<br>
               {{#if lotNumber}}
-                <strong>{{../../t.lotLabel}} {{lotNumber}}</strong>
+                <strong>{{lotNumber}}</strong>
               {{else}}
                 <span class="badge badge-warning">{{../../t.noLot}}</span>
               {{/if}}
             </td>
-            <td>{{name}}</td>
             <td>{{manufacturer}}</td>
             <td class="center">{{quantityUsed}} {{unit}}</td>
-            <td>{{#if expiryDate}}{{expiryDate}}{{else}}-{{/if}}</td>
             <td class="center">{{#if toothNumber}}{{toothNumber}}{{else}}-{{/if}}</td>
-            <td class="center">
-              {{#if ceMarking}}
-                <span class="checkmark">✓</span>
-              {{else}}
-                <span class="dash">—</span>
-              {{/if}}
-            </td>
-            <td class="center">
-              {{#if biocompatible}}
-                <span class="checkmark">✓</span>
-              {{else}}
-                <span class="dash">—</span>
-              {{/if}}
-            </td>
           </tr>
           {{/if}}
         {{/each}}
@@ -650,40 +636,24 @@
         <!-- General Materials (not tied to specific products) -->
         {{#if (hasGeneralMaterials materials)}}
         <tr class="product-row">
-          <td colspan="8">
+          <td colspan="5">
             {{t.generalMaterials}} ({{t.generalMaterialsDesc}})
           </td>
         </tr>
         {{#each materials}}
           {{#if (eq productName "General")}}
           <tr class="material-row">
+            <td>{{name}}</td>
             <td>
-              {{code}}<br>
               {{#if lotNumber}}
-                <strong>{{../t.lotLabel}} {{lotNumber}}</strong>
+                <strong>{{lotNumber}}</strong>
               {{else}}
                 <span class="badge badge-warning">{{../t.noLot}}</span>
               {{/if}}
             </td>
-            <td>{{name}}</td>
             <td>{{manufacturer}}</td>
             <td class="center">{{quantityUsed}} {{unit}}</td>
-            <td>{{#if expiryDate}}{{expiryDate}}{{else}}-{{/if}}</td>
             <td class="center">-</td>
-            <td class="center">
-              {{#if ceMarking}}
-                <span class="checkmark">✓</span>
-              {{else}}
-                <span class="dash">—</span>
-              {{/if}}
-            </td>
-            <td class="center">
-              {{#if biocompatible}}
-                <span class="checkmark">✓</span>
-              {{else}}
-                <span class="dash">—</span>
-              {{/if}}
-            </td>
           </tr>
           {{/if}}
         {{/each}}
@@ -700,7 +670,7 @@
     <div class="grid-50-50">
       <!-- Left Column: QC Inspection -->
       <div class="grid-column">
-        <h4 style="font-size: 8pt; font-weight: 600; color: #007289; margin-bottom: 6px; background-color: #f1f5f9; padding: 6px;">{{t.qcInspectionTitle}}</h4>
+        <h4 style="font-size: 8pt; font-weight: 600; color: #000; font-weight: 700; margin-bottom: 6px; background-color: #e8e8e8; padding: 6px;">{{t.qcInspectionTitle}}</h4>
         <table class="info-table">
           <tr>
             <td>{{t.qcInspector}}</td>
@@ -725,7 +695,7 @@
 
       <!-- Right Column: Responsible Person -->
       <div class="grid-column">
-        <h4 style="font-size: 8pt; font-weight: 600; color: #007289; margin-bottom: 6px; background-color: #f1f5f9; padding: 6px;">{{t.responsiblePersonTitle}}</h4>
+        <h4 style="font-size: 8pt; font-weight: 600; color: #000; font-weight: 700; margin-bottom: 6px; background-color: #e8e8e8; padding: 6px;">{{t.responsiblePersonTitle}}</h4>
         <table class="info-table">
           <tr>
             <td>{{t.responsiblePerson}}</td>
@@ -753,46 +723,25 @@
   </section>
   {{/if}}
 
-  <!-- Signature + Retention/Document Info (50-50 Grid) -->
-  <div class="grid-50-50" style="margin-top: 20px;">
-    <!-- Left Column: Authorized Signature -->
-    <div class="grid-column">
-      <div style="text-align: center; padding: 10px; border: 1px solid #ddd; border-radius: 4px; background-color: #f9fafb;">
-        <p style="font-weight: 600; color: #007289; margin-bottom: 10px;">{{t.signatureLabel}}</p>
-        {{#if lab.signaturePath}}
-        <div style="margin: 15px 0;">
-          <img src="{{lab.signaturePath}}" alt="Signature" style="max-width: 200px; max-height: 80px; width: auto; height: auto;">
-        </div>
-        {{else}}
-        <div style="height: 60px;"></div>
-        {{/if}}
-        <div style="border-top: 2px solid #1e293b; padding-top: 5px; margin-top: 10px;">
-          {{lab.responsiblePersonName}}
-        </div>
-        <p style="margin: 3px 0;">{{lab.responsiblePersonTitle}}</p>
-        {{#if lab.responsiblePersonLicense}}
-        <p style="color: #666;">{{t.license}} {{lab.responsiblePersonLicense}}</p>
-        {{/if}}
-        <p style="margin-top: 5px;">{{t.dateLabel}} {{generationDate}}</p>
-      </div>
+  <!-- Signature Block (2-column: signature left, person info right) -->
+  <div style="margin-top: 20px; border: 1px solid #ddd; border-radius: 4px; background-color: #f9fafb; display: flex; align-items: center; padding: 12px 16px; gap: 24px;">
+    <!-- Left: signature image -->
+    <div style="flex: 0 0 auto; text-align: center; min-width: 160px;">
+      <p style="font-weight: 700; color: #000; margin-bottom: 6px; font-size: 11px;">{{t.signatureLabel}}</p>
+      {{#if lab.signaturePath}}
+      <img src="{{lab.signaturePath}}" alt="Signature" style="max-width: 160px; max-height: 64px; width: auto; height: auto; display: block; margin: 0 auto;">
+      {{else}}
+      <div style="height: 48px; border-bottom: 1px solid #999; width: 160px;"></div>
+      {{/if}}
     </div>
-
-    <!-- Right Column: Retention + Document Metadata -->
-    <div class="grid-column">
-      <!-- Retention Notice -->
-      <div style="background: #fee2e2; border-left: 4px solid #dc2626; padding: 10px; margin-bottom: 10px; color: #991b1b; font-weight: 600;">
-        {{{t.retentionNotice}}}
-      </div>
-
-      <!-- Document Metadata -->
-      <div style="padding: 10px; border: 1px solid #ddd; border-radius: 4px; background-color: #f9fafb;">
-        <p style="margin-bottom: 5px;"><strong>{{t.documentType}}</strong> {{t.documentTypeValue}}</p>
-        <p style="margin-bottom: 5px;"><strong>{{t.generatedLabel}}</strong> {{generationDate}} {{t.generatedBy}}</p>
-        <p style="margin-bottom: 5px;"><strong>{{t.documentId}}</strong> {{documentId}}</p>
-        {{#if qcInspection.documentVersion}}
-        <p><strong>{{t.version}}</strong> {{qcInspection.documentVersion}}</p>
-        {{/if}}
-      </div>
+    <!-- Right: person details -->
+    <div style="flex: 1; border-left: 2px solid #1e293b; padding-left: 16px;">
+      <p style="font-weight: 700; margin: 0 0 2px;">{{lab.responsiblePersonName}}</p>
+      <p style="margin: 0 0 2px; color: #555;">{{lab.responsiblePersonTitle}}</p>
+      {{#if lab.responsiblePersonLicense}}
+      <p style="margin: 0 0 2px; color: #666; font-size: 11px;">{{t.license}} {{lab.responsiblePersonLicense}}</p>
+      {{/if}}
+      <p style="margin: 4px 0 0; font-size: 11px;">{{t.dateLabel}} <strong>{{generationDate}}</strong></p>
     </div>
   </div>
 

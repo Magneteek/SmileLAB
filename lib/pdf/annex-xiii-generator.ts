@@ -690,4 +690,13 @@ function replacePlaceholders(text: string, replacements: Record<string, string>)
 // EXPORTS
 // ============================================================================
 
+/**
+ * Generate Annex XIII PDF directly from pre-built data (no DB required).
+ * Used for retroactive document generation from paper worksheets.
+ */
+export async function generateAnnexXIIIFromData(data: AnnexXIIIData): Promise<Buffer> {
+  const html = await compileTemplate(data);
+  return generatePDF(html);
+}
+
 export type { AnnexXIIIData };

@@ -40,3 +40,9 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 /certs/
+
+# Generated PDFs (stored in DB, not tracked in git)
+/documents/annex-xiii/*.pdf
+
+# Playwright MCP cache
+/.playwright-mcp/

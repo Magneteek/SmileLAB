@@ -32,6 +32,7 @@ import {
   FolderOpen,
   Factory,
   Inbox,
+  ScrollText,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
@@ -65,6 +66,7 @@ interface NavItem {
   translationKey: string;
   href: string;
   icon: React.ComponentType<{ className?: string }>;
+  adminOnly?: boolean;
 }
 
 const navItems: NavItem[] = [
@@ -127,6 +129,12 @@ const navItems: NavItem[] = [
     translationKey: 'nav.sops',
     href: '/settings/sops',
     icon: BookOpen,
+  },
+  {
+    translationKey: 'nav.retroactiveDocs',
+    href: '/retroactive-docs',
+    icon: ScrollText,
+    adminOnly: true,
   },
 ];
 
@@ -205,6 +213,7 @@ function NavigationContent({ onNavigate }: { onNavigate?: () => void }) {
         <ul className="space-y-1">
           {navItems
             .filter((item) => {
+              if (item.adminOnly && session?.user?.role !== 'ADMIN') return false;
               if (session?.user?.role === 'TECHNICIAN') {
                 return ['/incoming', '/orders', '/worksheets', '/production', '/materials'].includes(item.href);
               }

@@ -8,7 +8,7 @@
 
 import { useState } from 'react';
 import { signIn } from 'next-auth/react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { useLocale, useTranslations } from 'next-intl';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -30,6 +30,7 @@ import { Loader2, LogIn, AlertCircle } from 'lucide-react';
 
 export default function LoginPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const locale = useLocale();
   const t = useTranslations();
   const [isLoading, setIsLoading] = useState(false);
@@ -68,7 +69,8 @@ export default function LoginPage() {
       }
 
       if (result?.ok) {
-        router.push(`/${locale}/dashboard`);
+        const callbackUrl = searchParams.get('callbackUrl');
+        router.push(callbackUrl || `/${locale}/dashboard`);
         router.refresh();
       }
     } catch (error) {
