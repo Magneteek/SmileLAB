@@ -522,10 +522,12 @@ interface QuickCreateMaterialDialogProps {
 }
 
 function QuickCreateMaterialDialog({ isOpen, onClose, onSuccess }: QuickCreateMaterialDialogProps) {
+  const [tab, setTab] = useState<'new' | 'lot'>('new');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
 
-  const form = useForm({
+  // ── Tab: New Material ──
+  const newForm = useForm({
     defaultValues: {
       code: '',
       name: '',
@@ -541,19 +543,43 @@ function QuickCreateMaterialDialog({ isOpen, onClose, onSuccess }: QuickCreateMa
     },
   });
 
+  // ── Tab: Add LOT to existing ──
+  const [allMaterials, setAllMaterials] = useState<Array<{ id: string; code: string; name: string; unit: string }>>([]);
+  const [loadingMaterials, setLoadingMaterials] = useState(false);
+  const lotForm = useForm({
+    defaultValues: {
+      materialId: '',
+      lotNumber: '',
+      quantity: 1,
+      supplierName: '',
+      expiryDate: '',
+    },
+  });
+
   useEffect(() => {
     if (!isOpen) {
-      form.reset();
+      newForm.reset();
+      lotForm.reset();
       setSubmitError(null);
+      setTab('new');
     }
   }, [isOpen]);
 
-  const handleSubmit = form.handleSubmit(async (data) => {
+  useEffect(() => {
+    if (tab === 'lot' && allMaterials.length === 0) {
+      setLoadingMaterials(true);
+      fetch('/api/materials?pageSize=200&active=true')
+        .then(r => r.json())
+        .then(data => setAllMaterials(data.data ?? []))
+        .catch(() => {})
+        .finally(() => setLoadingMaterials(false));
+    }
+  }, [tab]);
+
+  const handleNewSubmit = newForm.handleSubmit(async (data) => {
     setIsSubmitting(true);
     setSubmitError(null);
-
     try {
-      // 1. Create material
       const matRes = await fetch('/api/materials', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -568,19 +594,15 @@ function QuickCreateMaterialDialog({ isOpen, onClose, onSuccess }: QuickCreateMa
           active: true,
         }),
       });
-
       if (!matRes.ok) {
         const err = await matRes.json();
         throw new Error(err.error || 'Failed to create material');
       }
-
       const matResult = await matRes.json();
       const materialId = matResult.id;
       if (!materialId) throw new Error('Material created but ID missing');
 
-      // 2. Create first LOT if lot number provided
       let firstLot: AvailableMaterial['lots'][0] | undefined;
-
       if (data.lotNumber.trim()) {
         const lotRes = await fetch(`/api/materials/${materialId}/lots`, {
           method: 'POST',
@@ -593,22 +615,20 @@ function QuickCreateMaterialDialog({ isOpen, onClose, onSuccess }: QuickCreateMa
             ...(data.expiryDate ? { expiryDate: new Date(data.expiryDate) } : {}),
           }),
         });
-
-        if (lotRes.ok) {
-          const lotResult = await lotRes.json();
-          if (lotResult.id) {
-            firstLot = {
-              id: lotResult.id,
-              lotNumber: data.lotNumber.trim(),
-              quantityAvailable: data.quantity,
-              expiryDate: data.expiryDate || null,
-              arrivalDate: new Date().toISOString(),
-              status: 'AVAILABLE',
-            };
-          }
-        } else {
+        if (!lotRes.ok) {
           const lotErr = await lotRes.json();
           throw new Error(lotErr.error || 'Failed to create LOT');
+        }
+        const lotResult = await lotRes.json();
+        if (lotResult.id) {
+          firstLot = {
+            id: lotResult.id,
+            lotNumber: data.lotNumber.trim(),
+            quantityAvailable: data.quantity,
+            expiryDate: data.expiryDate || null,
+            arrivalDate: new Date().toISOString(),
+            status: 'AVAILABLE',
+          };
         }
       }
 
@@ -627,129 +647,222 @@ function QuickCreateMaterialDialog({ isOpen, onClose, onSuccess }: QuickCreateMa
     }
   });
 
+  const handleLotSubmit = lotForm.handleSubmit(async (data) => {
+    if (!data.materialId) { setSubmitError('Select a material'); return; }
+    if (!data.lotNumber.trim()) { setSubmitError('LOT number is required'); return; }
+    setIsSubmitting(true);
+    setSubmitError(null);
+    try {
+      const lotRes = await fetch(`/api/materials/${data.materialId}/lots`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          lotNumber: data.lotNumber.trim(),
+          quantityReceived: data.quantity,
+          supplierName: data.supplierName || 'Unknown',
+          arrivalDate: new Date(),
+          ...(data.expiryDate ? { expiryDate: new Date(data.expiryDate) } : {}),
+        }),
+      });
+      if (!lotRes.ok) {
+        const err = await lotRes.json();
+        throw new Error(err.error || 'Failed to create LOT');
+      }
+      const lotResult = await lotRes.json();
+      if (!lotResult.id) throw new Error('LOT created but ID missing');
+
+      const mat = allMaterials.find(m => m.id === data.materialId)!;
+      const newLot: AvailableMaterial['lots'][0] = {
+        id: lotResult.id,
+        lotNumber: data.lotNumber.trim(),
+        quantityAvailable: data.quantity,
+        expiryDate: data.expiryDate || null,
+        arrivalDate: new Date().toISOString(),
+        status: 'AVAILABLE',
+      };
+      onSuccess({
+        materialId: data.materialId,
+        code: mat.code,
+        name: mat.name,
+        unit: mat.unit,
+        availableStock: data.quantity,
+        lots: [newLot],
+      });
+    } catch (err: any) {
+      setSubmitError(err.message || 'Failed to create LOT');
+    } finally {
+      setIsSubmitting(false);
+    }
+  });
+
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Package className="h-5 w-5" />
-            Create New Material
+            Surovina / LOT
           </DialogTitle>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
-          {submitError && (
-            <Alert variant="destructive">
-              <AlertCircle className="h-4 w-4" />
-              <AlertDescription>{submitError}</AlertDescription>
-            </Alert>
-          )}
+        {/* Tab switcher */}
+        <div className="flex gap-1 p-1 bg-gray-100 rounded-md">
+          <button
+            type="button"
+            onClick={() => { setTab('new'); setSubmitError(null); }}
+            className={`flex-1 text-sm py-1.5 rounded transition-colors ${tab === 'new' ? 'bg-white shadow-sm font-medium' : 'text-gray-600 hover:text-gray-900'}`}
+          >
+            Nova surovina
+          </button>
+          <button
+            type="button"
+            onClick={() => { setTab('lot'); setSubmitError(null); }}
+            className={`flex-1 text-sm py-1.5 rounded transition-colors ${tab === 'lot' ? 'bg-white shadow-sm font-medium' : 'text-gray-600 hover:text-gray-900'}`}
+          >
+            Dodaj LOT obstoječi
+          </button>
+        </div>
 
-          <div className="grid grid-cols-2 gap-3">
-            <div className="space-y-1">
-              <Label htmlFor="qc-code">Code <span className="text-red-500">*</span></Label>
-              <Input
-                id="qc-code"
-                {...form.register('code', { required: true })}
-                placeholder="e.g. CER01"
-                maxLength={5}
-              />
-            </div>
-            <div className="space-y-1">
-              <Label htmlFor="qc-unit">Unit <span className="text-red-500">*</span></Label>
-              <Select value={form.watch('unit')} onValueChange={(v) => form.setValue('unit', v as any)}>
-                <SelectTrigger id="qc-unit"><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  {(['gram', 'ml', 'piece', 'disc'] as const).map((u) => (
-                    <SelectItem key={u} value={u}>{u}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
+        {submitError && (
+          <Alert variant="destructive">
+            <AlertCircle className="h-4 w-4" />
+            <AlertDescription>{submitError}</AlertDescription>
+          </Alert>
+        )}
 
-          <div className="space-y-1">
-            <Label htmlFor="qc-name">Name <span className="text-red-500">*</span></Label>
-            <Input id="qc-name" {...form.register('name', { required: true })} placeholder="Material name" />
-          </div>
-
-          <div className="grid grid-cols-2 gap-3">
-            <div className="space-y-1">
-              <Label htmlFor="qc-type">Type <span className="text-red-500">*</span></Label>
-              <Select value={form.watch('type')} onValueChange={(v) => form.setValue('type', v as MaterialType)}>
-                <SelectTrigger id="qc-type"><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  {MATERIAL_TYPES_LIST.map((t) => (
-                    <SelectItem key={t} value={t}>{t}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-1">
-              <Label htmlFor="qc-mfr">Manufacturer <span className="text-red-500">*</span></Label>
-              <Input id="qc-mfr" {...form.register('manufacturer', { required: true })} placeholder="Manufacturer" />
-            </div>
-          </div>
-
-          <div className="flex gap-4">
-            <div className="flex items-center gap-2">
-              <Checkbox
-                id="qc-bio"
-                checked={form.watch('biocompatible')}
-                onCheckedChange={(v) => form.setValue('biocompatible', Boolean(v))}
-              />
-              <Label htmlFor="qc-bio" className="cursor-pointer">Biocompatible</Label>
-            </div>
-            <div className="flex items-center gap-2">
-              <Checkbox
-                id="qc-ce"
-                checked={form.watch('ceMarked')}
-                onCheckedChange={(v) => form.setValue('ceMarked', Boolean(v))}
-              />
-              <Label htmlFor="qc-ce" className="cursor-pointer">CE Marked</Label>
-            </div>
-          </div>
-
-          <div className="border-t pt-4 space-y-3">
-            <p className="text-sm font-medium text-gray-700">First Stock Lot (optional)</p>
+        {/* ── Tab: New Material ── */}
+        {tab === 'new' && (
+          <form onSubmit={handleNewSubmit} className="space-y-4">
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-1">
-                <Label htmlFor="qc-lot">LOT Number</Label>
-                <Input id="qc-lot" {...form.register('lotNumber')} placeholder="e.g. LOT2026-001" />
+                <Label htmlFor="qc-code">Code <span className="text-red-500">*</span></Label>
+                <Input id="qc-code" {...newForm.register('code', { required: true })} placeholder="e.g. CER01" maxLength={5} />
               </div>
               <div className="space-y-1">
-                <Label htmlFor="qc-qty">Quantity</Label>
-                <Input
-                  id="qc-qty"
-                  type="number"
-                  min="0.001"
-                  step="0.001"
-                  {...form.register('quantity', { valueAsNumber: true })}
-                />
+                <Label htmlFor="qc-unit">Unit <span className="text-red-500">*</span></Label>
+                <Select value={newForm.watch('unit')} onValueChange={(v) => newForm.setValue('unit', v as any)}>
+                  <SelectTrigger id="qc-unit"><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    {(['gram', 'ml', 'piece', 'disc'] as const).map((u) => (
+                      <SelectItem key={u} value={u}>{u}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
+            </div>
+            <div className="space-y-1">
+              <Label htmlFor="qc-name">Name <span className="text-red-500">*</span></Label>
+              <Input id="qc-name" {...newForm.register('name', { required: true })} placeholder="Material name" />
             </div>
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-1">
-                <Label htmlFor="qc-supplier">Supplier</Label>
-                <Input id="qc-supplier" {...form.register('supplierName')} placeholder="Supplier name" />
+                <Label htmlFor="qc-type">Type <span className="text-red-500">*</span></Label>
+                <Select value={newForm.watch('type')} onValueChange={(v) => newForm.setValue('type', v as MaterialType)}>
+                  <SelectTrigger id="qc-type"><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    {MATERIAL_TYPES_LIST.map((t) => (
+                      <SelectItem key={t} value={t}>{t}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
               <div className="space-y-1">
-                <Label htmlFor="qc-expiry">Expiry Date</Label>
-                <Input id="qc-expiry" type="date" {...form.register('expiryDate')} />
+                <Label htmlFor="qc-mfr">Manufacturer <span className="text-red-500">*</span></Label>
+                <Input id="qc-mfr" {...newForm.register('manufacturer', { required: true })} placeholder="Manufacturer" />
               </div>
             </div>
-          </div>
+            <div className="flex gap-4">
+              <div className="flex items-center gap-2">
+                <Checkbox id="qc-bio" checked={newForm.watch('biocompatible')} onCheckedChange={(v) => newForm.setValue('biocompatible', Boolean(v))} />
+                <Label htmlFor="qc-bio" className="cursor-pointer">Biocompatible</Label>
+              </div>
+              <div className="flex items-center gap-2">
+                <Checkbox id="qc-ce" checked={newForm.watch('ceMarked')} onCheckedChange={(v) => newForm.setValue('ceMarked', Boolean(v))} />
+                <Label htmlFor="qc-ce" className="cursor-pointer">CE Marked</Label>
+              </div>
+            </div>
+            <div className="border-t pt-4 space-y-3">
+              <p className="text-sm font-medium text-gray-700">First Stock Lot (optional)</p>
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-1">
+                  <Label htmlFor="qc-lot">LOT Number</Label>
+                  <Input id="qc-lot" {...newForm.register('lotNumber')} placeholder="e.g. LOT2026-001" />
+                </div>
+                <div className="space-y-1">
+                  <Label htmlFor="qc-qty">Quantity</Label>
+                  <Input id="qc-qty" type="number" min="0.001" step="0.001" {...newForm.register('quantity', { valueAsNumber: true })} />
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-1">
+                  <Label htmlFor="qc-supplier">Supplier</Label>
+                  <Input id="qc-supplier" {...newForm.register('supplierName')} placeholder="Supplier name" />
+                </div>
+                <div className="space-y-1">
+                  <Label htmlFor="qc-expiry">Expiry Date</Label>
+                  <Input id="qc-expiry" type="date" {...newForm.register('expiryDate')} />
+                </div>
+              </div>
+            </div>
+            <div className="flex justify-end gap-2 pt-2">
+              <Button type="button" variant="outline" onClick={onClose} disabled={isSubmitting}>Cancel</Button>
+              <Button type="submit" disabled={isSubmitting}>
+                {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                Create Material
+              </Button>
+            </div>
+          </form>
+        )}
 
-          <div className="flex justify-end gap-2 pt-2">
-            <Button type="button" variant="outline" onClick={onClose} disabled={isSubmitting}>
-              Cancel
-            </Button>
-            <Button type="submit" disabled={isSubmitting}>
-              {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              Create Material
-            </Button>
-          </div>
-        </form>
+        {/* ── Tab: Add LOT to existing ── */}
+        {tab === 'lot' && (
+          <form onSubmit={handleLotSubmit} className="space-y-4">
+            <div className="space-y-1">
+              <Label>Surovina <span className="text-red-500">*</span></Label>
+              {loadingMaterials ? (
+                <div className="flex items-center gap-2 text-sm text-gray-500 py-2">
+                  <Loader2 className="h-4 w-4 animate-spin" /> Nalaganje...
+                </div>
+              ) : (
+                <Select value={lotForm.watch('materialId')} onValueChange={(v) => lotForm.setValue('materialId', v)}>
+                  <SelectTrigger><SelectValue placeholder="Izberite surovino..." /></SelectTrigger>
+                  <SelectContent>
+                    {allMaterials.map((m) => (
+                      <SelectItem key={m.id} value={m.id}>{m.code} — {m.name}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              )}
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1">
+                <Label htmlFor="lot-number">LOT Number <span className="text-red-500">*</span></Label>
+                <Input id="lot-number" {...lotForm.register('lotNumber')} placeholder="e.g. LOT2026-042" />
+              </div>
+              <div className="space-y-1">
+                <Label htmlFor="lot-qty">Quantity <span className="text-red-500">*</span></Label>
+                <Input id="lot-qty" type="number" min="0.001" step="0.001" {...lotForm.register('quantity', { valueAsNumber: true })} />
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1">
+                <Label htmlFor="lot-supplier">Supplier</Label>
+                <Input id="lot-supplier" {...lotForm.register('supplierName')} placeholder="Supplier name" />
+              </div>
+              <div className="space-y-1">
+                <Label htmlFor="lot-expiry">Expiry Date</Label>
+                <Input id="lot-expiry" type="date" {...lotForm.register('expiryDate')} />
+              </div>
+            </div>
+            <div className="flex justify-end gap-2 pt-2">
+              <Button type="button" variant="outline" onClick={onClose} disabled={isSubmitting}>Cancel</Button>
+              <Button type="submit" disabled={isSubmitting}>
+                {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                Dodaj LOT
+              </Button>
+            </div>
+          </form>
+        )}
       </DialogContent>
     </Dialog>
   );

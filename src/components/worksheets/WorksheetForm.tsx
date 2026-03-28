@@ -899,8 +899,22 @@ export function WorksheetForm({
                     availableTeeth={selectedTeeth.map(t => t.toothNumber)}
                     readOnly={isReadOnly}
                     onMaterialCreated={(newMat) => {
-                      // Add the newly created material to the list so it's immediately available
-                      setAvailableMaterialsWithLots((prev) => [...prev, newMat]);
+                      setAvailableMaterialsWithLots((prev) => {
+                        const idx = prev.findIndex(m => m.materialId === newMat.materialId);
+                        if (idx >= 0) {
+                          // Existing material — merge new lots in
+                          const updated = [...prev];
+                          const existing = updated[idx];
+                          const newLotIds = new Set(newMat.lots.map(l => l.id));
+                          updated[idx] = {
+                            ...existing,
+                            lots: [...existing.lots.filter(l => !newLotIds.has(l.id)), ...newMat.lots],
+                            availableStock: existing.availableStock + newMat.availableStock,
+                          };
+                          return updated;
+                        }
+                        return [...prev, newMat];
+                      });
                     }}
                   />
 
