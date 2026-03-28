@@ -41,6 +41,20 @@ const statusColors: Record<OrderStatus, string> = {
 // Priority colors
 const priorityColors = ['text-gray-600', 'text-orange-600', 'text-red-600'];
 
+// Source label from impressionType + scanSource
+const SOURCE_LABELS: Record<string, string> = {
+  MEDIT: 'MeditLink',
+  SHINING3D: 'Shining 3D',
+  GOOGLE_DRIVE: 'Google Drive',
+  THREESHAPE: '3Shape',
+};
+
+function getSourceLabel(impressionType: string, scanSource?: string | null): string {
+  if (scanSource && SOURCE_LABELS[scanSource]) return SOURCE_LABELS[scanSource];
+  if (impressionType === 'PHYSICAL_IMPRINT') return 'Fizično / Kurir';
+  return 'E-pošta / FilePort';
+}
+
 // Format date
 function formatDate(date: Date | string | null): string {
   if (!date) return '-';
@@ -291,9 +305,12 @@ export default function OrderDetailPage({ params }: { params: Promise<{ id: stri
                   </p>
                 </div>
                 <div>
-                  <p className="text-sm font-medium text-muted-foreground">{t('impressionTypeLabel')}</p>
+                  <p className="text-sm font-medium text-muted-foreground">Vir naročila</p>
                   <p className="font-medium">
-                    {(order as any).impressionType === 'DIGITAL_SCAN' ? t('digitalScan') : t('physicalImprint')}
+                    {getSourceLabel(
+                      (order as any).impressionType,
+                      (order as any).worksheets?.[0]?.scanSource
+                    )}
                   </p>
                 </div>
               </div>

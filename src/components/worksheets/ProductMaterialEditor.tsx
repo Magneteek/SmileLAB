@@ -12,7 +12,8 @@
 
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useForm } from 'react-hook-form';
 import { useTranslations } from 'next-intl';
 import { ProductMaterialInstance } from '@/src/types/worksheet';
 import { Button } from '@/components/ui/button';
@@ -41,8 +42,17 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Checkbox } from '@/components/ui/checkbox';
 import { Badge } from '@/components/ui/badge';
-import { X, Plus, Copy, ChevronDown, AlertTriangle, Package } from 'lucide-react';
+import { X, Plus, Copy, AlertTriangle, Package, Loader2, AlertCircle } from 'lucide-react';
+import type { MaterialType } from '@prisma/client';
 
 // ============================================================================
 // TYPES
@@ -71,6 +81,7 @@ interface ProductMaterialEditorProps {
   availableMaterials: AvailableMaterial[];
   availableTeeth: string[];  // From worksheet teeth selection
   onChange: (materials: ProductMaterialInstance[]) => void;
+  onMaterialCreated?: (material: AvailableMaterial) => void;
   readOnly?: boolean;
 }
 
@@ -85,9 +96,11 @@ export function ProductMaterialEditor({
   availableMaterials,
   availableTeeth,
   onChange,
+  onMaterialCreated,
   readOnly = false,
 }: ProductMaterialEditorProps) {
   const t = useTranslations();
+  const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [duplicateAlert, setDuplicateAlert] = useState<{
     show: boolean;
     materialId: string;
@@ -222,35 +235,47 @@ export function ProductMaterialEditor({
 
       {/* Add Material Dropdown - Moved to top */}
       {!readOnly && (
-        <Select
-          onValueChange={(materialId) => {
-            if (materialId && materialId !== '_placeholder') {
-              addMaterial(materialId);
-            }
-          }}
-        >
-          <SelectTrigger className="h-8 text-xs">
-            <Plus className="h-3.5 w-3.5 mr-1.5" />
-            <SelectValue placeholder={t('productMaterialEditor.addMaterialPlaceholder')} />
-          </SelectTrigger>
-          <SelectContent>
-            {availableMaterials.map((mat) => (
-              <SelectItem key={mat.materialId} value={mat.materialId} className="text-xs">
-                {mat.code} - {mat.name}
-                {mat.availableStock !== undefined && (
-                  <span className="text-[10px] text-gray-500 ml-2">
-                    ({t('productMaterialEditor.availableStock', { count: mat.availableStock, unit: mat.unit })})
-                  </span>
-                )}
-              </SelectItem>
-            ))}
-            {availableMaterials.length === 0 && (
-              <SelectItem value="_placeholder" disabled className="text-xs text-gray-500">
-                {t('productMaterialEditor.noMaterialsAvailable')}
-              </SelectItem>
-            )}
-          </SelectContent>
-        </Select>
+        <div className="flex gap-1">
+          <Select
+            onValueChange={(materialId) => {
+              if (materialId && materialId !== '_placeholder') {
+                addMaterial(materialId);
+              }
+            }}
+          >
+            <SelectTrigger className="h-8 text-xs flex-1">
+              <Plus className="h-3.5 w-3.5 mr-1.5" />
+              <SelectValue placeholder={t('productMaterialEditor.addMaterialPlaceholder')} />
+            </SelectTrigger>
+            <SelectContent>
+              {availableMaterials.map((mat) => (
+                <SelectItem key={mat.materialId} value={mat.materialId} className="text-xs">
+                  {mat.code} - {mat.name}
+                  {mat.availableStock !== undefined && (
+                    <span className="text-[10px] text-gray-500 ml-2">
+                      ({t('productMaterialEditor.availableStock', { count: mat.availableStock, unit: mat.unit })})
+                    </span>
+                  )}
+                </SelectItem>
+              ))}
+              {availableMaterials.length === 0 && (
+                <SelectItem value="_placeholder" disabled className="text-xs text-gray-500">
+                  {t('productMaterialEditor.noMaterialsAvailable')}
+                </SelectItem>
+              )}
+            </SelectContent>
+          </Select>
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            className="h-8 px-2 shrink-0"
+            onClick={() => setShowCreateDialog(true)}
+            title="Create new material"
+          >
+            <Package className="h-3.5 w-3.5" />
+          </Button>
+        </div>
       )}
 
       {/* Material Instances */}
@@ -456,6 +481,276 @@ export function ProductMaterialEditor({
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Create New Material Dialog */}
+      <QuickCreateMaterialDialog
+        isOpen={showCreateDialog}
+        onClose={() => setShowCreateDialog(false)}
+        onSuccess={(newMat) => {
+          setShowCreateDialog(false);
+          // Notify parent to refresh available materials list
+          if (onMaterialCreated) onMaterialCreated(newMat);
+          // Auto-add the new material to this product
+          const newInstance: ProductMaterialInstance = {
+            materialId: newMat.materialId,
+            materialLotId: newMat.lots[0]?.id,
+            quantityUsed: 1,
+            toothNumber: undefined,
+            notes: undefined,
+            position: materials.length + 1,
+          };
+          onChange([...materials, newInstance]);
+        }}
+      />
     </div>
+  );
+}
+
+// ============================================================================
+// QUICK CREATE MATERIAL DIALOG
+// ============================================================================
+
+const MATERIAL_TYPES_LIST: MaterialType[] = [
+  'CERAMIC', 'METAL', 'RESIN', 'COMPOSITE', 'PORCELAIN',
+  'ZIRCONIA', 'TITANIUM', 'ALLOY', 'ACRYLIC', 'WAX', 'OTHER',
+];
+
+interface QuickCreateMaterialDialogProps {
+  isOpen: boolean;
+  onClose: () => void;
+  onSuccess: (material: AvailableMaterial) => void;
+}
+
+function QuickCreateMaterialDialog({ isOpen, onClose, onSuccess }: QuickCreateMaterialDialogProps) {
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
+
+  const form = useForm({
+    defaultValues: {
+      code: '',
+      name: '',
+      type: 'CERAMIC' as MaterialType,
+      manufacturer: '',
+      unit: 'gram' as 'gram' | 'ml' | 'piece' | 'disc',
+      biocompatible: true,
+      ceMarked: true,
+      lotNumber: '',
+      quantity: 1,
+      supplierName: '',
+      expiryDate: '',
+    },
+  });
+
+  useEffect(() => {
+    if (!isOpen) {
+      form.reset();
+      setSubmitError(null);
+    }
+  }, [isOpen]);
+
+  const handleSubmit = form.handleSubmit(async (data) => {
+    setIsSubmitting(true);
+    setSubmitError(null);
+
+    try {
+      // 1. Create material
+      const matRes = await fetch('/api/materials', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          code: data.code,
+          name: data.name,
+          type: data.type,
+          manufacturer: data.manufacturer,
+          unit: data.unit,
+          biocompatible: data.biocompatible,
+          ceMarked: data.ceMarked,
+          active: true,
+        }),
+      });
+
+      if (!matRes.ok) {
+        const err = await matRes.json();
+        throw new Error(err.error || 'Failed to create material');
+      }
+
+      const matResult = await matRes.json();
+      const materialId = matResult.id;
+      if (!materialId) throw new Error('Material created but ID missing');
+
+      // 2. Create first LOT if lot number provided
+      let firstLot: AvailableMaterial['lots'][0] | undefined;
+
+      if (data.lotNumber.trim()) {
+        const lotRes = await fetch(`/api/materials/${materialId}/lots`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            lotNumber: data.lotNumber.trim(),
+            quantityReceived: data.quantity,
+            supplierName: data.supplierName || 'Unknown',
+            arrivalDate: new Date(),
+            ...(data.expiryDate ? { expiryDate: new Date(data.expiryDate) } : {}),
+          }),
+        });
+
+        if (lotRes.ok) {
+          const lotResult = await lotRes.json();
+          if (lotResult.id) {
+            firstLot = {
+              id: lotResult.id,
+              lotNumber: data.lotNumber.trim(),
+              quantityAvailable: data.quantity,
+              expiryDate: data.expiryDate || null,
+              arrivalDate: new Date().toISOString(),
+              status: 'AVAILABLE',
+            };
+          }
+        } else {
+          const lotErr = await lotRes.json();
+          throw new Error(lotErr.error || 'Failed to create LOT');
+        }
+      }
+
+      onSuccess({
+        materialId,
+        code: data.code,
+        name: data.name,
+        unit: data.unit,
+        availableStock: firstLot ? data.quantity : 0,
+        lots: firstLot ? [firstLot] : [],
+      });
+    } catch (err: any) {
+      setSubmitError(err.message || 'Failed to create material');
+    } finally {
+      setIsSubmitting(false);
+    }
+  });
+
+  return (
+    <Dialog open={isOpen} onOpenChange={onClose}>
+      <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2">
+            <Package className="h-5 w-5" />
+            Create New Material
+          </DialogTitle>
+        </DialogHeader>
+
+        <form onSubmit={handleSubmit} className="space-y-4">
+          {submitError && (
+            <Alert variant="destructive">
+              <AlertCircle className="h-4 w-4" />
+              <AlertDescription>{submitError}</AlertDescription>
+            </Alert>
+          )}
+
+          <div className="grid grid-cols-2 gap-3">
+            <div className="space-y-1">
+              <Label htmlFor="qc-code">Code <span className="text-red-500">*</span></Label>
+              <Input
+                id="qc-code"
+                {...form.register('code', { required: true })}
+                placeholder="e.g. CER01"
+                maxLength={5}
+              />
+            </div>
+            <div className="space-y-1">
+              <Label htmlFor="qc-unit">Unit <span className="text-red-500">*</span></Label>
+              <Select value={form.watch('unit')} onValueChange={(v) => form.setValue('unit', v as any)}>
+                <SelectTrigger id="qc-unit"><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  {(['gram', 'ml', 'piece', 'disc'] as const).map((u) => (
+                    <SelectItem key={u} value={u}>{u}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+
+          <div className="space-y-1">
+            <Label htmlFor="qc-name">Name <span className="text-red-500">*</span></Label>
+            <Input id="qc-name" {...form.register('name', { required: true })} placeholder="Material name" />
+          </div>
+
+          <div className="grid grid-cols-2 gap-3">
+            <div className="space-y-1">
+              <Label htmlFor="qc-type">Type <span className="text-red-500">*</span></Label>
+              <Select value={form.watch('type')} onValueChange={(v) => form.setValue('type', v as MaterialType)}>
+                <SelectTrigger id="qc-type"><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  {MATERIAL_TYPES_LIST.map((t) => (
+                    <SelectItem key={t} value={t}>{t}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-1">
+              <Label htmlFor="qc-mfr">Manufacturer <span className="text-red-500">*</span></Label>
+              <Input id="qc-mfr" {...form.register('manufacturer', { required: true })} placeholder="Manufacturer" />
+            </div>
+          </div>
+
+          <div className="flex gap-4">
+            <div className="flex items-center gap-2">
+              <Checkbox
+                id="qc-bio"
+                checked={form.watch('biocompatible')}
+                onCheckedChange={(v) => form.setValue('biocompatible', Boolean(v))}
+              />
+              <Label htmlFor="qc-bio" className="cursor-pointer">Biocompatible</Label>
+            </div>
+            <div className="flex items-center gap-2">
+              <Checkbox
+                id="qc-ce"
+                checked={form.watch('ceMarked')}
+                onCheckedChange={(v) => form.setValue('ceMarked', Boolean(v))}
+              />
+              <Label htmlFor="qc-ce" className="cursor-pointer">CE Marked</Label>
+            </div>
+          </div>
+
+          <div className="border-t pt-4 space-y-3">
+            <p className="text-sm font-medium text-gray-700">First Stock Lot (optional)</p>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1">
+                <Label htmlFor="qc-lot">LOT Number</Label>
+                <Input id="qc-lot" {...form.register('lotNumber')} placeholder="e.g. LOT2026-001" />
+              </div>
+              <div className="space-y-1">
+                <Label htmlFor="qc-qty">Quantity</Label>
+                <Input
+                  id="qc-qty"
+                  type="number"
+                  min="0.001"
+                  step="0.001"
+                  {...form.register('quantity', { valueAsNumber: true })}
+                />
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1">
+                <Label htmlFor="qc-supplier">Supplier</Label>
+                <Input id="qc-supplier" {...form.register('supplierName')} placeholder="Supplier name" />
+              </div>
+              <div className="space-y-1">
+                <Label htmlFor="qc-expiry">Expiry Date</Label>
+                <Input id="qc-expiry" type="date" {...form.register('expiryDate')} />
+              </div>
+            </div>
+          </div>
+
+          <div className="flex justify-end gap-2 pt-2">
+            <Button type="button" variant="outline" onClick={onClose} disabled={isSubmitting}>
+              Cancel
+            </Button>
+            <Button type="submit" disabled={isSubmitting}>
+              {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              Create Material
+            </Button>
+          </div>
+        </form>
+      </DialogContent>
+    </Dialog>
   );
 }

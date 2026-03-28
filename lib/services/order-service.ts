@@ -31,6 +31,7 @@ async function getNextOrderNumber(): Promise<string> {
   const result = await prisma.$transaction(async (tx) => {
     const currentYear = new Date().getFullYear();
     const configKey = `next_order_number_${currentYear}`;
+    const yearPrefix = currentYear.toString().slice(-2);
 
     // Get or create the year-specific order number config
     let config = await tx.systemConfig.findUnique({
@@ -38,7 +39,6 @@ async function getNextOrderNumber(): Promise<string> {
     });
 
     if (!config) {
-      // Initialize if not exists (starts at 001 for new year)
       config = await tx.systemConfig.create({
         data: {
           key: configKey,
@@ -48,20 +48,30 @@ async function getNextOrderNumber(): Promise<string> {
       });
     }
 
-    const currentNumber = parseInt(config.value, 10);
-    const nextNumber = currentNumber + 1;
+    let nextSeq = parseInt(config.value, 10);
 
-    // Update for next time
-    await tx.systemConfig.update({
-      where: { key: configKey },
-      data: { value: nextNumber.toString() },
+    // Self-heal: if counter is behind the actual DB max, catch up
+    const maxOrder = await tx.order.findFirst({
+      where: { orderNumber: { startsWith: yearPrefix } },
+      orderBy: { orderNumber: 'desc' },
+      select: { orderNumber: true },
     });
 
-    // Return formatted: YYXXX (e.g., 26001)
-    // Get last 2 digits of year
-    const yearLastTwoDigits = currentYear.toString().slice(-2);
-    const sequentialPart = currentNumber.toString().padStart(3, '0');
-    return `${yearLastTwoDigits}${sequentialPart}`;
+    if (maxOrder) {
+      const maxSeq = parseInt(maxOrder.orderNumber.slice(yearPrefix.length), 10);
+      if (maxSeq >= nextSeq) {
+        nextSeq = maxSeq + 1;
+      }
+    }
+
+    // Update counter for next call
+    await tx.systemConfig.update({
+      where: { key: configKey },
+      data: { value: (nextSeq + 1).toString() },
+    });
+
+    const sequentialPart = nextSeq.toString().padStart(3, '0');
+    return `${yearPrefix}${sequentialPart}`;
   });
 
   return result;

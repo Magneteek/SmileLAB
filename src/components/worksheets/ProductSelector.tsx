@@ -108,6 +108,11 @@ interface ProductSelectorProps {
   readOnly?: boolean;
 
   /**
+   * Called when a new material is created on-the-fly, so parent can refresh the list
+   */
+  onMaterialCreated?: (material: any) => void;
+
+  /**
    * Optional CSS class name
    */
   className?: string;
@@ -132,6 +137,7 @@ export function ProductSelector({
   availableMaterials = [],
   availableTeeth = [],
   readOnly = false,
+  onMaterialCreated,
   className,
 }: ProductSelectorProps) {
   const t = useTranslations();
@@ -387,7 +393,7 @@ export function ProductSelector({
                     </div>
 
                     {/* Materials Section - New ProductMaterialEditor Component */}
-                    {availableMaterials && availableMaterials.length > 0 && (
+                    {!readOnly && (
                       <div className="mt-3 pt-3 border-t border-gray-300">
                         <ProductMaterialEditor
                           productId={product.productId}
@@ -404,6 +410,7 @@ export function ProductSelector({
                               )
                             );
                           }}
+                          onMaterialCreated={onMaterialCreated}
                           readOnly={readOnly}
                         />
                       </div>

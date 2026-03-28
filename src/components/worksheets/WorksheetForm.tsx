@@ -266,51 +266,51 @@ export function WorksheetForm({
   const [availableMaterialsWithLots, setAvailableMaterialsWithLots] = useState<any[]>([]);
 
   // Fetch available materials with LOT data for ProductSelector
-  useEffect(() => {
-    const fetchMaterialsWithLots = async () => {
-      try {
-        const response = await fetch('/api/materials?active=true&hasStock=false');
-        if (!response.ok) {
-          throw new Error('Failed to fetch materials');
-        }
-
-        const result = await response.json();
-        const materialsData = result.data || [];
-
-        // Enhance materials with LOT information (same as MaterialSelector)
-        const enhancedMaterials = materialsData.map((material: any) => {
-          const lots = material.lots || [];
-          const availableLots = lots.filter((lot: any) => lot.status === 'AVAILABLE');
-
-          // Calculate total available stock
-          const availableStock = availableLots.reduce(
-            (sum: number, lot: any) => sum + Number(lot.quantityAvailable),
-            0
-          );
-
-          return {
-            materialId: material.id,
-            code: material.code,
-            name: material.name,
-            unit: material.unit,
-            availableStock,
-            lots: availableLots.map((lot: any) => ({
-              id: lot.id,
-              lotNumber: lot.lotNumber,
-              quantityAvailable: Number(lot.quantityAvailable),
-              expiryDate: lot.expiryDate || null,
-              arrivalDate: lot.arrivalDate,
-              status: lot.status,
-            })),
-          };
-        });
-
-        setAvailableMaterialsWithLots(enhancedMaterials);
-      } catch (err) {
-        console.error('Failed to fetch materials with LOTs:', err);
+  const fetchMaterialsWithLots = async () => {
+    try {
+      const response = await fetch('/api/materials?active=true&hasStock=false');
+      if (!response.ok) {
+        throw new Error('Failed to fetch materials');
       }
-    };
 
+      const result = await response.json();
+      const materialsData = result.data || [];
+
+      // Enhance materials with LOT information (same as MaterialSelector)
+      const enhancedMaterials = materialsData.map((material: any) => {
+        const lots = material.lots || [];
+        const availableLots = lots.filter((lot: any) => lot.status === 'AVAILABLE');
+
+        // Calculate total available stock
+        const availableStock = availableLots.reduce(
+          (sum: number, lot: any) => sum + Number(lot.quantityAvailable),
+          0
+        );
+
+        return {
+          materialId: material.id,
+          code: material.code,
+          name: material.name,
+          unit: material.unit,
+          availableStock,
+          lots: availableLots.map((lot: any) => ({
+            id: lot.id,
+            lotNumber: lot.lotNumber,
+            quantityAvailable: Number(lot.quantityAvailable),
+            expiryDate: lot.expiryDate || null,
+            arrivalDate: lot.arrivalDate,
+            status: lot.status,
+          })),
+        };
+      });
+
+      setAvailableMaterialsWithLots(enhancedMaterials);
+    } catch (err) {
+      console.error('Failed to fetch materials with LOTs:', err);
+    }
+  };
+
+  useEffect(() => {
     fetchMaterialsWithLots();
   }, []);
 
@@ -898,6 +898,10 @@ export function WorksheetForm({
                     availableMaterials={availableMaterialsWithLots}
                     availableTeeth={selectedTeeth.map(t => t.toothNumber)}
                     readOnly={isReadOnly}
+                    onMaterialCreated={(newMat) => {
+                      // Add the newly created material to the list so it's immediately available
+                      setAvailableMaterialsWithLots((prev) => [...prev, newMat]);
+                    }}
                   />
 
                   {!isReadOnly && (

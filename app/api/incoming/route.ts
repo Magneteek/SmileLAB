@@ -39,40 +39,67 @@ export async function GET(_request: NextRequest) {
   if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
   try {
-    const worksheets = await prisma.workSheet.findMany({
-      where: { status: 'DRAFT', deletedAt: null },
-      select: {
-        id: true,
-        worksheetNumber: true,
-        patientName: true,
-        scanSource: true,
-        scanReference: true,
-        createdAt: true,
-        order: {
-          select: {
-            id: true,
-            orderNumber: true,
-            dueDate: true,
-            priority: true,
-            impressionType: true,
-            notes: true,
+    const [worksheets, ordersWithoutWorksheet] = await Promise.all([
+      prisma.workSheet.findMany({
+        where: { status: 'DRAFT', deletedAt: null },
+        select: {
+          id: true,
+          worksheetNumber: true,
+          patientName: true,
+          scanSource: true,
+          scanReference: true,
+          createdAt: true,
+          order: {
+            select: {
+              id: true,
+              orderNumber: true,
+              dueDate: true,
+              priority: true,
+              impressionType: true,
+              notes: true,
+            },
+          },
+          dentist: { select: { id: true, dentistName: true, clinicName: true } },
+          products: {
+            take: 3,
+            select: {
+              id: true,
+              quantity: true,
+              product: { select: { name: true, code: true } },
+            },
+            orderBy: { createdAt: 'asc' },
           },
         },
-        dentist: { select: { id: true, dentistName: true, clinicName: true } },
-        products: {
-          take: 3,
-          select: {
-            id: true,
-            quantity: true,
-            product: { select: { name: true, code: true } },
-          },
-          orderBy: { createdAt: 'asc' },
+        orderBy: { createdAt: 'desc' },
+      }),
+      prisma.order.findMany({
+        where: {
+          status: 'PENDING',
+          deletedAt: null,
+          worksheets: { none: {} },
         },
-      },
-      orderBy: { createdAt: 'desc' },
-    });
+        select: {
+          id: true,
+          orderNumber: true,
+          orderDate: true,
+          dueDate: true,
+          priority: true,
+          impressionType: true,
+          notes: true,
+          patientName: true,
+          createdAt: true,
+          dentist: { select: { id: true, dentistName: true, clinicName: true } },
+        },
+        orderBy: { orderDate: 'desc' },
+      }),
+    ]);
 
-    return NextResponse.json({ success: true, data: worksheets, count: worksheets.length });
+    return NextResponse.json({
+      success: true,
+      data: worksheets,
+      orders: ordersWithoutWorksheet,
+      count: worksheets.length,
+    });
   } catch (error) {
     console.error('GET /api/incoming error:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });

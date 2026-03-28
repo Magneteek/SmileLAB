@@ -31,10 +31,19 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Label } from '@/components/ui/label';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Loader2 } from 'lucide-react';
 import { OrderStatus } from '@prisma/client';
+
+// Maps UI source to impressionType (same logic as incoming page)
+const ORDER_SOURCES = [
+  { value: 'PHYSICAL',     label: 'Fizično / Kurir',    impressionType: 'PHYSICAL_IMPRINT' as const },
+  { value: 'EMAIL',        label: 'E-pošta / FilePort', impressionType: 'PHYSICAL_IMPRINT' as const },
+  { value: 'MEDIT',        label: 'MeditLink',          impressionType: 'DIGITAL_SCAN' as const },
+  { value: 'SHINING3D',    label: 'Shining 3D',         impressionType: 'DIGITAL_SCAN' as const },
+  { value: 'GOOGLE_DRIVE', label: 'Google Drive',       impressionType: 'DIGITAL_SCAN' as const },
+  { value: 'THREESHAPE',   label: '3Shape',              impressionType: 'DIGITAL_SCAN' as const },
+] as const;
 
 interface OrderFormProps {
   orderId?: string;
@@ -68,7 +77,7 @@ export function OrderForm({
     patientName: z.string().optional(),
     dueDate: z.string().optional(),
     priority: z.number().int().min(0).max(2),
-    impressionType: z.enum(['PHYSICAL_IMPRINT', 'DIGITAL_SCAN']),
+    source: z.enum(['PHYSICAL', 'EMAIL', 'MEDIT', 'SHINING3D', 'GOOGLE_DRIVE', 'THREESHAPE']),
     status: z.nativeEnum(OrderStatus).optional(), // Only for editing
     notes: z.string().optional(),
   });
@@ -82,7 +91,7 @@ export function OrderForm({
       patientName: initialData?.patientName ?? '',
       dueDate: initialData?.dueDate || '',
       priority: initialData?.priority ?? 0,
-      impressionType: (initialData as any)?.impressionType ?? 'PHYSICAL_IMPRINT',
+      source: 'PHYSICAL',
       status: (initialData as any)?.status,
       notes: initialData?.notes ?? '',
     },
@@ -117,6 +126,7 @@ export function OrderForm({
 
     try {
       // Format the data for API
+      const sourceConfig = ORDER_SOURCES.find((s) => s.value === data.source)!;
       const payload = {
         dentistId: data.dentistId,
         patientName: data.patientName || null,
@@ -124,7 +134,7 @@ export function OrderForm({
           ? new Date(data.dueDate).toISOString()
           : null,
         priority: data.priority,
-        impressionType: data.impressionType,
+        impressionType: sourceConfig.impressionType,
         status: data.status, // Only included when editing
         notes: data.notes || null,
       };
@@ -181,137 +191,77 @@ export function OrderForm({
           </Alert>
         )}
 
-        <FormField
-          control={form.control}
-          name="dentistId"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>{t('order.formDentistLabel')}</FormLabel>
-              <Select
-                onValueChange={field.onChange}
-                defaultValue={field.value}
-              >
-                <FormControl>
-                  <SelectTrigger>
-                    <SelectValue placeholder={t('order.formDentistPlaceholder')} />
-                  </SelectTrigger>
-                </FormControl>
-                <SelectContent>
-                  {dentists.map((dentist) => (
-                    <SelectItem key={dentist.id} value={dentist.id}>
-                      {dentist.clinicName} - {dentist.dentistName}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              <FormDescription>
-                {t('order.formDentistDescription')}
-              </FormDescription>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        <FormField
-          control={form.control}
-          name="patientName"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>{t('order.formPatientLabel')}</FormLabel>
-              <FormControl>
-                <Input
-                  placeholder={t('order.formPatientPlaceholder')}
-                  {...field}
-                  value={field.value || ''}
-                />
-              </FormControl>
-              <FormDescription>
-                {t('order.formPatientDescription')}
-              </FormDescription>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        <FormField
-          control={form.control}
-          name="impressionType"
-          render={({ field }) => (
-            <FormItem className="space-y-3">
-              <FormLabel>{t('order.formImpressionLabel')}</FormLabel>
-              <div className="flex gap-4">
-                <div className="flex items-center space-x-2">
-                  <input
-                    type="radio"
-                    id="physical"
-                    value="PHYSICAL_IMPRINT"
-                    checked={field.value === 'PHYSICAL_IMPRINT'}
-                    onChange={(e) => field.onChange(e.target.value)}
-                    className="h-4 w-4 border-gray-300 text-primary focus:ring-2 focus:ring-primary cursor-pointer"
-                  />
-                  <Label htmlFor="physical" className="font-normal cursor-pointer">
-                    {t('order.formImpressionPhysical')}
-                  </Label>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <input
-                    type="radio"
-                    id="digital"
-                    value="DIGITAL_SCAN"
-                    checked={field.value === 'DIGITAL_SCAN'}
-                    onChange={(e) => field.onChange(e.target.value)}
-                    className="h-4 w-4 border-gray-300 text-primary focus:ring-2 focus:ring-primary cursor-pointer"
-                  />
-                  <Label htmlFor="digital" className="font-normal cursor-pointer">
-                    {t('order.formImpressionDigital')}
-                  </Label>
-                </div>
-              </div>
-              <FormDescription>
-                {t('order.formImpressionDescription')}
-              </FormDescription>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        {/* Status field - only show when editing */}
-        {orderId && (
+        {/* Row 1: Dentist + Patient */}
+        <div className="grid grid-cols-2 gap-4">
           <FormField
             control={form.control}
-            name="status"
+            name="dentistId"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>{t('order.formStatusLabel')}</FormLabel>
-                <Select
-                  onValueChange={field.onChange}
-                  defaultValue={field.value}
-                >
+                <FormLabel>{t('order.formDentistLabel')}</FormLabel>
+                <Select onValueChange={field.onChange} defaultValue={field.value}>
                   <FormControl>
                     <SelectTrigger>
-                      <SelectValue placeholder={t('order.formStatusPlaceholder')} />
+                      <SelectValue placeholder={t('order.formDentistPlaceholder')} />
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
-                    <SelectItem value="PENDING">{t('status.pending')}</SelectItem>
-                    <SelectItem value="IN_PRODUCTION">{t('status.in_production')}</SelectItem>
-                    <SelectItem value="QC_PENDING">{t('status.qc_pending')}</SelectItem>
-                    <SelectItem value="QC_APPROVED">{t('status.qc_approved')}</SelectItem>
-                    <SelectItem value="INVOICED">{t('status.invoiced')}</SelectItem>
-                    <SelectItem value="DELIVERED">{t('status.delivered')}</SelectItem>
-                    <SelectItem value="CANCELLED">{t('status.cancelled')}</SelectItem>
+                    {dentists.map((dentist) => (
+                      <SelectItem key={dentist.id} value={dentist.id}>
+                        {dentist.clinicName} - {dentist.dentistName}
+                      </SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
-                <FormDescription>
-                  {t('order.formStatusDescription')}
-                </FormDescription>
                 <FormMessage />
               </FormItem>
             )}
           />
-        )}
 
-        <div className="flex flex-col gap-4">
+          <FormField
+            control={form.control}
+            name="patientName"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>{t('order.formPatientLabel')}</FormLabel>
+                <FormControl>
+                  <Input
+                    placeholder={t('order.formPatientPlaceholder')}
+                    {...field}
+                    value={field.value || ''}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        </div>
+
+        {/* Row 2: Source + Due date + Priority */}
+        <div className="grid grid-cols-3 gap-4">
+          <FormField
+            control={form.control}
+            name="source"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Vir naročila</FormLabel>
+                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                  <FormControl>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    {ORDER_SOURCES.map((s) => (
+                      <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
           <FormField
             control={form.control}
             name="dueDate"
@@ -319,11 +269,8 @@ export function OrderForm({
               <FormItem>
                 <FormLabel>{t('order.formDueDateLabel')}</FormLabel>
                 <FormControl>
-                  <Input type="date" {...field} className="w-[180px]" />
+                  <Input type="date" {...field} />
                 </FormControl>
-                <FormDescription>
-                  {t('order.formDueDateDescription')}
-                </FormDescription>
                 <FormMessage />
               </FormItem>
             )}
@@ -340,8 +287,8 @@ export function OrderForm({
                   defaultValue={field.value.toString()}
                 >
                   <FormControl>
-                    <SelectTrigger className="w-[200px]">
-                      <SelectValue placeholder={t('order.formPriorityPlaceholder')} />
+                    <SelectTrigger>
+                      <SelectValue />
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
@@ -350,14 +297,41 @@ export function OrderForm({
                     <SelectItem value="2">{t('order.priorityUrgent')}</SelectItem>
                   </SelectContent>
                 </Select>
-                <FormDescription>
-                  {t('order.formPriorityDescription')}
-                </FormDescription>
                 <FormMessage />
               </FormItem>
             )}
           />
         </div>
+
+        {/* Status field - only show when editing */}
+        {orderId && (
+          <FormField
+            control={form.control}
+            name="status"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>{t('order.formStatusLabel')}</FormLabel>
+                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                  <FormControl>
+                    <SelectTrigger>
+                      <SelectValue placeholder={t('order.formStatusPlaceholder')} />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    <SelectItem value="PENDING">{t('status.pending')}</SelectItem>
+                    <SelectItem value="IN_PRODUCTION">{t('status.in_production')}</SelectItem>
+                    <SelectItem value="QC_PENDING">{t('status.qc_pending')}</SelectItem>
+                    <SelectItem value="QC_APPROVED">{t('status.qc_approved')}</SelectItem>
+                    <SelectItem value="INVOICED">{t('status.invoiced')}</SelectItem>
+                    <SelectItem value="DELIVERED">{t('status.delivered')}</SelectItem>
+                    <SelectItem value="CANCELLED">{t('status.cancelled')}</SelectItem>
+                  </SelectContent>
+                </Select>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        )}
 
         <FormField
           control={form.control}

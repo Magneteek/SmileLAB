@@ -56,6 +56,19 @@ interface IncomingWorksheet {
   products: Array<{ id: string; quantity: number; product: { name: string; code: string } }>;
 }
 
+interface OrderWithoutWorksheet {
+  id: string;
+  orderNumber: string;
+  orderDate: string;
+  dueDate: string | null;
+  priority: number;
+  impressionType: string;
+  notes: string | null;
+  patientName: string | null;
+  createdAt: string;
+  dentist: { id: string; dentistName: string; clinicName: string };
+}
+
 interface Dentist { id: string; dentistName: string; clinicName: string }
 
 // ─── Source config ────────────────────────────────────────────────────────────
@@ -182,6 +195,77 @@ function IncomingCard({ ws, locale }: { ws: IncomingWorksheet; locale: string })
   );
 }
 
+// ─── Order-only card (no worksheet yet) ──────────────────────────────────────
+
+function OrderCard({ order, locale }: { order: OrderWithoutWorksheet; locale: string }) {
+  const dueDate = order.dueDate ? parseISO(order.dueDate) : null;
+  const overdue = dueDate && dueDate < new Date();
+  const src = order.impressionType === 'PHYSICAL_IMPRINT'
+    ? SOURCES.find((x) => x.value === 'PHYSICAL')!
+    : SOURCES.find((x) => x.value === 'EMAIL')!;
+  const SrcIcon = src.icon;
+
+  return (
+    <Card className="p-4 flex flex-col gap-3 hover:shadow-md transition-shadow border-dashed">
+      {/* Header */}
+      <div className="flex items-start justify-between gap-2">
+        <div className="flex items-center gap-2 min-w-0">
+          <SrcIcon className={cn('h-4 w-4 flex-shrink-0', src.color)} />
+          <div className="min-w-0">
+            <div className="flex items-center gap-1.5 flex-wrap">
+              <Link
+                href={`/${locale}/orders/${order.id}`}
+                className="font-mono text-sm font-bold text-gray-700 hover:underline"
+              >
+                {order.orderNumber}
+              </Link>
+              <Badge variant="outline" className="text-[10px] px-1.5 py-0 text-gray-500">Brez naloga</Badge>
+              {order.priority === 2 && (
+                <Badge className="bg-red-100 text-red-700 border-red-200 text-[10px] px-1 py-0">NUJNO</Badge>
+              )}
+              {order.priority === 1 && (
+                <Badge className="bg-amber-100 text-amber-700 border-amber-200 text-[10px] px-1 py-0">Hitro</Badge>
+              )}
+            </div>
+            <p className="text-sm font-medium truncate mt-0.5">{order.patientName || '—'}</p>
+            <p className="text-xs text-muted-foreground truncate">{order.dentist.clinicName} · {order.dentist.dentistName}</p>
+          </div>
+        </div>
+        <div className="flex-shrink-0 text-right">
+          {dueDate ? (
+            <span className={cn(
+              'text-xs font-medium flex items-center gap-1',
+              overdue ? 'text-red-600' : 'text-muted-foreground'
+            )}>
+              {overdue && <AlertCircle className="h-3 w-3" />}
+              <CalendarIcon className="h-3 w-3" />
+              {format(dueDate, 'd. M.')}
+            </span>
+          ) : (
+            <span className="text-xs text-muted-foreground">Brez roka</span>
+          )}
+          <p className="text-[10px] text-muted-foreground mt-1">
+            {formatDistanceToNow(parseISO(order.createdAt), { addSuffix: true, locale: sl })}
+          </p>
+        </div>
+      </div>
+
+      {order.notes && (
+        <p className="text-xs text-muted-foreground italic line-clamp-2">{order.notes}</p>
+      )}
+
+      <div className="flex justify-end pt-0.5">
+        <Link href={`/${locale}/worksheets/new?orderId=${order.id}`}>
+          <Button size="sm" variant="outline" className="h-7 text-xs gap-1">
+            <Plus className="h-3 w-3" />
+            Ustvari delovni nalog
+          </Button>
+        </Link>
+      </div>
+    </Card>
+  );
+}
+
 // ─── Quick-add form ───────────────────────────────────────────────────────────
 
 function QuickAddSheet({
@@ -256,15 +340,15 @@ function QuickAddSheet({
 
   return (
     <Sheet open={open} onOpenChange={(o) => { if (!o) onClose(); }}>
-      <SheetContent className="w-full sm:max-w-md overflow-y-auto">
-        <SheetHeader>
+      <SheetContent className="w-full sm:max-w-md overflow-y-auto p-6">
+        <SheetHeader className="pb-4 border-b mb-2">
           <SheetTitle>Novo naročilo</SheetTitle>
           <SheetDescription>
             Hitro dodajte naročilo iz kateregakoli vira. Samodejno se ustvari nalog in delovni nalog.
           </SheetDescription>
         </SheetHeader>
 
-        <div className="mt-6 space-y-4">
+        <div className="space-y-4 mt-4">
           {/* Source */}
           <div className="space-y-1.5">
             <Label>Vir naročila <span className="text-red-500">*</span></Label>
@@ -325,13 +409,17 @@ function QuickAddSheet({
             <Label>Rok dokončanja</Label>
             <Popover open={dueDateOpen} onOpenChange={setDueDateOpen}>
               <PopoverTrigger asChild>
-                <Button variant="outline" className={cn(
-                  'w-full justify-start text-left font-normal',
-                  !form.dueDate && 'text-muted-foreground'
-                )}>
+                <div
+                  role="button"
+                  tabIndex={0}
+                  className={cn(
+                    'inline-flex items-center w-full h-10 rounded-md border border-input bg-background px-3 py-2 text-sm cursor-pointer hover:bg-accent hover:text-accent-foreground',
+                    !form.dueDate && 'text-muted-foreground'
+                  )}
+                >
                   <CalendarIcon className="mr-2 h-4 w-4" />
                   {form.dueDate ? format(form.dueDate, 'd. M. yyyy') : 'Izberite datum...'}
-                </Button>
+                </div>
               </PopoverTrigger>
               <PopoverContent className="w-auto p-0" align="start">
                 <Calendar
@@ -403,24 +491,30 @@ export default function IncomingPage() {
   const { toast } = useToast();
 
   const [worksheets, setWorksheets] = useState<IncomingWorksheet[]>([]);
+  const [ordersWithoutWorksheet, setOrdersWithoutWorksheet] = useState<OrderWithoutWorksheet[]>([]);
   const [dentists, setDentists] = useState<Dentist[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isSyncing, setIsSyncing] = useState(false);
   const [lastPoll, setLastPoll] = useState<Date | null>(null);
   const [addOpen, setAddOpen] = useState(false);
   const [filterSource, setFilterSource] = useState<string>('ALL');
+  const [viewMode, setViewMode] = useState<'all' | 'worksheets' | 'orders'>('all');
 
   const fetchData = useCallback(async () => {
     try {
       const [wsRes, dRes, pollRes] = await Promise.all([
         fetch('/api/incoming'),
-        fetch('/api/dentists?active=true&limit=100'),
+        fetch('/api/dentists?simple=true'),
         fetch('/api/email-inbox/poll'),
       ]);
-      if (wsRes.ok) setWorksheets((await wsRes.json()).data ?? []);
+      if (wsRes.ok) {
+        const wsData = await wsRes.json();
+        setWorksheets(wsData.data ?? []);
+        setOrdersWithoutWorksheet(wsData.orders ?? []);
+      }
       if (dRes.ok) {
         const d = await dRes.json();
-        setDentists(d.data?.dentists ?? d.data ?? []);
+        setDentists(d.data ?? []);
       }
       if (pollRes.ok) {
         const p = await pollRes.json();
@@ -454,7 +548,7 @@ export default function IncomingPage() {
 
   useEffect(() => { fetchData(); }, [fetchData]);
 
-  const filtered = filterSource === 'ALL'
+  const filteredWorksheets = filterSource === 'ALL'
     ? worksheets
     : worksheets.filter((ws) => {
         if (filterSource === 'PHYSICAL') {
@@ -466,10 +560,28 @@ export default function IncomingPage() {
         return ws.scanSource === filterSource;
       });
 
-  // Group by source for counts
+  const filteredOrders = filterSource === 'ALL'
+    ? ordersWithoutWorksheet
+    : ordersWithoutWorksheet.filter((o) => {
+        if (filterSource === 'PHYSICAL' || filterSource === 'EMAIL') {
+          return o.impressionType === 'PHYSICAL_IMPRINT';
+        }
+        // All digital sources map to DIGITAL_SCAN
+        return o.impressionType === 'DIGITAL_SCAN';
+      });
+
+  const showWorksheets = viewMode === 'all' || viewMode === 'worksheets';
+  const showOrders = viewMode === 'all' || viewMode === 'orders';
+  const totalCount = (showWorksheets ? filteredWorksheets.length : 0) + (showOrders ? filteredOrders.length : 0);
+
+  // Group by source for counts (worksheets + orders without worksheet)
   const countBySource: Record<string, number> = {};
   for (const ws of worksheets) {
     const key = ws.scanSource || (ws.order.impressionType === 'PHYSICAL_IMPRINT' ? 'PHYSICAL' : 'EMAIL');
+    countBySource[key] = (countBySource[key] ?? 0) + 1;
+  }
+  for (const o of ordersWithoutWorksheet) {
+    const key = o.impressionType === 'PHYSICAL_IMPRINT' ? 'PHYSICAL' : 'DIGITAL_SCAN';
     countBySource[key] = (countBySource[key] ?? 0) + 1;
   }
 
@@ -483,9 +595,10 @@ export default function IncomingPage() {
             <div>
               <h1 className="text-xl font-semibold">Prihod naročil</h1>
               <p className="text-sm text-muted-foreground">
-                {worksheets.length === 0
-                  ? 'Ni čakajočih naročil'
-                  : `${worksheets.length} ${worksheets.length === 1 ? 'naročilo čaka' : 'naročil čaka'} na obdelavo`}
+                {worksheets.length > 0 && `${worksheets.length} DRAFT nalogov`}
+                {worksheets.length > 0 && ordersWithoutWorksheet.length > 0 && ' · '}
+                {ordersWithoutWorksheet.length > 0 && `${ordersWithoutWorksheet.length} naročil brez naloga`}
+                {worksheets.length === 0 && ordersWithoutWorksheet.length === 0 && 'Ni čakajočih naročil'}
               </p>
             </div>
           </div>
@@ -511,8 +624,32 @@ export default function IncomingPage() {
           </div>
         </div>
 
+        {/* View mode toggle */}
+        <div className="flex items-center gap-2 mt-4">
+          {([
+            { value: 'all', label: 'Vse' },
+            { value: 'worksheets', label: 'DRAFT nalogi' },
+            { value: 'orders', label: 'Brez naloga' },
+          ] as const).map((m) => (
+            <button
+              key={m.value}
+              onClick={() => setViewMode(m.value)}
+              className={cn(
+                'text-xs px-3 py-1 rounded-full border transition-colors',
+                viewMode === m.value
+                  ? 'bg-gray-900 text-white border-gray-900'
+                  : 'text-gray-600 border-gray-200 hover:border-gray-400'
+              )}
+            >
+              {m.label}
+              {m.value === 'worksheets' && worksheets.length > 0 && ` (${worksheets.length})`}
+              {m.value === 'orders' && ordersWithoutWorksheet.length > 0 && ` (${ordersWithoutWorksheet.length})`}
+            </button>
+          ))}
+        </div>
+
         {/* Source filter pills */}
-        <div className="flex items-center gap-2 mt-4 flex-wrap">
+        <div className="flex items-center gap-2 mt-2 flex-wrap">
           <button
             onClick={() => setFilterSource('ALL')}
             className={cn(
@@ -522,7 +659,7 @@ export default function IncomingPage() {
                 : 'text-gray-600 border-gray-200 hover:border-gray-400'
             )}
           >
-            Vse ({worksheets.length})
+            Vsi viri ({worksheets.length + ordersWithoutWorksheet.length})
           </button>
           {SOURCES.map((s) => {
             const count = countBySource[s.value] ?? 0;
@@ -551,7 +688,7 @@ export default function IncomingPage() {
           <div className="flex items-center justify-center h-40">
             <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
           </div>
-        ) : filtered.length === 0 ? (
+        ) : totalCount === 0 ? (
           <div className="flex flex-col items-center justify-center h-40 text-muted-foreground gap-2">
             <Inbox className="h-10 w-10 opacity-30" />
             <p className="text-sm">Ni čakajočih naročil</p>
@@ -561,10 +698,38 @@ export default function IncomingPage() {
             </Button>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-            {filtered.map((ws) => (
-              <IncomingCard key={ws.id} ws={ws} locale={locale} />
-            ))}
+          <div className="space-y-6">
+            {/* Orders without worksheets */}
+            {showOrders && filteredOrders.length > 0 && (
+              <div>
+                {viewMode === 'all' && (
+                  <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide mb-3">
+                    Naročila brez delovnega naloga ({filteredOrders.length})
+                  </h2>
+                )}
+                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+                  {filteredOrders.map((order) => (
+                    <OrderCard key={order.id} order={order} locale={locale} />
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* DRAFT worksheets */}
+            {showWorksheets && filteredWorksheets.length > 0 && (
+              <div>
+                {viewMode === 'all' && (
+                  <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide mb-3">
+                    DRAFT delovni nalogi ({filteredWorksheets.length})
+                  </h2>
+                )}
+                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+                  {filteredWorksheets.map((ws) => (
+                    <IncomingCard key={ws.id} ws={ws} locale={locale} />
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
         )}
       </div>
