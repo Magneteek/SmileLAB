@@ -45,7 +45,7 @@ export default function NewOrderPage() {
         </CardHeader>
         <CardContent>
           <OrderForm
-            onSuccess={(orderId) => router.push(`/orders/${orderId}`)}
+            onSuccess={(orderId, worksheetId) => router.push(worksheetId ? `/worksheets/${worksheetId}` : `/orders/${orderId}`)}
             onCancel={() => router.push('/orders')}
           />
         </CardContent>

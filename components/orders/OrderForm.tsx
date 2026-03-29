@@ -48,7 +48,7 @@ const ORDER_SOURCES = [
 interface OrderFormProps {
   orderId?: string;
   initialData?: Partial<any>;
-  onSuccess?: (orderId: string) => void;
+  onSuccess?: (orderId: string, worksheetId?: string) => void;
   onCancel?: () => void;
 }
 
@@ -157,10 +157,13 @@ export function OrderForm({
       }
 
       if (result.success) {
+        const orderId = result.data.order?.id ?? result.data.id;
+        const worksheetId = result.data.worksheet?.id;
         if (onSuccess) {
-          onSuccess(result.data.id);
+          onSuccess(orderId, worksheetId);
         } else {
-          router.push(`/orders/${result.data.id}`);
+          // Redirect to worksheet if created, otherwise to order
+          router.push(worksheetId ? `/worksheets/${worksheetId}` : `/orders/${orderId}`);
         }
       }
     } catch (err) {

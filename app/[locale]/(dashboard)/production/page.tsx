@@ -54,8 +54,8 @@ interface ProductionWorksheet {
   millingSentAt: string | null;
   millingReceivedAt: string | null;
   scanReceivedAt: string | null;
-  order: { id: string; orderNumber: string; dueDate: string | null; priority: number; impressionType: string };
-  dentist: { id: string; dentistName: string; clinicName: string };
+  order: { id: string; orderNumber: string; dueDate: string | null; priority: number; impressionType: string; dentist: { id: string; dentistName: string; clinicName: string } | null };
+  dentist: { id: string; dentistName: string; clinicName: string } | null;
   designPartner: Partner | null;
   millingPartner: Partner | null;
   products: Array<{ id: string; quantity: number; product: { name: string; code: string } }>;
@@ -204,7 +204,7 @@ function WorksheetCard({
             )}
           </div>
           <p className="text-sm font-medium truncate mt-0.5">{ws.patientName || '—'}</p>
-          <p className="text-xs text-muted-foreground truncate">{ws.dentist.clinicName}</p>
+          <p className="text-xs text-muted-foreground truncate">{(ws.dentist ?? ws.order.dentist)?.clinicName ?? '—'}</p>
         </div>
 
         {/* Due date pill */}
@@ -619,7 +619,7 @@ export default function ProductionPage() {
               <SheetHeader className="px-6 pt-6 pb-4 border-b">
                 <SheetTitle className="text-base">{drawerWorksheet.worksheetNumber} — Nastavitve</SheetTitle>
                 <SheetDescription>
-                  {drawerWorksheet.patientName} · {drawerWorksheet.dentist.clinicName}
+                  {drawerWorksheet.patientName} · {(drawerWorksheet.dentist ?? drawerWorksheet.order.dentist)?.clinicName ?? '—'}
                 </SheetDescription>
               </SheetHeader>
 

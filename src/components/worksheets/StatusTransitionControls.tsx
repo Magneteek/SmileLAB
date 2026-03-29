@@ -50,7 +50,11 @@ interface StatusTransitionControlsProps {
   worksheetId: string;
   currentStatus: WorksheetStatus;
   userRole: Role;
-  orderId?: string; // Optional for creating revision worksheets from voided worksheets
+  orderId?: string;
+  compact?: boolean;         // Renders as fragment (no wrapper div) for inline use
+  buttonSize?: 'sm' | 'default'; // Override button size in compact mode (default: 'sm')
+  onlyDestructive?: boolean; // Only render destructive buttons
+  hideDestructive?: boolean; // Hide destructive buttons
 }
 
 interface TransitionAction {
@@ -164,6 +168,10 @@ export function StatusTransitionControls({
   currentStatus,
   userRole,
   orderId,
+  compact = false,
+  buttonSize,
+  onlyDestructive = false,
+  hideDestructive = false,
 }: StatusTransitionControlsProps) {
   const t = useTranslations();
   const router = useRouter();
@@ -332,107 +340,117 @@ export function StatusTransitionControls({
     }
   };
 
+  const resolvedSize = buttonSize ?? (compact ? 'sm' : 'default');
+
+  const buttons = availableTransitions.map((targetStatus) => {
+    const actionKey = `${currentStatus}->${targetStatus}`;
+    const action = transitionActions[actionKey];
+    if (!action) return null;
+    if (onlyDestructive && action.variant !== 'destructive') return null;
+    if (hideDestructive && action.variant === 'destructive') return null;
+    return (
+      <Button
+        key={targetStatus}
+        variant={action.variant}
+        size={resolvedSize}
+        onClick={() => handleTransitionClick(targetStatus)}
+        disabled={isTransitioning}
+      >
+        {isTransitioning ? (
+          <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+        ) : (
+          <span className="mr-2">{action.icon}</span>
+        )}
+        {t(action.labelKey)}
+      </Button>
+    );
+  });
+
+  const confirmationDialog = (
+    <AlertDialog
+      open={confirmDialog.open}
+      onOpenChange={(open) => {
+        if (!open) {
+          setConfirmDialog({ open: false, action: null });
+          setNotes('');
+          setError(null);
+        }
+      }}
+    >
+      <AlertDialogContent>
+        <AlertDialogHeader>
+          <AlertDialogTitle>
+            {confirmDialog.action && t(confirmDialog.action.labelKey)}
+          </AlertDialogTitle>
+          <AlertDialogDescription>
+            {confirmDialog.action && t(confirmDialog.action.descKey)}
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+
+        {missingLotWarning && (
+          <Alert className="border-amber-200 bg-amber-50">
+            <AlertCircle className="h-4 w-4 text-amber-600" />
+            <AlertDescription className="text-amber-800">
+              <strong>⚠️ Warning:</strong> {missingLotWarning.message}
+            </AlertDescription>
+          </Alert>
+        )}
+
+        {confirmDialog.action?.requiresNotes && (
+          <div className="space-y-2">
+            <label className="text-sm font-medium">
+              {t('worksheet.workflowNotesLabel')} <span className="text-red-500">*</span>
+            </label>
+            <Textarea
+              value={notes}
+              onChange={(e) => setNotes(e.target.value)}
+              placeholder={t('worksheet.workflowNotesPlaceholder')}
+              rows={4}
+            />
+            {error && <p className="text-sm text-red-500">{error}</p>}
+          </div>
+        )}
+
+        <AlertDialogFooter>
+          <AlertDialogCancel disabled={isTransitioning}>
+            {t('worksheet.workflowCancel')}
+          </AlertDialogCancel>
+          <AlertDialogAction
+            onClick={(e) => {
+              e.preventDefault();
+              handleConfirmTransition();
+            }}
+            disabled={isTransitioning}
+          >
+            {isTransitioning && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+            {t('worksheet.workflowConfirm')}
+          </AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
+  );
+
+  if (compact) {
+    return (
+      <>
+        {buttons}
+        {confirmationDialog}
+      </>
+    );
+  }
+
   return (
     <div className="space-y-4">
-      {/* Error Display */}
       {error && (
         <Alert variant="destructive">
           <AlertCircle className="h-4 w-4" />
           <AlertDescription>{error}</AlertDescription>
         </Alert>
       )}
-
-      {/* Action Buttons */}
       <div className="flex flex-wrap gap-2">
-        {availableTransitions.map((targetStatus) => {
-          const actionKey = `${currentStatus}->${targetStatus}`;
-          const action = transitionActions[actionKey];
-
-          if (!action) return null;
-
-          return (
-            <Button
-              key={targetStatus}
-              variant={action.variant}
-              onClick={() => handleTransitionClick(targetStatus)}
-              disabled={isTransitioning}
-            >
-              {isTransitioning ? (
-                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-              ) : (
-                <span className="mr-2">{action.icon}</span>
-              )}
-              {t(action.labelKey)}
-            </Button>
-          );
-        })}
+        {buttons}
       </div>
-
-      {/* Confirmation Dialog */}
-      <AlertDialog
-        open={confirmDialog.open}
-        onOpenChange={(open) => {
-          if (!open) {
-            setConfirmDialog({ open: false, action: null });
-            setNotes('');
-            setError(null);
-          }
-        }}
-      >
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>
-              {confirmDialog.action && t(confirmDialog.action.labelKey)}
-            </AlertDialogTitle>
-            <AlertDialogDescription>
-              {confirmDialog.action && t(confirmDialog.action.descKey)}
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-
-          {/* Warning for missing LOT numbers */}
-          {missingLotWarning && (
-            <Alert className="border-amber-200 bg-amber-50">
-              <AlertCircle className="h-4 w-4 text-amber-600" />
-              <AlertDescription className="text-amber-800">
-                <strong>⚠️ Warning:</strong> {missingLotWarning.message}
-              </AlertDescription>
-            </Alert>
-          )}
-
-          {confirmDialog.action?.requiresNotes && (
-            <div className="space-y-2">
-              <label className="text-sm font-medium">
-                {t('worksheet.workflowNotesLabel')} {confirmDialog.action.requiresNotes && <span className="text-red-500">*</span>}
-              </label>
-              <Textarea
-                value={notes}
-                onChange={(e) => setNotes(e.target.value)}
-                placeholder={t('worksheet.workflowNotesPlaceholder')}
-                rows={4}
-              />
-              {error && (
-                <p className="text-sm text-red-500">{error}</p>
-              )}
-            </div>
-          )}
-
-          <AlertDialogFooter>
-            <AlertDialogCancel disabled={isTransitioning}>
-              {t('worksheet.workflowCancel')}
-            </AlertDialogCancel>
-            <AlertDialogAction
-              onClick={(e) => {
-                e.preventDefault();
-                handleConfirmTransition();
-              }}
-              disabled={isTransitioning}
-            >
-              {isTransitioning && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
-              {t('worksheet.workflowConfirm')}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      {confirmationDialog}
     </div>
   );
 }

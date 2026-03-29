@@ -109,11 +109,11 @@ export default async function WorksheetDetailPage({
                   )}
                   <div>
                     <span className="text-gray-500">{t('worksheet.detailDentistLabel')}</span>{' '}
-                    <span className="font-medium">{worksheet.dentist.dentistName}</span>
+                    <span className="font-medium">{(worksheet.dentist ?? (worksheet.order as any).dentist)?.dentistName ?? '—'}</span>
                   </div>
                   <div>
                     <span className="text-gray-500">{t('worksheet.detailClinicLabel')}</span>{' '}
-                    <span className="font-medium">{worksheet.dentist.clinicName}</span>
+                    <span className="font-medium">{(worksheet.dentist ?? (worksheet.order as any).dentist)?.clinicName ?? '—'}</span>
                   </div>
                   <div>
                     <span className="text-gray-500">{t('worksheet.detailPatientLabel')}</span>{' '}
@@ -126,15 +126,16 @@ export default async function WorksheetDetailPage({
                 </div>
               </div>
             </div>
-            <div className="flex gap-2">
-              {isDraft && (
-                <Link href={`/worksheets/${worksheet.id}/edit`}>
-                  <Button size="sm">
-                    <Edit className="h-4 w-4 mr-2" />
-                    {t('worksheet.detailEditButton')}
-                  </Button>
-                </Link>
-              )}
+            <div className="flex flex-wrap items-center gap-2">
+              <StatusTransitionControls
+                worksheetId={worksheet.id}
+                currentStatus={worksheet.status as any}
+                userRole={session.user.role as any}
+                orderId={worksheet.orderId}
+                compact
+                onlyDestructive
+                buttonSize="sm"
+              />
               <VoidWorksheetButton
                 worksheetId={worksheet.id}
                 worksheetNumber={worksheet.worksheetNumber}
@@ -147,26 +148,7 @@ export default async function WorksheetDetailPage({
                 currentStatus={worksheet.status}
                 orderId={worksheet.orderId}
               />
-              <Link href={`/api/documents/worksheet-pdf/${worksheet.id}?locale=sl`} target="_blank">
-                <Button variant="outline" size="sm">
-                  <Printer className="h-4 w-4 mr-2" />
-                  {t('worksheet.detailPrintButton')}
-                </Button>
-              </Link>
             </div>
-          </div>
-
-          <Separator className="my-4" />
-
-          {/* Workflow Actions - Integrated */}
-          <div>
-            <h3 className="text-sm font-semibold text-gray-700 mb-3">{t('worksheet.detailWorkflowActions')}</h3>
-            <StatusTransitionControls
-              worksheetId={worksheet.id}
-              currentStatus={worksheet.status as any}
-              userRole={session.user.role as any}
-              orderId={worksheet.orderId}
-            />
           </div>
         </CardContent>
       </Card>
@@ -175,6 +157,33 @@ export default async function WorksheetDetailPage({
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-2">
         {/* Products & Materials - 75% (Left) */}
         <div className="lg:col-span-3 space-y-4">
+          {/* Primary actions — Edit + forward workflow transitions */}
+          <div className="flex flex-wrap gap-2">
+            {isDraft && (
+              <Link href={`/worksheets/${worksheet.id}/edit`}>
+                <Button size="lg">
+                  <Edit className="h-4 w-4 mr-2" />
+                  {t('worksheet.detailEditButton')}
+                </Button>
+              </Link>
+            )}
+            <StatusTransitionControls
+              worksheetId={worksheet.id}
+              currentStatus={worksheet.status as any}
+              userRole={session.user.role as any}
+              orderId={worksheet.orderId}
+              compact
+              hideDestructive
+              buttonSize="default"
+            />
+            <Link href={`/api/documents/worksheet-pdf/${worksheet.id}?locale=sl`} target="_blank">
+              <Button variant="outline">
+                <Printer className="h-4 w-4 mr-2" />
+                {t('worksheet.detailPrintButton')}
+              </Button>
+            </Link>
+          </div>
+
           <Card>
             <CardHeader>
               <CardTitle>{t('worksheet.detailProductsTitle', { count: worksheet.products.length })}</CardTitle>

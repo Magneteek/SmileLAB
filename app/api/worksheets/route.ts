@@ -55,7 +55,12 @@ export async function GET(request: NextRequest) {
         take: limit,
         orderBy: { createdAt: 'desc' },
         include: {
-          order: { select: { id: true, orderNumber: true, dueDate: true } },
+          order: {
+            select: {
+              id: true, orderNumber: true, dueDate: true,
+              dentist: { select: { id: true, clinicName: true, dentistName: true } },
+            },
+          },
           dentist: { select: { id: true, clinicName: true, dentistName: true } },
           products: { include: { product: true }, take: 3 },
         },

@@ -43,6 +43,9 @@ export async function GET(request: NextRequest) {
             dueDate: true,
             priority: true,
             impressionType: true,
+            dentist: {
+              select: { id: true, dentistName: true, clinicName: true },
+            },
           },
         },
         dentist: {

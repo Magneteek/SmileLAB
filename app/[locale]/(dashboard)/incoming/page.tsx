@@ -269,12 +269,13 @@ function OrderCard({ order, locale }: { order: OrderWithoutWorksheet; locale: st
 // ─── Quick-add form ───────────────────────────────────────────────────────────
 
 function QuickAddSheet({
-  open, onClose, dentists, onCreated,
+  open, onClose, dentists, onCreated, locale,
 }: {
   open: boolean;
   onClose: () => void;
   dentists: Dentist[];
   onCreated: () => void;
+  locale: string;
 }) {
   const { toast } = useToast();
   const [saving, setSaving] = useState(false);
@@ -327,10 +328,13 @@ function QuickAddSheet({
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Napaka');
-      toast({ title: 'Naročilo dodano', description: `Ustvarjen ${data.data.worksheet.worksheetNumber}` });
+      const worksheetId = data.data.worksheet.id;
+      const worksheetNumber = data.data.worksheet.worksheetNumber;
+      toast({ title: 'Naročilo dodano', description: `Ustvarjen ${worksheetNumber} — preusmerjanje...` });
       reset();
       onCreated();
       onClose();
+      window.location.href = `/${locale}/worksheets/${worksheetId}`;
     } catch (err: any) {
       toast({ title: 'Napaka', description: err.message, variant: 'destructive' });
     } finally {
@@ -740,6 +744,7 @@ export default function IncomingPage() {
         onClose={() => setAddOpen(false)}
         dentists={dentists}
         onCreated={fetchData}
+        locale={locale}
       />
     </div>
   );

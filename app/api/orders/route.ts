@@ -14,6 +14,7 @@ import {
 } from '@/lib/services/order-service';
 import { OrderStatus } from '@prisma/client';
 import { z } from 'zod';
+import { prisma } from '@/lib/prisma';
 
 // Validation schema for creating orders
 const createOrderSchema = z.object({
@@ -118,10 +119,23 @@ export async function POST(request: NextRequest) {
     // Create order
     const order = await createOrder(validatedData, session.user.id);
 
+    // Auto-create DRAFT worksheet
+    const worksheet = await prisma.workSheet.create({
+      data: {
+        worksheetNumber: `DN-${order.orderNumber}`,
+        revision: 1,
+        orderId: order.id,
+        dentistId: order.dentistId,
+        createdById: session.user.id,
+        patientName: validatedData.patientName ?? null,
+        status: 'DRAFT',
+      },
+    });
+
     return NextResponse.json(
       {
         success: true,
-        data: order,
+        data: { order, worksheet },
       },
       { status: 201 }
     );

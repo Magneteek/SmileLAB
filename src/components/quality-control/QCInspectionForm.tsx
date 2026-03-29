@@ -157,6 +157,7 @@ const qcFormSchema = z.object({
   riskClass: z.string().min(1, 'Risk class is required'),
   annexIDeviations: z.string().optional(),
   documentVersion: z.string().min(1, 'Document version is required'),
+  manufactureDate: z.string().min(1, 'Manufacture date is required'),
 });
 
 type QCFormData = z.infer<typeof qcFormSchema>;
@@ -196,6 +197,10 @@ export function QCInspectionForm({
       riskClass: 'Class IIa',
       annexIDeviations: '',
       documentVersion: '1.0',
+      // Manufacture date: prefer existing worksheet value, otherwise today
+      manufactureDate: worksheet.manufactureDate
+        ? format(new Date(worksheet.manufactureDate), 'yyyy-MM-dd')
+        : format(new Date(), 'yyyy-MM-dd'),
     },
   });
 
@@ -303,6 +308,7 @@ export function QCInspectionForm({
           riskClass: formValues.riskClass,
           annexIDeviations: formValues.annexIDeviations,
           documentVersion: formValues.documentVersion,
+          manufactureDate: formValues.manufactureDate,
         }),
       });
 
@@ -334,6 +340,64 @@ export function QCInspectionForm({
 
   return (
     <div className="space-y-6">
+      {/* Top Action Bar */}
+      <div className="flex flex-wrap items-center gap-3 p-4 bg-muted/40 rounded-lg border">
+        <div className="flex items-center gap-2 mr-auto text-sm text-muted-foreground">
+          <span className="font-medium">{t('qualityControl.passedChecksLabel', { passedChecks })}</span>
+        </div>
+        <div className="flex items-center gap-2">
+          <Label htmlFor="manufactureDateTop" className="text-sm whitespace-nowrap">
+            {t('qualityControl.manufactureDateLabel')}
+          </Label>
+          <Input
+            id="manufactureDateTop"
+            type="date"
+            value={formValues.manufactureDate}
+            max={format(new Date(), 'yyyy-MM-dd')}
+            onChange={(e) => setValue('manufactureDate', e.target.value)}
+            className="w-40 h-8 text-sm"
+          />
+        </div>
+        <Button
+          variant="outline"
+          onClick={() => router.push('/quality-control')}
+          disabled={isSubmitting}
+          size="sm"
+        >
+          <ArrowLeft className="mr-1 h-4 w-4" />
+          {t('qualityControl.backToDashboard')}
+        </Button>
+        <Button
+          variant="destructive"
+          onClick={() => handleDecision('REJECTED')}
+          disabled={isSubmitting || passedChecks === 5}
+          size="sm"
+        >
+          <XCircle className="mr-1 h-4 w-4" />
+          {t('qualityControl.rejectButton')}
+        </Button>
+        <Button
+          variant="default"
+          className="bg-yellow-600 hover:bg-yellow-700"
+          onClick={() => handleDecision('CONDITIONAL')}
+          disabled={isSubmitting || passedChecks < 4}
+          size="sm"
+        >
+          <AlertCircle className="mr-1 h-4 w-4" />
+          {t('qualityControl.conditionalApproveButton')}
+        </Button>
+        <Button
+          variant="default"
+          className="bg-green-600 hover:bg-green-700"
+          onClick={() => handleDecision('APPROVED')}
+          disabled={isSubmitting || passedChecks !== 5}
+          size="sm"
+        >
+          <CheckCircle className="mr-1 h-4 w-4" />
+          {t('qualityControl.approveButton')}
+        </Button>
+      </div>
+
       {/* 60/40 Grid Layout - Form Left, Details Right */}
       <div className="grid grid-cols-1 lg:grid-cols-[60%_40%] gap-6">
         {/* Left Column (60%): QC Form */}
@@ -421,6 +485,7 @@ export function QCInspectionForm({
                       {t('qualityControl.documentVersionDescription')}
                     </p>
                   </div>
+
                 </div>
 
                 {/* Inspector Notes */}
@@ -454,47 +519,6 @@ export function QCInspectionForm({
                   />
                 </div>
 
-                {/* Decision Buttons - Inline in 1 Row */}
-                <div className="flex gap-2 pt-4 border-t flex-wrap">
-                  <Button
-                    variant="outline"
-                    onClick={() => router.push('/quality-control')}
-                    disabled={isSubmitting}
-                    size="sm"
-                  >
-                    <ArrowLeft className="mr-1 h-4 w-4" />
-                    {t('qualityControl.backToDashboard')}
-                  </Button>
-                  <Button
-                    variant="default"
-                    className="bg-green-600 hover:bg-green-700"
-                    onClick={() => handleDecision('APPROVED')}
-                    disabled={isSubmitting || passedChecks !== 5}
-                    size="sm"
-                  >
-                    <CheckCircle className="mr-1 h-4 w-4" />
-                    {t('qualityControl.approveButton')}
-                  </Button>
-                  <Button
-                    variant="default"
-                    className="bg-yellow-600 hover:bg-yellow-700"
-                    onClick={() => handleDecision('CONDITIONAL')}
-                    disabled={isSubmitting || passedChecks < 4}
-                    size="sm"
-                  >
-                    <AlertCircle className="mr-1 h-4 w-4" />
-                    {t('qualityControl.conditionalApproveButton')}
-                  </Button>
-                  <Button
-                    variant="destructive"
-                    onClick={() => handleDecision('REJECTED')}
-                    disabled={isSubmitting || passedChecks === 5}
-                    size="sm"
-                  >
-                    <XCircle className="mr-1 h-4 w-4" />
-                    {t('qualityControl.rejectButton')}
-                  </Button>
-                </div>
               </div>
 
               {/* Right Column: Quality Control Checklist */}

@@ -57,6 +57,7 @@ const qcSubmissionSchema = z.object({
   riskClass: z.string().min(1, 'Risk class is required'),
   annexIDeviations: z.string().optional(),
   documentVersion: z.string().min(1, 'Document version is required'),
+  manufactureDate: z.string().optional(),
 });
 
 type QCSubmissionData = z.infer<typeof qcSubmissionSchema>;
@@ -272,10 +273,13 @@ export async function POST(
         },
       });
 
-      // Transition worksheet status
+      // Transition worksheet status and update manufacture date if provided
       const updatedWorksheet = await tx.workSheet.update({
         where: { id: worksheetId },
-        data: { status: targetWorksheetStatus },
+        data: {
+          status: targetWorksheetStatus,
+          ...(data.manufactureDate ? { manufactureDate: new Date(data.manufactureDate) } : {}),
+        },
         select: {
           id: true,
           worksheetNumber: true,
@@ -389,32 +393,16 @@ export async function POST(
           `[QC] Checking if Annex XIII exists for worksheet ${worksheet.worksheetNumber}...`
         );
 
-        // Check if Annex XIII already exists
-        const existingAnnex = await prisma.document.findFirst({
-          where: {
-            worksheetId,
-            type: 'ANNEX_XIII',
-          },
-          select: { id: true, generatedAt: true },
-        });
+        console.log(
+          `[QC] Generating Annex XIII for worksheet ${worksheet.worksheetNumber} in SL (Slovenian)...`
+        );
 
-        if (existingAnnex) {
-          console.log(
-            `[QC] Annex XIII already exists (ID: ${existingAnnex.id}), skipping generation`
-          );
-          annexDocument = existingAnnex;
-        } else {
-          console.log(
-            `[QC] Generating Annex XIII for worksheet ${worksheet.worksheetNumber} in SL (Slovenian)...`
-          );
+        // Always regenerate so the manufacture date (and any other changes) are reflected
+        annexDocument = await generateAnnexXIII(worksheetId, session.user.id, 'sl');
 
-          // Generate Annex XIII document in Slovenian (default language)
-          annexDocument = await generateAnnexXIII(worksheetId, session.user.id, 'sl');
-
-          console.log(
-            `[QC] ✅ Annex XIII generated successfully: ${annexDocument.id}`
-          );
-        }
+        console.log(
+          `[QC] ✅ Annex XIII generated successfully: ${annexDocument.id}`
+        );
       } catch (error) {
         // Log error but don't fail the QC approval
         console.error('[QC] ⚠️ Failed to generate Annex XIII:', error);

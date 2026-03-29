@@ -208,7 +208,7 @@ export function WorksheetForm({
   const t = useTranslations();
 
   // State
-  const [activeTab, setActiveTab] = useState<string>('basic');
+  const [activeTab, setActiveTab] = useState<string>('teeth');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [orderNumber, setOrderNumber] = useState<string>('');
@@ -570,16 +570,17 @@ export function WorksheetForm({
       const data = form.getValues();
       console.log('💾 saveCurrentTab called, activeTab:', activeTab);
 
+      // Always save basic info alongside tab content
+      if (worksheetId) {
+        await updateWorksheet(worksheetId, {
+          deviceDescription: data.deviceDescription,
+          intendedUse: data.intendedUse,
+          technicalNotes: data.technicalNotes,
+        });
+      }
+
       // Save based on active tab
-      if (activeTab === 'basic') {
-        if (worksheetId) {
-          await updateWorksheet(worksheetId, {
-            deviceDescription: data.deviceDescription,
-            intendedUse: data.intendedUse,
-            technicalNotes: data.technicalNotes,
-          });
-        }
-      } else if (activeTab === 'teeth' && worksheetId) {
+      if (activeTab === 'teeth' && worksheetId) {
         // Always call to ensure "replace all" - empty array will delete all teeth
         await assignTeeth(worksheetId, data.teeth as any);
       } else if (activeTab === 'products' && worksheetId) {
@@ -645,6 +646,50 @@ export function WorksheetForm({
   };
 
   // ============================================================================
+  // HEADER SAVE — saves basic info + current tab content
+  // ============================================================================
+
+  const handleHeaderSave = async () => {
+    setIsSubmitting(true);
+    setError(null);
+    try {
+      const data = form.getValues();
+      let currentId = worksheetId;
+
+      if (mode === 'create' && !currentId) {
+        const ws = await createWorksheet({
+          orderId: data.orderId,
+          deviceDescription: data.deviceDescription,
+          intendedUse: data.intendedUse,
+          technicalNotes: data.technicalNotes,
+        });
+        currentId = ws.id;
+        setWorksheetId(currentId);
+      } else if (currentId) {
+        await updateWorksheet(currentId, {
+          deviceDescription: data.deviceDescription,
+          intendedUse: data.intendedUse,
+          technicalNotes: data.technicalNotes,
+        });
+      }
+
+      if (!currentId) throw new Error('Worksheet ID required');
+
+      if (activeTab === 'teeth') {
+        await assignTeeth(currentId, data.teeth as any);
+      } else if (activeTab === 'products') {
+        await assignProducts(currentId, data.products);
+      }
+
+      onSuccess?.({ id: currentId });
+    } catch (err: any) {
+      setError(err.message || 'Failed to save');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  // ============================================================================
   // RENDER
   // ============================================================================
 
@@ -652,20 +697,26 @@ export function WorksheetForm({
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className={className}>
         <Card>
-          <CardHeader>
-            <CardTitle>
-              {mode === 'create' ? t('worksheet.formCreateTitle') : t('worksheet.formEditTitle')}
-            </CardTitle>
-            <CardDescription>
-              {mode === 'create'
-                ? t('worksheet.formCreateDescription')
-                : isReadOnly
-                ? t('worksheet.formEditDescriptionReadOnly', { status: worksheet?.status || 'DRAFT' })
-                : t('worksheet.formEditDescription')}
-            </CardDescription>
+          <CardHeader className="pb-3">
+            <div className="flex items-center justify-between gap-4">
+              <CardTitle className="text-base">
+                {mode === 'create' ? t('worksheet.formCreateTitle') : t('worksheet.formEditTitle')}
+              </CardTitle>
+              {!isReadOnly && (
+                <Button
+                  type="button"
+                  size="sm"
+                  onClick={handleHeaderSave}
+                  disabled={isSubmitting}
+                >
+                  {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                  {mode === 'create' ? t('worksheet.buttonCreateWorksheet') : t('worksheet.buttonSaveChanges')}
+                </Button>
+              )}
+            </div>
           </CardHeader>
 
-          <CardContent className="space-y-6">
+          <CardContent className="space-y-4">
             {/* Error Alert */}
             {error && (
               <Alert variant="destructive">
@@ -684,214 +735,119 @@ export function WorksheetForm({
               </Alert>
             )}
 
+            {/* Hidden Order ID field */}
+            <FormField
+              control={form.control}
+              name="orderId"
+              render={({ field }) => <input type="hidden" {...field} />}
+            />
+
+            {/* Compact MDR fields — always visible above tabs */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+              <FormField
+                control={form.control}
+                name="deviceDescription"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="text-xs font-medium">{t('worksheet.deviceDescriptionLabel')}</FormLabel>
+                    <FormControl>
+                      <Textarea
+                        {...field}
+                        placeholder={t('worksheet.deviceDescriptionPlaceholder')}
+                        rows={2}
+                        className="text-sm resize-none"
+                        disabled={isReadOnly}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="intendedUse"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="text-xs font-medium">{t('worksheet.intendedUseLabel')}</FormLabel>
+                    <FormControl>
+                      <Textarea
+                        {...field}
+                        placeholder={t('worksheet.intendedUsePlaceholder')}
+                        rows={2}
+                        className="text-sm resize-none"
+                        disabled={isReadOnly}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="technicalNotes"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="text-xs font-medium">{t('worksheet.technicalNotesLabel')}</FormLabel>
+                    <FormControl>
+                      <Textarea
+                        {...field}
+                        placeholder={t('worksheet.technicalNotesPlaceholder')}
+                        rows={2}
+                        className="text-sm resize-none"
+                        disabled={isReadOnly}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+
             {/* Multi-Tab Form */}
             <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-              <TabsList className={`grid w-full ${ENABLE_DIRECT_MATERIALS_TAB ? 'grid-cols-4' : 'grid-cols-3'}`}>
-                <TabsTrigger value="basic">{t('worksheet.tabBasicInfo')}</TabsTrigger>
-                <TabsTrigger value="teeth" disabled={!worksheetId && mode === 'create'}>
+              <TabsList className={`grid w-full ${ENABLE_DIRECT_MATERIALS_TAB ? 'grid-cols-3' : 'grid-cols-2'}`}>
+                <TabsTrigger value="teeth">
                   {t('worksheet.tabTeethSelection')}
                 </TabsTrigger>
                 {ENABLE_DIRECT_MATERIALS_TAB && (
-                  <TabsTrigger value="materials" disabled={!worksheetId && mode === 'create'}>
+                  <TabsTrigger value="materials">
                     {t('worksheet.tabMaterials')}
                   </TabsTrigger>
                 )}
-                <TabsTrigger value="products" disabled={!worksheetId && mode === 'create'}>
+                <TabsTrigger value="products">
                   {t('worksheet.tabProducts')}
                 </TabsTrigger>
               </TabsList>
 
-              {/* Tab 1: Basic Info */}
-              <TabsContent value="basic" className="space-y-4">
-                {/* Hidden Order ID field (UUID for backend) */}
-                <FormField
-                  control={form.control}
-                  name="orderId"
-                  render={({ field }) => (
-                    <input type="hidden" {...field} />
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="deviceDescription"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>{t('worksheet.deviceDescriptionLabel')}</FormLabel>
-                      <FormControl>
-                        <Textarea
-                          {...field}
-                          placeholder={t('worksheet.deviceDescriptionPlaceholder')}
-                          rows={3}
-                          disabled={isReadOnly}
-                        />
-                      </FormControl>
-                      <FormDescription>
-                        {t('worksheet.deviceDescriptionDescription')}
-                      </FormDescription>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="intendedUse"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>{t('worksheet.intendedUseLabel')}</FormLabel>
-                      <FormControl>
-                        <Textarea
-                          {...field}
-                          placeholder={t('worksheet.intendedUsePlaceholder')}
-                          rows={2}
-                          disabled={isReadOnly}
-                        />
-                      </FormControl>
-                      <FormDescription>
-                        {t('worksheet.intendedUseDescription')}
-                      </FormDescription>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="technicalNotes"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>{t('worksheet.technicalNotesLabel')}</FormLabel>
-                      <FormControl>
-                        <Textarea
-                          {...field}
-                          placeholder={t('worksheet.technicalNotesPlaceholder')}
-                          rows={3}
-                          disabled={isReadOnly}
-                        />
-                      </FormControl>
-                      <FormDescription>
-                        {t('worksheet.technicalNotesDescription')}
-                      </FormDescription>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                {mode === 'create' && !worksheetId && (
-                  <div className="flex justify-end gap-3">
-                    <Button type="button" variant="outline" onClick={onCancel}>
-                      {t('worksheet.buttonCancel')}
-                    </Button>
-                    <Button
-                      type="button"
-                      onClick={async () => {
-                        const data = form.getValues();
-                        try {
-                          setIsSubmitting(true);
-                          const worksheet = await createWorksheet({
-                            orderId: data.orderId,
-                            deviceDescription: data.deviceDescription,
-                            intendedUse: data.intendedUse,
-                            technicalNotes: data.technicalNotes,
-                          });
-                          setWorksheetId(worksheet.id);
-                          setActiveTab('teeth'); // Move to next tab
-                        } catch (err: any) {
-                          setError(err.message);
-                        } finally {
-                          setIsSubmitting(false);
-                        }
-                      }}
-                      disabled={isSubmitting || !form.getValues('orderId')}
-                    >
-                      {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                      {t('worksheet.buttonSaveContinue')}
-                    </Button>
-                  </div>
-                )}
-
-                {/* Save & Continue for Edit Mode */}
-                {mode === 'edit' && worksheetId && !isReadOnly && (
-                  <div className="flex justify-end gap-3">
-                    <Button
-                      type="button"
-                      onClick={async () => {
-                        const data = form.getValues();
-                        try {
-                          setIsSubmitting(true);
-                          await updateWorksheet(worksheetId, {
-                            deviceDescription: data.deviceDescription,
-                            intendedUse: data.intendedUse,
-                            technicalNotes: data.technicalNotes,
-                          });
-                          setActiveTab('teeth'); // Move to next tab
-                        } catch (err: any) {
-                          setError(err.message);
-                        } finally {
-                          setIsSubmitting(false);
-                        }
-                      }}
-                      disabled={isSubmitting}
-                    >
-                      {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                      {t('worksheet.buttonSaveContinue')}
-                    </Button>
-                  </div>
-                )}
-              </TabsContent>
-
-              {/* Tab 2: Teeth Selection */}
+              {/* Tab 1: Teeth Selection */}
               <TabsContent value="teeth" className="space-y-4">
-                <div>
-                  <h3 className="text-lg font-semibold mb-2">{t('worksheet.teethSelectionTitle')}</h3>
-                  <p className="text-sm text-gray-600 mb-4">
-                    {t('worksheet.teethSelectionDescription')}
-                  </p>
+                <TeethSelector
+                  selectedTeeth={selectedTeeth}
+                  onTeethChange={setSelectedTeeth}
+                  mode="permanent"
+                  readOnly={isReadOnly}
+                  showLegend={true}
+                  showLabels={true}
+                  layout="sidebar"
+                />
 
-                  <TeethSelector
-                    selectedTeeth={selectedTeeth}
-                    onTeethChange={setSelectedTeeth}
-                    mode="permanent"
-                    readOnly={isReadOnly}
-                    showLegend={true}
-                    showLabels={true}
-                    layout="sidebar"
-                  />
-
-                  {!isReadOnly && (
-                    <div className="mt-4 flex justify-end gap-3">
-                      <Button type="button" variant="outline" onClick={() => setActiveTab('basic')}>
-                        {t('worksheet.buttonBack')}
-                      </Button>
-                      <Button
-                        type="button"
-                        onClick={async (e) => {
-                          e.preventDefault();
-                          e.stopPropagation();
-                          if (worksheetId && selectedTeeth.length > 0) {
-                            await saveCurrentTab();
-                          }
-                          setActiveTab(ENABLE_DIRECT_MATERIALS_TAB ? 'materials' : 'products');
-                        }}
-                        disabled={isSubmitting}
-                      >
-                        {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                        {t('worksheet.buttonSaveContinue')}
-                      </Button>
-                    </div>
-                  )}
-                </div>
+                {!isReadOnly && (
+                  <div className="flex justify-end">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setActiveTab(ENABLE_DIRECT_MATERIALS_TAB ? 'materials' : 'products')}
+                    >
+                      {t('worksheet.tabProducts')} →
+                    </Button>
+                  </div>
+                )}
               </TabsContent>
 
-              {/* Tab 4: Products */}
+              {/* Tab 2: Products */}
               <TabsContent value="products" className="space-y-4">
                 <div>
-                  <h3 className="text-lg font-semibold mb-2">{t('worksheet.productSelectionTitle')}</h3>
-                  <p className="text-sm text-gray-600 mb-4">
-                    {t('worksheet.productSelectionDescription')}
-                  </p>
-
                   <ProductSelector
                     selectedProducts={selectedProducts}
                     onProductsChange={setSelectedProducts}
@@ -919,13 +875,9 @@ export function WorksheetForm({
                   />
 
                   {!isReadOnly && (
-                    <div className="mt-4 flex justify-end gap-3">
-                      <Button type="button" variant="outline" onClick={() => setActiveTab(ENABLE_DIRECT_MATERIALS_TAB ? 'materials' : 'teeth')}>
-                        {t('worksheet.buttonBack')}
-                      </Button>
-                      <Button type="submit" disabled={isSubmitting}>
-                        {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                        {mode === 'create' ? t('worksheet.buttonCreateWorksheet') : t('worksheet.buttonSaveChanges')}
+                    <div className="mt-4 flex justify-start">
+                      <Button type="button" variant="outline" size="sm" onClick={() => setActiveTab(ENABLE_DIRECT_MATERIALS_TAB ? 'materials' : 'teeth')}>
+                        ← {t('worksheet.tabTeethSelection')}
                       </Button>
                     </div>
                   )}

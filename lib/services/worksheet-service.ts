@@ -39,7 +39,12 @@ export async function getWorksheetById(id: string) {
   return prisma.workSheet.findFirst({
     where: { id, deletedAt: null },
     include: {
-      order: { select: { id: true, orderNumber: true, dueDate: true, status: true } },
+      order: {
+        select: {
+          id: true, orderNumber: true, dueDate: true, status: true,
+          dentist: { select: { id: true, clinicName: true, dentistName: true } },
+        },
+      },
       dentist: { select: { id: true, clinicName: true, dentistName: true } },
       createdBy: { select: { id: true, name: true, email: true } },
       teeth: true,
@@ -110,14 +115,38 @@ export async function getWorksheets(
       take: limit,
       orderBy: { createdAt: 'desc' },
       include: {
-        order: { select: { id: true, orderNumber: true, dueDate: true } },
+        order: {
+          select: {
+            id: true, orderNumber: true, dueDate: true,
+            dentist: { select: { id: true, clinicName: true, dentistName: true } },
+          },
+        },
         dentist: { select: { id: true, clinicName: true, dentistName: true } },
         products: { include: { product: true }, take: 3 },
       },
     }),
   ]);
 
-  return { worksheets, total, page, limit, totalPages: Math.ceil(total / limit) };
+  // Flatten dentist fields + serialize Decimal fields for client components
+  const mappedWorksheets = worksheets.map((ws) => {
+    const dentist = ws.dentist ?? (ws.order as any).dentist ?? null;
+    return {
+      ...ws,
+      dentistName: dentist?.dentistName ?? '—',
+      clinicName: dentist?.clinicName ?? '—',
+      // Serialize Decimal fields in products to plain numbers
+      products: ws.products.map((p: any) => ({
+        ...p,
+        priceAtSelection: p.priceAtSelection != null ? Number(p.priceAtSelection) : null,
+        product: p.product ? {
+          ...p.product,
+          currentPrice: p.product.currentPrice != null ? Number(p.product.currentPrice) : null,
+        } : p.product,
+      })),
+    };
+  });
+
+  return { worksheets: mappedWorksheets, total, page, limit, totalPages: Math.ceil(total / limit) };
 }
 
 // ============================================================================
