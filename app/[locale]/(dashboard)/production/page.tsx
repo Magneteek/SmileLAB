@@ -385,6 +385,24 @@ export default function ProductionPage() {
   const [groupMode, setGroupMode] = useState<GroupMode>('date');
   const [technicianFilter, setTechnicianFilter] = useState<TechnicianFilter>('all');
 
+  // Restore persisted preferences after hydration
+  useEffect(() => {
+    const savedGroup = localStorage.getItem('productionGroupMode') as GroupMode | null;
+    const savedTech = localStorage.getItem('productionTechFilter') as TechnicianFilter | null;
+    if (savedGroup === 'date' || savedGroup === 'stage') setGroupMode(savedGroup);
+    if (savedTech && (savedTech === 'all' || TECHNICIAN_NAMES.includes(savedTech as any))) setTechnicianFilter(savedTech);
+  }, []);
+
+  const handleSetGroupMode = (mode: GroupMode) => {
+    setGroupMode(mode);
+    localStorage.setItem('productionGroupMode', mode);
+  };
+
+  const handleSetTechnicianFilter = (tech: TechnicianFilter) => {
+    setTechnicianFilter(tech);
+    localStorage.setItem('productionTechFilter', tech);
+  };
+
   // Detail drawer (for scan/partner config)
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [drawerWorksheet, setDrawerWorksheet] = useState<ProductionWorksheet | null>(null);
@@ -471,21 +489,25 @@ export default function ProductionPage() {
     if (!drawerWorksheet) return;
     setDrawerSaving(true);
     try {
+      const payload = {
+        scanSource: drawerWorksheet.scanSource,
+        scanReference: drawerWorksheet.scanReference,
+        designType: drawerWorksheet.designType,
+        designPartnerId: drawerWorksheet.designPartner?.id ?? null,
+        designSentAt: drawerWorksheet.designSentAt,
+        millingType: drawerWorksheet.millingType,
+        manufacturingMethod: drawerWorksheet.manufacturingMethod ?? 'MILLING',
+        millingPartnerId: drawerWorksheet.millingPartner?.id ?? null,
+      };
+      console.log('[saveDrawer] payload:', JSON.stringify(payload));
       const res = await fetch(`/api/production/${drawerWorksheet.id}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          scanSource: drawerWorksheet.scanSource,
-          scanReference: drawerWorksheet.scanReference,
-          designType: drawerWorksheet.designType,
-          designPartnerId: drawerWorksheet.designPartner?.id ?? null,
-          designSentAt: drawerWorksheet.designSentAt,
-          millingType: drawerWorksheet.millingType,
-          manufacturingMethod: drawerWorksheet.manufacturingMethod ?? 'MILLING',
-          millingPartnerId: drawerWorksheet.millingPartner?.id ?? null,
-        }),
+        body: JSON.stringify(payload),
       });
-      if (!res.ok) throw new Error();
+      const resBody = await res.json();
+      console.log('[saveDrawer] status:', res.status, 'body:', JSON.stringify(resBody));
+      if (!res.ok) throw new Error(JSON.stringify(resBody));
       setWorksheets((prev) => prev.map((w) => w.id === drawerWorksheet.id ? { ...drawerWorksheet } : w));
       toast({ title: t('savedTitle'), description: t('savedDesc') });
       setDrawerOpen(false);
@@ -543,7 +565,7 @@ export default function ProductionPage() {
           {/* Technician filter */}
           <div className="flex items-center rounded-lg border bg-white p-0.5 gap-0.5">
             <button
-              onClick={() => setTechnicianFilter('all')}
+              onClick={() => handleSetTechnicianFilter('all')}
               className={cn(
                 'px-2.5 py-1.5 rounded-md text-xs font-medium transition-colors',
                 technicianFilter === 'all' ? 'bg-gray-900 text-white' : 'text-muted-foreground hover:text-foreground'
@@ -554,7 +576,7 @@ export default function ProductionPage() {
             {TECHNICIAN_NAMES.map((name) => (
               <button
                 key={name}
-                onClick={() => setTechnicianFilter(name)}
+                onClick={() => handleSetTechnicianFilter(name)}
                 className={cn(
                   'px-2.5 py-1.5 rounded-md text-xs font-medium transition-colors',
                   technicianFilter === name ? 'bg-violet-600 text-white' : 'text-muted-foreground hover:text-foreground'
@@ -568,7 +590,7 @@ export default function ProductionPage() {
           {/* Group mode toggle */}
           <div className="flex items-center rounded-lg border bg-white p-0.5 gap-0.5">
             <button
-              onClick={() => setGroupMode('date')}
+              onClick={() => handleSetGroupMode('date')}
               className={cn(
                 'flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-xs font-medium transition-colors',
                 groupMode === 'date'
@@ -580,7 +602,7 @@ export default function ProductionPage() {
               {t('groupByDate')}
             </button>
             <button
-              onClick={() => setGroupMode('stage')}
+              onClick={() => handleSetGroupMode('stage')}
               className={cn(
                 'flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-xs font-medium transition-colors',
                 groupMode === 'stage'
