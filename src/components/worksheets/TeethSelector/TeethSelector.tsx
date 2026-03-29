@@ -44,6 +44,7 @@ export function TeethSelector({
 
   const [hoveredTooth, setHoveredTooth] = useState<string | null>(null);
   const [selectedWorkType, setSelectedWorkType] = useState<WorkType>('crown');
+  const [implantMode, setImplantMode] = useState(false);
   const [lastClickedTooth, setLastClickedTooth] = useState<string | null>(null);
   const [editingShade, setEditingShade] = useState('');
   const [editingNotes, setEditingNotes] = useState('');
@@ -97,6 +98,20 @@ export function TeethSelector({
 
     const existing = selectedTeeth.find(t => t.toothNumber === toothNumber);
 
+    // Implant mode: toggle the implant flag on the clicked tooth
+    if (implantMode) {
+      if (existing) {
+        onTeethChange(selectedTeeth.map(t =>
+          t.toothNumber === toothNumber ? { ...t, implant: !t.implant } : t
+        ));
+      } else {
+        // Not yet selected — select it with current work type + implant flag
+        onTeethChange([...selectedTeeth, { toothNumber, workType: selectedWorkType, implant: true }]);
+      }
+      setLastClickedTooth(toothNumber);
+      return;
+    }
+
     // Denture: auto-select entire jaw on first click; toggle off if already all selected
     if (selectedWorkType === 'denture') {
       const clickedTooth = displayTeeth.find(t => t.number === toothNumber);
@@ -146,7 +161,7 @@ export function TeethSelector({
       onTeethChange([...selectedTeeth, { toothNumber, workType: selectedWorkType }]);
     }
     setLastClickedTooth(toothNumber);
-  }, [selectedTeeth, onTeethChange, readOnly, selectedWorkType, lastClickedTooth, getTeethInRange, displayTeeth]);
+  }, [selectedTeeth, onTeethChange, readOnly, selectedWorkType, implantMode, lastClickedTooth, getTeethInRange, displayTeeth]);
 
   const handleToothRemove = useCallback((toothNumber: string) => {
     onTeethChange(selectedTeeth.filter(t => t.toothNumber !== toothNumber));
@@ -165,22 +180,26 @@ export function TeethSelector({
   // TOOTH RENDER HELPER
   // ============================================================================
 
-  const renderTooth = (tooth: typeof PERMANENT_TEETH[0], jaw: 'upper' | 'lower') => (
-    <ToothElement
-      key={tooth.number}
-      tooth={tooth}
-      jaw={jaw}
-      isSelected={selectedTeeth.some(t => t.toothNumber === tooth.number)}
-      isHovered={hoveredTooth === tooth.number}
-      workType={selectedTeeth.find(t => t.toothNumber === tooth.number)?.workType}
-      onClick={(e) => handleToothClick(tooth.number, e)}
-      onRightClick={() => handleToothRemove(tooth.number)}
-      onMouseEnter={() => setHoveredTooth(tooth.number)}
-      onMouseLeave={() => setHoveredTooth(null)}
-      disabled={readOnly}
-      showLabel={showLabels}
-    />
-  );
+  const renderTooth = (tooth: typeof PERMANENT_TEETH[0], jaw: 'upper' | 'lower') => {
+    const sel = selectedTeeth.find(t => t.toothNumber === tooth.number);
+    return (
+      <ToothElement
+        key={tooth.number}
+        tooth={tooth}
+        jaw={jaw}
+        isSelected={!!sel}
+        isHovered={hoveredTooth === tooth.number}
+        workType={sel?.workType}
+        implant={sel?.implant}
+        onClick={(e) => handleToothClick(tooth.number, e)}
+        onRightClick={() => handleToothRemove(tooth.number)}
+        onMouseEnter={() => setHoveredTooth(tooth.number)}
+        onMouseLeave={() => setHoveredTooth(null)}
+        disabled={readOnly}
+        showLabel={showLabels}
+      />
+    );
+  };
 
   // ============================================================================
   // SUB-ELEMENTS
@@ -239,11 +258,12 @@ export function TeethSelector({
             <span className="font-mono font-semibold text-gray-700">{hoveredTooth}</span>
             {' — '}
             {tFdi(`teeth.${hoveredTooth}`)}
-            {selectedTeeth.find(t => t.toothNumber === hoveredTooth) && !readOnly && (
-              <span className="ml-2 text-gray-400">
-                (click to {selectedTeeth.find(t => t.toothNumber === hoveredTooth)?.workType === selectedWorkType ? 'deselect' : 'change type'})
-              </span>
-            )}
+            {(() => {
+              const sel = selectedTeeth.find(t => t.toothNumber === hoveredTooth);
+              if (!sel || readOnly) return null;
+              if (implantMode) return <span className="ml-2 text-amber-500">(click to {sel.implant ? 'remove implant marker' : 'mark as implant'})</span>;
+              return <span className="ml-2 text-gray-400">(click to {sel.workType === selectedWorkType ? 'deselect' : 'change type'})</span>;
+            })()}
           </>
         ) : (
           <span className="text-gray-300">
@@ -282,7 +302,9 @@ export function TeethSelector({
   const toolbarElement = !readOnly && (
     <WorkTypeToolbar
       selectedWorkType={selectedWorkType}
-      onSelectWorkType={setSelectedWorkType}
+      onSelectWorkType={(wt) => { setSelectedWorkType(wt); setImplantMode(false); }}
+      implantMode={implantMode}
+      onToggleImplantMode={() => setImplantMode(m => !m)}
       disabled={readOnly}
     />
   );

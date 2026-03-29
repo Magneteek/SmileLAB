@@ -13,7 +13,7 @@
  */
 
 import type { ToothData, WorkType } from './types';
-import { WORK_TYPE_COLORS } from './constants';
+import { WORK_TYPE_COLORS, IMPLANT_BADGE_COLOR } from './constants';
 
 // ============================================================================
 // TOOTH PROPORTIONS BY POSITION
@@ -52,6 +52,7 @@ export interface ToothElementProps {
   isSelected: boolean;
   isHovered: boolean;
   workType?: WorkType;
+  implant?: boolean;
   onClick: (event?: React.MouseEvent) => void;
   onRightClick?: () => void;
   onMouseEnter: () => void;
@@ -70,6 +71,7 @@ export function ToothElement({
   isSelected,
   isHovered,
   workType,
+  implant = false,
   onClick,
   onRightClick,
   onMouseEnter,
@@ -119,42 +121,60 @@ export function ToothElement({
         <span style={numberStyle}>{tooth.number}</span>
       )}
 
-      {/* Tooth button */}
-      <button
-        type="button"
-        onClick={disabled ? undefined : (e) => onClick(e)}
-        onContextMenu={(e) => {
-          if (!disabled && onRightClick && isSelected) {
-            e.preventDefault();
-            onRightClick();
-          }
-        }}
-        onMouseEnter={disabled ? undefined : onMouseEnter}
-        onMouseLeave={disabled ? undefined : onMouseLeave}
-        aria-label={`Tooth ${tooth.number}`}
-        aria-pressed={isSelected}
-        disabled={disabled}
-        style={{
-          width: `${config.width}px`,
-          height: `${config.height}px`,
-          backgroundColor: bgColor,
-          border: `${isSelected ? 2 : 1.5}px solid ${borderColor}`,
-          borderRadius,
-          cursor: disabled ? 'default' : 'pointer',
-          transition: 'all 0.1s ease',
-          transform: isHovered && !disabled ? 'scaleY(1.07)' : 'scaleY(1)',
-          opacity: disabled ? 0.55 : 1,
-          outline: 'none',
-          padding: 0,
-          display: 'block',
-          flexShrink: 0,
-          boxShadow: isSelected
-            ? `0 2px 6px ${bgColor}99`
-            : isHovered && !disabled
-            ? '0 1px 3px rgba(0,0,0,0.12)'
-            : 'none',
-        }}
-      />
+      {/* Tooth button (wrapper for badge positioning) */}
+      <div style={{ position: 'relative', display: 'inline-block', flexShrink: 0 }}>
+        <button
+          type="button"
+          onClick={disabled ? undefined : (e) => onClick(e)}
+          onContextMenu={(e) => {
+            if (!disabled && onRightClick && isSelected) {
+              e.preventDefault();
+              onRightClick();
+            }
+          }}
+          onMouseEnter={disabled ? undefined : onMouseEnter}
+          onMouseLeave={disabled ? undefined : onMouseLeave}
+          aria-label={`Tooth ${tooth.number}`}
+          aria-pressed={isSelected}
+          disabled={disabled}
+          style={{
+            width: `${config.width}px`,
+            height: `${config.height}px`,
+            backgroundColor: bgColor,
+            border: `${isSelected ? 2 : 1.5}px solid ${borderColor}`,
+            borderRadius,
+            cursor: disabled ? 'default' : 'pointer',
+            transition: 'all 0.1s ease',
+            transform: isHovered && !disabled ? 'scaleY(1.07)' : 'scaleY(1)',
+            opacity: disabled ? 0.55 : 1,
+            outline: 'none',
+            padding: 0,
+            display: 'block',
+            boxShadow: isSelected
+              ? `0 2px 6px ${bgColor}99`
+              : isHovered && !disabled
+              ? '0 1px 3px rgba(0,0,0,0.12)'
+              : 'none',
+          }}
+        />
+        {/* Implant badge — amber dot at top-right corner */}
+        {implant && (
+          <span
+            style={{
+              position: 'absolute',
+              top: '-3px',
+              right: '-3px',
+              width: '7px',
+              height: '7px',
+              borderRadius: '50%',
+              backgroundColor: IMPLANT_BADGE_COLOR,
+              border: '1.5px solid #fff',
+              pointerEvents: 'none',
+            }}
+            title="Implant"
+          />
+        )}
+      </div>
 
       {/* Number below — lower jaw only */}
       {showLabel && jaw === 'lower' && (

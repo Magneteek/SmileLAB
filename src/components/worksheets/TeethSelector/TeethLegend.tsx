@@ -9,7 +9,7 @@
 
 import { useTranslations } from 'next-intl';
 import { cn } from '@/lib/utils';
-import { WORK_TYPE_COLORS } from './constants';
+import { WORK_TYPE_COLORS, IMPLANT_BADGE_COLOR } from './constants';
 import type { WorkType } from './types';
 
 export interface TeethLegendProps {
@@ -24,14 +24,11 @@ export interface TeethLegendProps {
 const LEGEND_WORK_TYPES: WorkType[] = [
   'crown',
   'bridge',
-  'filling',
-  'implant',
-  'denture',
   'veneer',
+  'denture',
+  'wizil',
   'inlay',
   'onlay',
-  'root_canal',
-  'extraction',
 ];
 
 /**
@@ -83,10 +80,21 @@ export function TeethLegend({ className, compact = false }: TeethLegendProps) {
         ))}
       </div>
 
-      {/* Additional Info (optional) */}
-      <p className="text-xs text-gray-500 mt-1.5">
-        {t('teethSelector.workTypeInstruction')}
-      </p>
+      {/* Implant badge note */}
+      <div className="flex items-center gap-1.5 mt-1">
+        <span
+          style={{
+            display: 'inline-block',
+            width: '8px',
+            height: '8px',
+            borderRadius: '50%',
+            backgroundColor: IMPLANT_BADGE_COLOR,
+            border: '1.5px solid #d1d5db',
+            flexShrink: 0,
+          }}
+        />
+        <span className="text-xs text-gray-600">{t('teethSelector.implantBadgeLabel')}</span>
+      </div>
     </div>
   );
 }

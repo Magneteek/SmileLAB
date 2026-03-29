@@ -1429,16 +1429,14 @@
     "notesPlaceholder": "Additional details...",
     "workTypesTitle": "Work Types",
     "workTypeInstruction": "Select a tooth and choose a work type to assign",
+    "implantBadgeLabel": "Amber dot = implant-supported",
     "workTypeCrown": "Crown",
     "workTypeBridge": "Bridge",
-    "workTypeFilling": "Filling",
-    "workTypeImplant": "Implant",
-    "workTypeDenture": "Denture",
     "workTypeVeneer": "Veneer",
+    "workTypeDenture": "Denture",
+    "workTypeWizil": "Wizil",
     "workTypeInlay": "Inlay",
     "workTypeOnlay": "Onlay",
-    "workTypeRootCanal": "Root Canal",
-    "workTypeExtraction": "Extraction",
     "noTeethSelected": "No teeth selected. Click on teeth in the diagram above to select them.",
     "teethSelectedCount": "{count} teeth selected",
     "teethSelectedCount_plural": "{count} teeth selected",
@@ -2546,17 +2544,11 @@
     "workTypes": {
       "CROWN": "Crown",
       "BRIDGE": "Bridge",
-      "FILLING": "Filling",
-      "IMPLANT": "Implant",
-      "DENTURE": "Denture",
-      "INLAY": "Inlay",
-      "ONLAY": "Onlay",
       "VENEER": "Veneer",
-      "SPLINT": "Splint",
-      "PROVISIONAL": "Provisional",
-      "TEMPLATE": "Template",
-      "ROOT_CANAL": "Root Canal",
-      "EXTRACTION": "Extraction"
+      "DENTURE": "Denture",
+      "WIZIL": "Wizil",
+      "INLAY": "Inlay",
+      "ONLAY": "Onlay"
     },
     "teeth": {
       "11": "Upper Right Central Incisor",
@@ -2619,7 +2611,10 @@
     "noTeethSelected": "No teeth selected",
     "helpClickTeeth": "Click teeth to apply selected work type",
     "helpShiftClick": "Shift+click to select range of teeth",
-    "helpRightClick": "Right-click to remove tooth selection"
+    "helpRightClick": "Right-click to remove tooth selection",
+    "implantMode": "Implant",
+    "implantModeHelp": "Toggle to mark/unmark teeth as implant-supported",
+    "implantModeActive": "Implant mode — click teeth to mark/unmark implant"
   },
   "worksheetHistory": {
     "title": "Edit History",

@@ -572,17 +572,17 @@ export const PRIMARY_TEETH: ToothData[] = [
  * Based on professional dental software color schemes
  */
 export const WORK_TYPE_COLORS: WorkTypeColors = {
-  crown: '#3B82F6', // Blue - Most common procedure
-  bridge: '#8B5CF6', // Purple - Connects multiple teeth
-  filling: '#10B981', // Green - Restoration
-  implant: '#F59E0B', // Amber - Artificial root
-  denture: '#EF4444', // Red - Full/partial replacement
+  crown: '#3B82F6', // Blue
+  bridge: '#8B5CF6', // Purple
   veneer: '#EC4899', // Pink - Cosmetic
-  inlay: '#14B8A6', // Teal - Conservative restoration
-  onlay: '#6366F1', // Indigo - Larger restoration
-  root_canal: '#F97316', // Orange - Endodontic
-  extraction: '#6B7280', // Gray - Tooth removal
+  denture: '#EF4444', // Red - Full denture
+  wizil: '#F97316', // Orange - Partial denture (Vizil/skeleton)
+  inlay: '#14B8A6', // Teal
+  onlay: '#6366F1', // Indigo
 };
+
+/** Amber used for the implant overlay badge (not a work type color) */
+export const IMPLANT_BADGE_COLOR = '#F59E0B';
 
 /**
  * Tooth display colors for different states

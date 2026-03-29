@@ -388,14 +388,11 @@ export function isValidWorkType(workType: string): workType is WorkType {
   const validTypes: WorkType[] = [
     'crown',
     'bridge',
-    'filling',
-    'implant',
-    'denture',
     'veneer',
+    'denture',
+    'wizil',
     'inlay',
     'onlay',
-    'root_canal',
-    'extraction',
   ];
   return validTypes.includes(workType as WorkType);
 }

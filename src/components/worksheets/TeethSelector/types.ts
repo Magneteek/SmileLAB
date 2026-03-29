@@ -65,14 +65,11 @@ export type ToothMode = 'permanent' | 'primary' | 'mixed';
 export type WorkType =
   | 'crown'
   | 'bridge'
-  | 'filling'
-  | 'implant'
-  | 'denture'
   | 'veneer'
+  | 'denture'
+  | 'wizil'
   | 'inlay'
-  | 'onlay'
-  | 'root_canal'
-  | 'extraction';
+  | 'onlay';
 
 /**
  * Complete tooth data model with FDI notation and metadata
@@ -147,6 +144,12 @@ export interface ToothSelection {
    * Type of dental work to be performed
    */
   workType: WorkType;
+
+  /**
+   * Whether this tooth is on an implant fixture
+   * Used to overlay an implant badge on the tooth (e.g. implant-supported crown)
+   */
+  implant?: boolean;
 
   /**
    * Optional tooth shade/color
@@ -329,14 +332,11 @@ export interface WorkTypeSelectorProps {
 export interface WorkTypeColors {
   crown: string;
   bridge: string;
-  filling: string;
-  implant: string;
-  denture: string;
   veneer: string;
+  denture: string;
+  wizil: string;
   inlay: string;
   onlay: string;
-  root_canal: string;
-  extraction: string;
 }
 
 /**
@@ -478,12 +478,9 @@ export function toGlobalWorkType(workType: WorkType): GlobalWorkType {
     bridge: 'BRIDGE' as GlobalWorkType,
     veneer: 'VENEER' as GlobalWorkType,
     denture: 'DENTURE' as GlobalWorkType,
-    implant: 'IMPLANT' as GlobalWorkType,
+    wizil: 'WIZIL' as GlobalWorkType,
     inlay: 'INLAY_ONLAY' as GlobalWorkType,
     onlay: 'INLAY_ONLAY' as GlobalWorkType,
-    filling: 'FILLING' as GlobalWorkType,
-    root_canal: 'OTHER' as GlobalWorkType,
-    extraction: 'OTHER' as GlobalWorkType,
   };
 
   return mapping[workType];
@@ -499,11 +496,8 @@ export function fromGlobalWorkType(workType: GlobalWorkType): WorkType {
     BRIDGE: 'bridge',
     VENEER: 'veneer',
     DENTURE: 'denture',
-    IMPLANT: 'implant',
+    WIZIL: 'wizil',
     INLAY_ONLAY: 'inlay',
-    FILLING: 'filling',
-    ORTHODONTICS: 'root_canal',
-    OTHER: 'extraction',
   };
 
   return mapping[workType] ?? 'crown';

@@ -13,7 +13,7 @@ import type { ToothSelection } from './types';
 import { X, Paintbrush } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { getToothByNumber, formatToothName } from './utils';
-import { WORK_TYPE_COLORS } from './constants';
+import { WORK_TYPE_COLORS, IMPLANT_BADGE_COLOR } from './constants';
 
 export interface SelectionSummaryProps {
   selectedTeeth: ToothSelection[];
@@ -94,6 +94,15 @@ export function SelectionSummary({
                     >
                       {getWorkTypeLabel(tooth.workType)}
                     </Badge>
+                    {tooth.implant && (
+                      <Badge
+                        variant="outline"
+                        className="text-xs py-0 px-1 border-0 text-white font-medium"
+                        style={{ backgroundColor: IMPLANT_BADGE_COLOR }}
+                      >
+                        🔩
+                      </Badge>
+                    )}
                   </div>
 
                   {/* Tooth Name */}

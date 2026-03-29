@@ -43,14 +43,11 @@ export interface WorkTypeSelectorProps {
 const ALL_WORK_TYPES: WorkType[] = [
   'crown',
   'bridge',
-  'filling',
-  'implant',
-  'denture',
   'veneer',
+  'denture',
+  'wizil',
   'inlay',
   'onlay',
-  'root_canal',
-  'extraction',
 ];
 
 /**
@@ -79,14 +76,11 @@ export function WorkTypeSelector({
     const labelMap: Record<WorkType, string> = {
       crown: t('teethSelector.workTypeCrown'),
       bridge: t('teethSelector.workTypeBridge'),
-      filling: t('teethSelector.workTypeFilling'),
-      implant: t('teethSelector.workTypeImplant'),
-      denture: t('teethSelector.workTypeDenture'),
       veneer: t('teethSelector.workTypeVeneer'),
+      denture: t('teethSelector.workTypeDenture'),
+      wizil: t('teethSelector.workTypeWizil'),
       inlay: t('teethSelector.workTypeInlay'),
       onlay: t('teethSelector.workTypeOnlay'),
-      root_canal: t('teethSelector.workTypeRootCanal'),
-      extraction: t('teethSelector.workTypeExtraction'),
     };
     return labelMap[workType];
   };

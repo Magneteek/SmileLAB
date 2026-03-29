@@ -9,29 +9,33 @@
 
 import { useTranslations } from 'next-intl';
 import type { WorkType } from './types';
-import { WORK_TYPE_COLORS } from './constants';
+import { WORK_TYPE_COLORS, IMPLANT_BADGE_COLOR } from './constants';
 import { cn } from '@/lib/utils';
 
 export interface WorkTypeToolbarProps {
   selectedWorkType: WorkType;
   onSelectWorkType: (workType: WorkType) => void;
+  implantMode: boolean;
+  onToggleImplantMode: () => void;
   availableWorkTypes?: WorkType[];
   disabled?: boolean;
 }
 
-const PRIMARY_TYPES: WorkType[] = ['crown', 'bridge', 'veneer', 'implant', 'root_canal'];
-const SECONDARY_TYPES: WorkType[] = ['filling', 'inlay', 'onlay', 'denture', 'extraction'];
+const PRIMARY_TYPES: WorkType[] = ['crown', 'bridge', 'veneer', 'denture', 'wizil'];
+const SECONDARY_TYPES: WorkType[] = ['inlay', 'onlay'];
 
 export function WorkTypeToolbar({
   selectedWorkType,
   onSelectWorkType,
+  implantMode,
+  onToggleImplantMode,
   disabled = false,
 }: WorkTypeToolbarProps) {
   const tFdi = useTranslations('fdi');
   const tWorkTypes = useTranslations('fdi.workTypes');
 
   const renderButton = (workType: WorkType, isPrimary: boolean) => {
-    const isSelected = selectedWorkType === workType;
+    const isSelected = selectedWorkType === workType && !implantMode;
     return (
       <button
         key={workType}
@@ -62,11 +66,36 @@ export function WorkTypeToolbar({
         <span className="text-[11px] text-gray-400 mr-0.5">{tFdi('selectWorkType')}:</span>
         {PRIMARY_TYPES.map(wt => renderButton(wt, true))}
         {SECONDARY_TYPES.map(wt => renderButton(wt, false))}
+
+        {/* Implant toggle — separate from work types */}
+        <div className="w-px h-4 bg-gray-300 mx-1" />
+        <button
+          type="button"
+          onClick={() => !disabled && onToggleImplantMode()}
+          disabled={disabled}
+          className={cn(
+            'rounded transition-all duration-100 whitespace-nowrap px-2.5 py-1 text-xs font-medium',
+            implantMode ? 'ring-2 ring-offset-1 scale-105 shadow-sm' : 'opacity-80 hover:opacity-100',
+            disabled && 'cursor-default'
+          )}
+          style={{
+            backgroundColor: IMPLANT_BADGE_COLOR,
+            color: '#fff',
+            ['--tw-ring-color' as string]: IMPLANT_BADGE_COLOR,
+          }}
+          aria-pressed={implantMode}
+          title={tFdi('implantModeHelp')}
+        >
+          🔩 {tFdi('implantMode')}
+        </button>
       </div>
       <div className="flex gap-4 text-[10px] text-gray-400">
         <span>• {tFdi('helpClickTeeth')}</span>
         <span>• {tFdi('helpShiftClick')}</span>
         <span>• {tFdi('helpRightClick')}</span>
+        {implantMode && (
+          <span className="text-amber-500 font-medium">• {tFdi('implantModeActive')}</span>
+        )}
       </div>
     </div>
   );

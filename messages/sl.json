@@ -1431,16 +1431,14 @@
     "notesPlaceholder": "Dodatne podrobnosti...",
     "workTypesTitle": "Vrste del",
     "workTypeInstruction": "Izberite zob in izberite vrsto dela",
+    "implantBadgeLabel": "Oranžna pika = implantatno podprt",
     "workTypeCrown": "Krona",
     "workTypeBridge": "Mostič",
-    "workTypeFilling": "Zalivka",
-    "workTypeImplant": "Implantat",
-    "workTypeDenture": "Proteza",
     "workTypeVeneer": "Luščina",
+    "workTypeDenture": "Totalna proteza",
+    "workTypeWizil": "Vizil proteza",
     "workTypeInlay": "Inlay",
     "workTypeOnlay": "Onlay",
-    "workTypeRootCanal": "Endodontsko zdravljenje",
-    "workTypeExtraction": "Ekstrakcija",
     "noTeethSelected": "Ni izbranih zob. Kliknite na zobe na diagramu zgoraj, da jih izberete.",
     "teethSelectedCount": "{count} zob izbran",
     "teethSelectedCount_plural": "{count} zobje izbrani",
@@ -2548,17 +2546,11 @@
     "workTypes": {
       "CROWN": "Krona",
       "BRIDGE": "Mostiček",
-      "FILLING": "Polnilo",
-      "IMPLANT": "Implantat",
-      "DENTURE": "Proteza",
-      "INLAY": "Inlay",
-      "ONLAY": "Onlay",
       "VENEER": "Luska",
-      "SPLINT": "Opornica",
-      "PROVISIONAL": "Provizorij",
-      "TEMPLATE": "Predloga",
-      "ROOT_CANAL": "Endodontsko zdravljenje",
-      "EXTRACTION": "Ekstrakcija"
+      "DENTURE": "Totalna proteza",
+      "WIZIL": "Vizil proteza",
+      "INLAY": "Inlay",
+      "ONLAY": "Onlay"
     },
     "teeth": {
       "11": "Zgornji desni osrednji sekalec",
@@ -2621,7 +2613,10 @@
     "noTeethSelected": "Ni izbranih zob",
     "helpClickTeeth": "Kliknite zobe za uporabo izbranega tipa dela",
     "helpShiftClick": "Shift+klik za izbiro območja zob",
-    "helpRightClick": "Desni klik za odstranitev izbire zoba"
+    "helpRightClick": "Desni klik za odstranitev izbire zoba",
+    "implantMode": "Implantat",
+    "implantModeHelp": "Označite/odznačite zobe kot implantatno podprte",
+    "implantModeActive": "Način implantata — kliknite zobe za označevanje"
   },
   "worksheetHistory": {
     "title": "Povijest sprememb",
