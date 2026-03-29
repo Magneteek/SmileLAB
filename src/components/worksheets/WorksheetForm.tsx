@@ -60,6 +60,13 @@ import {
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { TeethSelector, type ToothSelection, toTeethSelectionData } from './TeethSelector';
@@ -98,6 +105,9 @@ import { AlertCircle, Loader2 } from 'lucide-react';
  * - Direct material assignment will be available alongside product materials
  */
 const ENABLE_DIRECT_MATERIALS_TAB = false;
+
+export const TECHNICIAN_NAMES = ['Rommy', 'Tijo', 'Admin'] as const;
+export type TechnicianName = typeof TECHNICIAN_NAMES[number];
 
 // ============================================================================
 // VALIDATION SCHEMAS
@@ -261,6 +271,17 @@ export function WorksheetForm({
   // General shade and tooth shape for all teeth
   const [generalShade, setGeneralShade] = useState<string>('');
   const [generalToothShape, setGeneralToothShape] = useState<string>('');
+
+  // Technician assignment — defaults to localStorage last used (read after hydration)
+  const [technicianName, setTechnicianName] = useState<string>(
+    worksheet?.technicianName ?? ''
+  );
+  useEffect(() => {
+    if (!worksheet?.technicianName) {
+      const saved = localStorage.getItem('lastTechnician');
+      if (saved) setTechnicianName(saved);
+    }
+  }, []);
 
   // Available materials with LOT data (for ProductSelector)
   const [availableMaterialsWithLots, setAvailableMaterialsWithLots] = useState<any[]>([]);
@@ -662,6 +683,7 @@ export function WorksheetForm({
           deviceDescription: data.deviceDescription,
           intendedUse: data.intendedUse,
           technicalNotes: data.technicalNotes,
+          technicianName: technicianName || undefined,
         });
         currentId = ws.id;
         setWorksheetId(currentId);
@@ -670,7 +692,11 @@ export function WorksheetForm({
           deviceDescription: data.deviceDescription,
           intendedUse: data.intendedUse,
           technicalNotes: data.technicalNotes,
+          technicianName: technicianName || undefined,
         });
+      }
+      if (technicianName) {
+        localStorage.setItem('lastTechnician', technicianName);
       }
 
       if (!currentId) throw new Error('Worksheet ID required');
@@ -743,7 +769,7 @@ export function WorksheetForm({
             />
 
             {/* Compact MDR fields — always visible above tabs */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
               <FormField
                 control={form.control}
                 name="deviceDescription"
@@ -801,6 +827,25 @@ export function WorksheetForm({
                   </FormItem>
                 )}
               />
+
+              {/* Technician assignment */}
+              <FormItem>
+                <FormLabel className="text-xs font-medium">{t('worksheet.technicianLabel')}</FormLabel>
+                <Select
+                  value={technicianName}
+                  onValueChange={setTechnicianName}
+                  disabled={isReadOnly}
+                >
+                  <SelectTrigger className="text-sm h-[62px] items-start pt-2">
+                    <SelectValue placeholder={t('worksheet.technicianPlaceholder')} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {TECHNICIAN_NAMES.map((name) => (
+                      <SelectItem key={name} value={name}>{name}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </FormItem>
             </div>
 
             {/* Multi-Tab Form */}

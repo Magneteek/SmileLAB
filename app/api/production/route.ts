@@ -36,6 +36,7 @@ export async function GET(request: NextRequest) {
         millingReceivedAt: true,
         scanReceivedAt: true,
         technicalNotes: true,
+        technicianName: true,
         order: {
           select: {
             id: true,

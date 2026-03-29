@@ -39,6 +39,9 @@ import { cn } from '@/lib/utils';
 
 interface Partner { id: string; name: string; type: string }
 
+const TECHNICIAN_NAMES = ['Rommy', 'Tijo', 'Admin'] as const;
+type TechnicianFilter = 'all' | typeof TECHNICIAN_NAMES[number];
+
 interface ProductionWorksheet {
   id: string;
   worksheetNumber: string;
@@ -54,6 +57,7 @@ interface ProductionWorksheet {
   millingSentAt: string | null;
   millingReceivedAt: string | null;
   scanReceivedAt: string | null;
+  technicianName: string | null;
   order: { id: string; orderNumber: string; dueDate: string | null; priority: number; impressionType: string; dentist: { id: string; dentistName: string; clinicName: string } | null };
   dentist: { id: string; dentistName: string; clinicName: string } | null;
   designPartner: Partner | null;
@@ -204,7 +208,14 @@ function WorksheetCard({
               <Badge className="bg-amber-100 text-amber-700 border-amber-200 text-[10px] px-1 py-0">{t('high')}</Badge>
             )}
           </div>
-          <p className="text-sm font-medium truncate mt-0.5">{ws.patientName || '—'}</p>
+          <div className="flex items-center gap-1.5 mt-0.5">
+            <p className="text-sm font-medium truncate">{ws.patientName || '—'}</p>
+            {ws.technicianName && (
+              <span className="flex-shrink-0 text-[10px] font-medium bg-violet-100 text-violet-700 border border-violet-200 rounded px-1.5 py-0">
+                {ws.technicianName}
+              </span>
+            )}
+          </div>
           <p className="text-xs text-muted-foreground truncate">{(ws.dentist ?? ws.order.dentist)?.clinicName ?? '—'}</p>
         </div>
 
@@ -372,6 +383,7 @@ export default function ProductionPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [updatingId, setUpdatingId] = useState<string | null>(null);
   const [groupMode, setGroupMode] = useState<GroupMode>('date');
+  const [technicianFilter, setTechnicianFilter] = useState<TechnicianFilter>('all');
 
   // Detail drawer (for scan/partner config)
   const [drawerOpen, setDrawerOpen] = useState(false);
@@ -493,12 +505,17 @@ export default function ProductionPage() {
   const getColKey = (ws: ProductionWorksheet) =>
     groupMode === 'date' ? getDateColumn(ws.order.dueDate) : getStageColumn(ws);
 
+  const filteredWorksheets = technicianFilter === 'all'
+    ? worksheets
+    : worksheets.filter((ws) => ws.technicianName === technicianFilter);
+
   const grouped = COLUMNS.reduce<Record<string, ProductionWorksheet[]>>((acc, col) => {
-    acc[col.key] = worksheets.filter((ws) => getColKey(ws) === col.key);
+    acc[col.key] = filteredWorksheets.filter((ws) => getColKey(ws) === col.key);
     return acc;
   }, {});
 
   const visibleColumns = COLUMNS.filter((col) => grouped[col.key].length > 0);
+  const totalVisible = filteredWorksheets.length;
 
   if (isLoading) {
     return (
@@ -518,11 +535,36 @@ export default function ProductionPage() {
           <div>
             <h1 className="text-base font-bold leading-none">{t('title')}</h1>
             <p className="text-xs text-muted-foreground mt-0.5">
-              {t('activeOrders', { count: worksheets.length })}
+              {t('activeOrders', { count: totalVisible })}
             </p>
           </div>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-wrap">
+          {/* Technician filter */}
+          <div className="flex items-center rounded-lg border bg-white p-0.5 gap-0.5">
+            <button
+              onClick={() => setTechnicianFilter('all')}
+              className={cn(
+                'px-2.5 py-1.5 rounded-md text-xs font-medium transition-colors',
+                technicianFilter === 'all' ? 'bg-gray-900 text-white' : 'text-muted-foreground hover:text-foreground'
+              )}
+            >
+              {t('techAll')}
+            </button>
+            {TECHNICIAN_NAMES.map((name) => (
+              <button
+                key={name}
+                onClick={() => setTechnicianFilter(name)}
+                className={cn(
+                  'px-2.5 py-1.5 rounded-md text-xs font-medium transition-colors',
+                  technicianFilter === name ? 'bg-violet-600 text-white' : 'text-muted-foreground hover:text-foreground'
+                )}
+              >
+                {name}
+              </button>
+            ))}
+          </div>
+
           {/* Group mode toggle */}
           <div className="flex items-center rounded-lg border bg-white p-0.5 gap-0.5">
             <button
@@ -557,7 +599,7 @@ export default function ProductionPage() {
         </div>
       </div>
 
-      {worksheets.length === 0 ? (
+      {totalVisible === 0 ? (
         <div className="flex-1 flex items-center justify-center text-muted-foreground">
           <div className="text-center">
             <Factory className="h-12 w-12 mx-auto mb-3 opacity-20" />

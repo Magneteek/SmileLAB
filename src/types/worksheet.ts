@@ -62,6 +62,7 @@ export interface CreateWorksheetDto {
   deviceDescription?: string;
   intendedUse?: string;
   technicalNotes?: string;
+  technicianName?: string;
 }
 
 /**
@@ -71,6 +72,7 @@ export interface UpdateWorksheetDto {
   deviceDescription?: string;
   intendedUse?: string;
   technicalNotes?: string;
+  technicianName?: string;
   qcNotes?: string;
   manufactureDate?: Date;
 }

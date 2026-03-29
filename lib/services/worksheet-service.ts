@@ -161,6 +161,7 @@ export async function updateWorksheet(
     technicalNotes?: string | null;
     qcNotes?: string | null;
     manufactureDate?: string | null;
+    technicianName?: string | null;
   },
   userId: string
 ) {
@@ -177,6 +178,7 @@ export async function updateWorksheet(
       technicalNotes: data.technicalNotes ?? undefined,
       qcNotes: data.qcNotes ?? undefined,
       manufactureDate: data.manufactureDate ? new Date(data.manufactureDate) : undefined,
+      technicianName: data.technicianName ?? undefined,
     },
   });
 

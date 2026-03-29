@@ -253,6 +253,9 @@ model WorkSheet {
   designCompletedAt DateTime? // Phase 2: CAD/design done
   millingReceivedAt DateTime? // Phase 4: received back from milling
 
+  // Technician assignment (shared account — name stored as plain string)
+  technicianName String? // "Rommy" | "Tijo" | "Admin"
+
   // Technical notes
   technicalNotes String? @db.Text
   qcNotes        String? @db.Text

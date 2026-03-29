@@ -279,6 +279,7 @@
     "digitalScan": "Digitalni sken",
     "dateUnset": "Datum?",
     "refresh": "Osveži",
+    "techAll": "Vsi",
     "clearDate": "Počisti datum",
     "rework": "Popravek",
     "urgent": "NUJNO",
@@ -465,7 +466,8 @@
     "tableNoOrders": "Ni najdenih naročil.",
     "tableRevision": "Rev",
     "actionViewDetails": "Prikaži podrobnosti",
-    "actionDeleteOrder": "Izbriši naročilo"
+    "actionDeleteOrder": "Izbriši naročilo",
+    "perPage": "Na stran"
   },
   "worksheet": {
     "title": "delovni nalogi",
@@ -528,6 +530,8 @@
     "intendedUseLabel": "Predvidena uporaba",
     "intendedUsePlaceholder": "Navedite predvideno uporabo in klinične indikacije...",
     "intendedUseDescription": "Klinični namen in predvidena uporaba naprave",
+    "technicianLabel": "Tehnik",
+    "technicianPlaceholder": "Izberi tehnika...",
     "technicalNotesLabel": "Tehnične opombe",
     "technicalNotesPlaceholder": "Dodajte tehnične opombe ali posebna navodila...",
     "technicalNotesDescription": "Tehnične specifikacije, proizvodne opombe ali posebna navodila",

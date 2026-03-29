@@ -16,6 +16,7 @@ const createWorksheetSchema = z.object({
   deviceDescription: z.string().optional(),
   intendedUse: z.string().optional(),
   technicalNotes: z.string().optional(),
+  technicianName: z.string().optional(),
 });
 
 // ============================================================================
@@ -100,7 +101,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const { orderId, deviceDescription, intendedUse, technicalNotes } = result.data;
+    const { orderId, deviceDescription, intendedUse, technicalNotes, technicianName } = result.data;
 
     // Validate order exists and is in a valid state
     const order = await prisma.order.findFirst({
@@ -152,6 +153,7 @@ export async function POST(request: NextRequest) {
           deviceDescription: deviceDescription ?? null,
           intendedUse: intendedUse ?? null,
           technicalNotes: technicalNotes ?? null,
+          technicianName: technicianName ?? null,
         },
         include: {
           order: { select: { id: true, orderNumber: true } },
