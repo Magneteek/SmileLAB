@@ -35,15 +35,22 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Loader2 } from 'lucide-react';
 import { OrderStatus } from '@prisma/client';
 
-// Maps UI source to impressionType (same logic as incoming page)
+// Maps UI source to impressionType + scanSource
 const ORDER_SOURCES = [
-  { value: 'PHYSICAL',     label: 'Fizično / Kurir',    impressionType: 'PHYSICAL_IMPRINT' as const },
-  { value: 'EMAIL',        label: 'E-pošta / FilePort', impressionType: 'PHYSICAL_IMPRINT' as const },
-  { value: 'MEDIT',        label: 'MeditLink',          impressionType: 'DIGITAL_SCAN' as const },
-  { value: 'SHINING3D',    label: 'Shining 3D',         impressionType: 'DIGITAL_SCAN' as const },
-  { value: 'GOOGLE_DRIVE', label: 'Google Drive',       impressionType: 'DIGITAL_SCAN' as const },
-  { value: 'THREESHAPE',   label: '3Shape',              impressionType: 'DIGITAL_SCAN' as const },
-] as const;
+  { value: 'PHYSICAL',     label: 'Fizično / Kurir',    impressionType: 'PHYSICAL_IMPRINT' as const, scanSource: null },
+  { value: 'EMAIL',        label: 'E-pošta / FilePort', impressionType: 'PHYSICAL_IMPRINT' as const, scanSource: null },
+  { value: 'MEDIT',        label: 'MeditLink',          impressionType: 'DIGITAL_SCAN' as const,     scanSource: 'MEDIT' },
+  { value: 'SHINING3D',    label: 'Shining 3D',         impressionType: 'DIGITAL_SCAN' as const,     scanSource: 'SHINING3D' },
+  { value: 'GOOGLE_DRIVE', label: 'Google Drive',       impressionType: 'DIGITAL_SCAN' as const,     scanSource: 'GOOGLE_DRIVE' },
+  { value: 'THREESHAPE',   label: '3Shape',              impressionType: 'DIGITAL_SCAN' as const,     scanSource: 'THREESHAPE' },
+];
+
+function deriveSource(initialData?: Partial<any>): 'PHYSICAL' | 'EMAIL' | 'MEDIT' | 'SHINING3D' | 'GOOGLE_DRIVE' | 'THREESHAPE' {
+  const sc = initialData?.scanSource;
+  if (sc && ['MEDIT', 'SHINING3D', 'GOOGLE_DRIVE', 'THREESHAPE'].includes(sc)) return sc;
+  if (initialData?.impressionType === 'DIGITAL_SCAN') return 'MEDIT';
+  return 'PHYSICAL';
+}
 
 interface OrderFormProps {
   orderId?: string;
@@ -78,7 +85,9 @@ export function OrderForm({
     dueDate: z.string().optional(),
     priority: z.number().int().min(0).max(2),
     source: z.enum(['PHYSICAL', 'EMAIL', 'MEDIT', 'SHINING3D', 'GOOGLE_DRIVE', 'THREESHAPE']),
+    scanReference: z.string().optional(),
     status: z.nativeEnum(OrderStatus).optional(), // Only for editing
+
     notes: z.string().optional(),
   });
 
@@ -91,7 +100,8 @@ export function OrderForm({
       patientName: initialData?.patientName ?? '',
       dueDate: initialData?.dueDate || '',
       priority: initialData?.priority ?? 0,
-      source: 'PHYSICAL',
+      source: deriveSource(initialData),
+      scanReference: initialData?.scanReference ?? '',
       status: (initialData as any)?.status,
       notes: initialData?.notes ?? '',
     },
@@ -144,9 +154,7 @@ export function OrderForm({
 
       const response = await fetch(url, {
         method,
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
       });
 
@@ -156,14 +164,25 @@ export function OrderForm({
         throw new Error(result.error || t('order.formErrorSaveOrder'));
       }
 
+      // Also update scanSource + scanReference on the worksheet if one exists
+      const worksheetId = initialData?.worksheetId ?? result.data.worksheet?.id;
+      if (worksheetId && sourceConfig.scanSource !== undefined) {
+        await fetch(`/api/production/${worksheetId}`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            scanSource: sourceConfig.scanSource,
+            scanReference: data.scanReference || null,
+          }),
+        });
+      }
+
       if (result.success) {
-        const orderId = result.data.order?.id ?? result.data.id;
-        const worksheetId = result.data.worksheet?.id;
+        const savedOrderId = result.data.order?.id ?? result.data.id;
         if (onSuccess) {
-          onSuccess(orderId, worksheetId);
+          onSuccess(savedOrderId, worksheetId);
         } else {
-          // Redirect to worksheet if created, otherwise to order
-          router.push(worksheetId ? `/worksheets/${worksheetId}` : `/orders/${orderId}`);
+          router.push(worksheetId ? `/worksheets/${worksheetId}` : `/orders/${savedOrderId}`);
         }
       }
     } catch (err) {
@@ -175,6 +194,9 @@ export function OrderForm({
       setIsLoading(false);
     }
   }
+
+  const watchedSource = form.watch('source');
+  const isDigitalSource = ['MEDIT', 'SHINING3D', 'GOOGLE_DRIVE', 'THREESHAPE'].includes(watchedSource);
 
   if (isLoadingDentists) {
     return (
@@ -247,7 +269,7 @@ export function OrderForm({
             name="source"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Vir naročila</FormLabel>
+                <FormLabel>{t('order.formImpressionLabel')}</FormLabel>
                 <Select onValueChange={field.onChange} defaultValue={field.value}>
                   <FormControl>
                     <SelectTrigger>
@@ -305,6 +327,27 @@ export function OrderForm({
             )}
           />
         </div>
+
+        {/* Scan reference - only show for digital sources */}
+        {isDigitalSource && (
+          <FormField
+            control={form.control}
+            name="scanReference"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>{t('order.scanRef')}</FormLabel>
+                <FormControl>
+                  <Input
+                    placeholder={t('order.scanRefPlaceholder')}
+                    {...field}
+                    value={field.value || ''}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        )}
 
         {/* Status field - only show when editing */}
         {orderId && (

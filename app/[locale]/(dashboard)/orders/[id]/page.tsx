@@ -253,6 +253,9 @@ export default function OrderDetailPage({ params }: { params: Promise<{ id: stri
                   : undefined,
                 priority: order.priority,
                 impressionType: (order as any).impressionType || 'PHYSICAL_IMPRINT',
+                scanSource: (order as any).worksheets?.[0]?.scanSource ?? null,
+                scanReference: (order as any).worksheets?.[0]?.scanReference ?? null,
+                worksheetId: (order as any).worksheets?.[0]?.id ?? null,
                 status: order.status,
                 notes: order.notes || undefined,
               }}
