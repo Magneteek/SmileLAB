@@ -45,7 +45,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Search, X, Loader2, PackagePlus, AlertCircle, Package } from 'lucide-react';
+import { Search, X, Loader2, PackagePlus, AlertCircle } from 'lucide-react';
 import type { Product, ProductCategory } from '@prisma/client';
 import { ProductMaterialInstance } from '@/src/types/worksheet';
 import { ProductMaterialEditor } from './ProductMaterialEditor';
@@ -342,27 +342,14 @@ export function ProductSelector({
                 {selectedProducts.map((product) => (
                   <div
                     key={product.productId}
-                    className="p-3 bg-gray-50 rounded-lg border border-gray-200"
+                    className="p-3 bg-blue-50 rounded-lg border border-blue-200"
                   >
                     {/* Product Header - Compact single row */}
                     <div className="flex items-center gap-2 mb-2">
-                      {/* Product Name */}
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm font-semibold truncate">
-                          {product.code} - {product.name}
-                        </p>
-                      </div>
-
-                      {/* Materials Counter */}
-                      <div className="flex items-center gap-1 text-xs text-gray-600">
-                        <Package className="h-3.5 w-3.5" />
-                        <span className="font-medium">{product.materials?.length || 0}</span>
-                      </div>
-
                       {!readOnly && (
                         <>
-                          {/* Quantity Input */}
-                          <div className="flex items-center gap-1">
+                          {/* Quantity Input - First */}
+                          <div className="flex items-center gap-1 shrink-0">
                             <span className="text-xs text-gray-500">{t('productSelector.qtyLabel')}</span>
                             <Input
                               type="number"
@@ -377,18 +364,27 @@ export function ProductSelector({
                               className="w-14 h-7 text-xs"
                             />
                           </div>
-
-                          {/* Remove Button */}
-                          <Button
-                            type="button"
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => removeProduct(product.productId)}
-                            className="h-7 w-7 p-0"
-                          >
-                            <X className="h-4 w-4" />
-                          </Button>
                         </>
+                      )}
+
+                      {/* Product Name */}
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-semibold truncate">
+                          {product.code} - {product.name}
+                        </p>
+                      </div>
+
+{!readOnly && (
+                        /* Remove Button */
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => removeProduct(product.productId)}
+                          className="h-7 w-7 p-0 shrink-0"
+                        >
+                          <X className="h-4 w-4" />
+                        </Button>
                       )}
                     </div>
 
