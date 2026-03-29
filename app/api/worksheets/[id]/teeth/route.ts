@@ -32,14 +32,13 @@ const assignTeethSchema = z.object({
         'BRIDGE',
         'VENEER',
         'DENTURE',
-        'IMPLANT',
+        'WIZIL',
         'INLAY_ONLAY',
-        'FILLING',
-        'ORTHODONTICS',
         'OTHER',
       ] as const),
       shade: z.string().optional(),
       notes: z.string().optional(),
+      implant: z.boolean().optional(),
     })
   ), // Allow empty array to delete all teeth (replace-all pattern)
 });

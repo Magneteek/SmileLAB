@@ -335,8 +335,9 @@ model WorksheetTooth {
   workType String // crown, bridge, filling, implant, denture, inlay, onlay, veneer
 
   // Additional details
-  shade String? // Tooth shade/color
-  notes String? @db.Text
+  shade   String?  // Tooth shade/color
+  notes   String?  @db.Text
+  implant Boolean  @default(false) // Implant-supported restoration
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

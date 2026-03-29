@@ -509,7 +509,7 @@ export function fromGlobalWorkType(workType: GlobalWorkType): WorkType {
  */
 export function toTeethSelectionData(
   selections: ToothSelection[] | undefined
-): { teeth: Array<{ toothNumber: string; workType: GlobalWorkType | string; shade?: string; notes?: string }> } {
+): { teeth: Array<{ toothNumber: string; workType: GlobalWorkType | string; shade?: string; notes?: string; implant?: boolean }> } {
   // Handle undefined or null input
   if (!selections || !Array.isArray(selections)) {
     return { teeth: [] };
@@ -521,6 +521,7 @@ export function toTeethSelectionData(
       workType: toGlobalWorkType(sel.workType),
       shade: sel.shade,
       notes: sel.notes,
+      implant: sel.implant,
     })),
   };
 }

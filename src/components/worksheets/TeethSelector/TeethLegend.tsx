@@ -80,19 +80,19 @@ export function TeethLegend({ className, compact = false }: TeethLegendProps) {
         ))}
       </div>
 
-      {/* Implant badge note */}
+      {/* Implant arrow note */}
       <div className="flex items-center gap-1.5 mt-1">
         <span
           style={{
-            display: 'inline-block',
-            width: '8px',
-            height: '8px',
-            borderRadius: '50%',
-            backgroundColor: IMPLANT_BADGE_COLOR,
-            border: '1.5px solid #d1d5db',
+            fontSize: '11px',
+            lineHeight: 1,
+            color: '#1a1a1a',
+            fontWeight: 900,
             flexShrink: 0,
           }}
-        />
+        >
+          ▼▲
+        </span>
         <span className="text-xs text-gray-600">{t('teethSelector.implantBadgeLabel')}</span>
       </div>
     </div>

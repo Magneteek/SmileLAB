@@ -153,47 +153,48 @@
     .teeth-container {
       display: flex;
       flex-direction: column;
-      gap: 2px;
+      gap: 6px;
     }
 
     .teeth-row {
-      display: grid;
-      grid-template-columns: repeat(8, 1fr) 4px repeat(8, 1fr);
-      gap: 2px;
-      width: 100%;
-      align-items: center;
-    }
-
-    .teeth-row > * {
-      flex-shrink: 1;
-      min-width: 0;
-    }
-
-    .tooth {
-      aspect-ratio: 1;
-      border: 0.5px solid #ced4da;
-      border-radius: 2px;
       display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 5pt;
-      background: white;
-      font-weight: 700;
-      min-width: 0;
-      flex-shrink: 1;
+      flex-direction: row;
+      gap: 2px;
+      align-items: flex-end; /* upper jaw: teeth rise up */
     }
 
-    .tooth.selected {
-      background: #D2804D;
-      border-color: #D2804D;
-      color: white;
+    .teeth-row.lower {
+      align-items: flex-start; /* lower jaw: teeth drop down */
     }
 
-    .midline {
+    .teeth-midline {
       width: 4px;
       background: #007289;
       align-self: stretch;
       margin: 0 1px;
+      flex-shrink: 0;
+    }
+
+    .teeth-legend {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-top: 4px;
+    }
+
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 3px;
+      font-size: 6pt;
+      color: #555;
+    }
+
+    .legend-swatch {
+      width: 10px;
+      height: 10px;
+      border-radius: 2px;
+      flex-shrink: 0;
     }
 
     /* Selected Teeth Details */
@@ -461,26 +462,60 @@
       <div class="section-header">{{t.selectedTeeth}}</div>
       <div class="teeth-diagram">
         <div class="teeth-container">
-          <!-- Upper Row: 18-11 | 21-28 -->
+          <!-- Upper Row: 18-11 | 21-28  (align-items: flex-end → teeth rise upward) -->
           <div class="teeth-row upper">
             {{#each upperRight}}
-              <div class="tooth {{#if this.selected}}selected{{/if}}">{{this.number}}</div>
+              <div style="display:flex;flex-direction:column;align-items:center;gap:1px;margin-bottom:{{this.archOffset}}px;flex-shrink:0;">
+                <span style="font-size:6.5pt;font-family:monospace;color:{{this.numberColor}};font-weight:{{this.numberWeight}};line-height:1;">{{this.number}}</span>
+                {{#if this.implant}}<span style="font-size:9pt;line-height:1;color:#111;font-weight:900;text-align:center;">&#9660;</span>{{/if}}
+                <div style="width:{{this.width}}px;height:{{this.height}}px;background-color:{{this.bgColor}};border:{{this.borderWidth}} solid {{this.borderColor}};border-radius:{{this.borderRadiusUpper}};"></div>
+              </div>
             {{/each}}
-            <div class="midline"></div>
+            <div class="teeth-midline"></div>
             {{#each upperLeft}}
-              <div class="tooth {{#if this.selected}}selected{{/if}}">{{this.number}}</div>
+              <div style="display:flex;flex-direction:column;align-items:center;gap:1px;margin-bottom:{{this.archOffset}}px;flex-shrink:0;">
+                <span style="font-size:6.5pt;font-family:monospace;color:{{this.numberColor}};font-weight:{{this.numberWeight}};line-height:1;">{{this.number}}</span>
+                {{#if this.implant}}<span style="font-size:9pt;line-height:1;color:#111;font-weight:900;text-align:center;">&#9660;</span>{{/if}}
+                <div style="width:{{this.width}}px;height:{{this.height}}px;background-color:{{this.bgColor}};border:{{this.borderWidth}} solid {{this.borderColor}};border-radius:{{this.borderRadiusUpper}};"></div>
+              </div>
             {{/each}}
           </div>
-          <!-- Lower Row: 48-41 | 31-38 -->
+
+          <!-- Lower Row: 48-41 | 31-38  (align-items: flex-start → teeth drop downward) -->
           <div class="teeth-row lower">
             {{#each lowerRight}}
-              <div class="tooth {{#if this.selected}}selected{{/if}}">{{this.number}}</div>
+              <div style="display:flex;flex-direction:column;align-items:center;gap:1px;margin-top:{{this.archOffset}}px;flex-shrink:0;">
+                <div style="width:{{this.width}}px;height:{{this.height}}px;background-color:{{this.bgColor}};border:{{this.borderWidth}} solid {{this.borderColor}};border-radius:{{this.borderRadiusLower}};"></div>
+                {{#if this.implant}}<span style="font-size:9pt;line-height:1;color:#111;font-weight:900;text-align:center;">&#9650;</span>{{/if}}
+                <span style="font-size:6.5pt;font-family:monospace;color:{{this.numberColor}};font-weight:{{this.numberWeight}};line-height:1;">{{this.number}}</span>
+              </div>
             {{/each}}
-            <div class="midline"></div>
+            <div class="teeth-midline"></div>
             {{#each lowerLeft}}
-              <div class="tooth {{#if this.selected}}selected{{/if}}">{{this.number}}</div>
+              <div style="display:flex;flex-direction:column;align-items:center;gap:1px;margin-top:{{this.archOffset}}px;flex-shrink:0;">
+                <div style="width:{{this.width}}px;height:{{this.height}}px;background-color:{{this.bgColor}};border:{{this.borderWidth}} solid {{this.borderColor}};border-radius:{{this.borderRadiusLower}};"></div>
+                {{#if this.implant}}<span style="font-size:9pt;line-height:1;color:#111;font-weight:900;text-align:center;">&#9650;</span>{{/if}}
+                <span style="font-size:6.5pt;font-family:monospace;color:{{this.numberColor}};font-weight:{{this.numberWeight}};line-height:1;">{{this.number}}</span>
+              </div>
             {{/each}}
           </div>
+
+          <!-- Colour legend -->
+          {{#if selectedTeethDetails.length}}
+          <div class="teeth-legend">
+            <span style="font-size:6pt;color:#555;margin-right:2px;">Legenda:</span>
+            {{#each selectedTeethDetails}}
+              <div class="legend-item">
+                <div class="legend-swatch" style="background-color:{{this.bgColor}};"></div>
+                <span>{{this.workType}}{{#if this.shade}} ({{this.shade}}){{/if}}</span>
+              </div>
+            {{/each}}
+            <div class="legend-item">
+              <span style="font-size:10pt;line-height:1;color:#111;font-weight:900;">&#9660;&#9650;</span>
+              <span>Implantat</span>
+            </div>
+          </div>
+          {{/if}}
         </div>
       </div>
     </div>

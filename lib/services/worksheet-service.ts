@@ -289,6 +289,7 @@ export async function assignTeeth(
       workType: string;
       shade?: string;
       notes?: string;
+      implant?: boolean;
     }>;
   },
   userId: string
@@ -307,6 +308,7 @@ export async function assignTeeth(
           workType: t.workType,
           shade: t.shade ?? null,
           notes: t.notes ?? null,
+          implant: t.implant ?? false,
         })),
       });
     }

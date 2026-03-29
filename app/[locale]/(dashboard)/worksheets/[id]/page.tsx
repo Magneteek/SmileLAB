@@ -36,6 +36,7 @@ import { Separator } from '@/components/ui/separator';
 import { GenerateAnnexButton } from '@/src/components/documents/GenerateAnnexButton';
 import { VoidWorksheetButton } from '@/src/components/worksheets/VoidWorksheetButton';
 import { DeleteWorksheetButton } from '@/src/components/worksheets/DeleteWorksheetButton';
+import { TeethReadOnlyView } from '@/src/components/worksheets/TeethReadOnlyView';
 
 // ============================================================================
 // MAIN PAGE COMPONENT
@@ -193,71 +194,55 @@ export default async function WorksheetDetailPage({
               {worksheet.products.length === 0 ? (
                 <p className="text-gray-500 italic">{t('worksheet.detailNoProductsSelected')}</p>
               ) : (
-                <div className="space-y-4">
+                <div className="space-y-2">
                   {worksheet.products.map((item: any) => (
                     <div
                       key={item.id}
-                      className="border rounded-lg p-4 bg-gray-50"
+                      className="border rounded p-2 bg-gray-50"
                     >
                       {/* Product Header */}
-                      <div className="flex items-center justify-between mb-3">
-                        <div className="flex items-center gap-3">
-                          <div className="h-8 w-8 rounded-full bg-blue-100 flex items-center justify-center">
-                            <span className="text-blue-600 font-semibold text-sm">📦</span>
-                          </div>
-                          <div>
-                            <p className="font-semibold text-base">
-                              {item.product.code} - {item.product.name}
-                            </p>
-                            <p className="text-xs text-gray-600">
-                              {t('worksheet.detailCategoryLabel')} {item.product.category}
-                            </p>
-                          </div>
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="font-semibold text-sm">
+                            {item.product.code} - {item.product.name}
+                          </p>
+                          <p className="text-xs text-gray-500">
+                            {item.product.category}
+                          </p>
                         </div>
-                        <Badge variant="outline">
-                          {t('worksheet.detailQtyLabel')} {item.quantity} {item.product.unit}
+                        <Badge variant="outline" className="text-xs shrink-0">
+                          {item.quantity} {item.product.unit}
                         </Badge>
                       </div>
 
                       {/* Product Notes */}
                       {item.notes && (
-                        <p className="text-sm text-gray-600 mb-3 pl-11">{item.notes}</p>
+                        <p className="text-xs text-gray-600 mt-1">{item.notes}</p>
                       )}
 
                       {/* Nested Materials */}
                       {item.productMaterials && item.productMaterials.length > 0 && (
-                        <div className="pl-11 space-y-2">
-                          <p className="text-xs font-semibold text-gray-700 uppercase tracking-wide mb-2">
-                            {t('worksheet.detailMaterialsUsedTitle', { count: item.productMaterials.length })}
-                          </p>
+                        <div className="mt-1 space-y-1 pl-2 border-l-2 border-gray-200">
                           {item.productMaterials.map((pm: any) => (
-                            <div
-                              key={pm.id}
-                              className="flex items-center gap-3 p-2 bg-white rounded border border-gray-200"
-                            >
-                              <div className="flex-1">
-                                <div className="flex items-center gap-2">
-                                  <p className="text-sm font-medium">
-                                    {pm.material.code} - {pm.material.name}
-                                  </p>
-                                  {pm.materialLot ? (
-                                    <Badge variant="default" className="shrink-0 bg-blue-100 text-blue-800 border-blue-200">
-                                      {t('worksheet.detailLotLabel')} {pm.materialLot.lotNumber}
-                                    </Badge>
-                                  ) : (
-                                    <Badge variant="outline" className="shrink-0 text-amber-600 border-amber-300">
-                                      {t('worksheet.detailNoLot')}
-                                    </Badge>
-                                  )}
-                                </div>
-                                <div className="flex items-center gap-4 mt-1 text-xs text-gray-600">
-                                  <span>{t('worksheet.detailQtyLabel')} {Number(pm.quantityUsed).toFixed(2)} {pm.material.unit}</span>
-                                  {pm.toothNumber && <span>{t('worksheet.detailToothLabel')} {pm.toothNumber}</span>}
-                                </div>
-                                {pm.notes && (
-                                  <p className="text-xs text-gray-500 mt-1">{pm.notes}</p>
-                                )}
+                            <div key={pm.id} className="flex items-start justify-between gap-2">
+                              <div className="flex-1 min-w-0">
+                                <p className="text-xs font-medium truncate">
+                                  {pm.material.code} - {pm.material.name}
+                                </p>
+                                <p className="text-xs text-gray-500">
+                                  {Number(pm.quantityUsed).toFixed(2)} {pm.material.unit}
+                                  {pm.toothNumber && ` · ${pm.toothNumber}`}
+                                </p>
                               </div>
+                              {pm.materialLot ? (
+                                <Badge variant="default" className="shrink-0 text-xs bg-blue-100 text-blue-800 border-blue-200">
+                                  {pm.materialLot.lotNumber}
+                                </Badge>
+                              ) : (
+                                <Badge variant="outline" className="shrink-0 text-xs text-amber-600 border-amber-300">
+                                  {t('worksheet.detailNoLot')}
+                                </Badge>
+                              )}
                             </div>
                           ))}
                         </div>
@@ -265,7 +250,7 @@ export default async function WorksheetDetailPage({
 
                       {/* No materials assigned */}
                       {(!item.productMaterials || item.productMaterials.length === 0) && (
-                        <p className="text-sm text-gray-500 italic pl-11">{t('worksheet.detailNoMaterialsAssigned')}</p>
+                        <p className="text-xs text-gray-400 italic mt-1">{t('worksheet.detailNoMaterialsAssigned')}</p>
                       )}
                     </div>
                   ))}
@@ -283,20 +268,13 @@ export default async function WorksheetDetailPage({
               <CardTitle className="text-base">{t('worksheet.detailWorksheetInfoTitle')}</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              {/* Compact Teeth Display */}
+              {/* FDI Teeth Visual Display */}
               <div>
                 <h4 className="font-semibold mb-2 text-sm">{t('worksheet.detailSelectedTeethTitle', { count: worksheet.teeth.length })}</h4>
                 {worksheet.teeth.length === 0 ? (
                   <p className="text-sm text-gray-500 italic">{t('worksheet.detailNoTeethSelected')}</p>
                 ) : (
-                  <div className="flex flex-wrap gap-2">
-                    {worksheet.teeth.map((tooth: any) => (
-                      <Badge key={tooth.id} variant="outline" className="text-xs px-2 py-1">
-                        #{tooth.toothNumber} - {t(`fdi.workTypes.${tooth.workType}`)}
-                        {tooth.shade && ` (${tooth.shade})`}
-                      </Badge>
-                    ))}
-                  </div>
+                  <TeethReadOnlyView teeth={worksheet.teeth} />
                 )}
               </div>
 

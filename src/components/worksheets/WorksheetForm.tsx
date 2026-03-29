@@ -233,6 +233,7 @@ export function WorksheetForm({
       workType: t.workType.toLowerCase() as any,
       shade: t.shade || undefined,
       notes: t.notes || undefined,
+      implant: (t as any).implant || false,
     })) || []
   );
   const [selectedProducts, setSelectedProducts] = useState<ProductSelection[]>(

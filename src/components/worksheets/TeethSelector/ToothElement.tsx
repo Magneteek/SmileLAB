@@ -114,14 +114,35 @@ export function ToothElement({
     userSelect: 'none',
   };
 
+  const implantArrow = implant ? (
+    <span
+      title="Implant"
+      style={{
+        display: 'block',
+        textAlign: 'center',
+        fontSize: '11px',
+        lineHeight: 1,
+        color: '#1a1a1a',
+        pointerEvents: 'none',
+        userSelect: 'none',
+        fontWeight: 900,
+      }}
+    >
+      {jaw === 'upper' ? '▼' : '▲'}
+    </span>
+  ) : null;
+
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '2px', ...archStyle }}>
+    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1px', ...archStyle }}>
       {/* Number above — upper jaw only */}
       {showLabel && jaw === 'upper' && (
         <span style={numberStyle}>{tooth.number}</span>
       )}
 
-      {/* Tooth button (wrapper for badge positioning) */}
+      {/* Implant arrow — upper jaw: above tooth (between number and tooth) */}
+      {jaw === 'upper' && implantArrow}
+
+      {/* Tooth button */}
       <div style={{ position: 'relative', display: 'inline-block', flexShrink: 0 }}>
         <button
           type="button"
@@ -157,24 +178,10 @@ export function ToothElement({
               : 'none',
           }}
         />
-        {/* Implant badge — amber dot at top-right corner */}
-        {implant && (
-          <span
-            style={{
-              position: 'absolute',
-              top: '-3px',
-              right: '-3px',
-              width: '7px',
-              height: '7px',
-              borderRadius: '50%',
-              backgroundColor: IMPLANT_BADGE_COLOR,
-              border: '1.5px solid #fff',
-              pointerEvents: 'none',
-            }}
-            title="Implant"
-          />
-        )}
       </div>
+
+      {/* Implant arrow — lower jaw: below tooth (between tooth and number) */}
+      {jaw === 'lower' && implantArrow}
 
       {/* Number below — lower jaw only */}
       {showLabel && jaw === 'lower' && (

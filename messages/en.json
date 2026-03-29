@@ -1518,7 +1518,7 @@
     "notesPlaceholder": "Additional details...",
     "workTypesTitle": "Work Types",
     "workTypeInstruction": "Select a tooth and choose a work type to assign",
-    "implantBadgeLabel": "Amber dot = implant-supported",
+    "implantBadgeLabel": "Implant",
     "workTypeCrown": "Crown",
     "workTypeBridge": "Bridge",
     "workTypeVeneer": "Veneer",

@@ -84,6 +84,8 @@ interface WorksheetPDFData {
     toothNumber: string;
     workType: string;
     shade?: string;
+    implant: boolean;
+    bgColor: string;
   }>;
 
   // Products with materials
@@ -139,7 +141,43 @@ interface ToothData {
   selected: boolean;
   workType?: string;
   shade?: string;
+  implant: boolean;
+  // Pre-computed styles for template rendering
+  bgColor: string;
+  borderColor: string;
+  borderWidth: string;
+  width: number;
+  height: number;
+  crownRadius: number;
+  archOffset: number;
+  borderRadiusUpper: string;
+  borderRadiusLower: string;
+  numberColor: string;
+  numberWeight: string;
 }
+
+// Anatomical proportions per position (1=central incisor → 8=wisdom), scaled 1.2x for print
+const TOOTH_POSITION_CONFIG: Record<number, { width: number; height: number; crownRadius: number; archOffset: number }> = {
+  1: { width: 23, height: 38, crownRadius: 11, archOffset: 0  },
+  2: { width: 20, height: 36, crownRadius: 10, archOffset: 4  },
+  3: { width: 20, height: 41, crownRadius: 13, archOffset: 8  },
+  4: { width: 24, height: 32, crownRadius:  8, archOffset: 12 },
+  5: { width: 24, height: 30, crownRadius:  7, archOffset: 14 },
+  6: { width: 29, height: 29, crownRadius:  6, archOffset: 17 },
+  7: { width: 28, height: 28, crownRadius:  5, archOffset: 18 },
+  8: { width: 25, height: 26, crownRadius:  5, archOffset: 19 },
+};
+
+// Work-type fill colours (matches TeethSelector constants)
+const TOOTH_WORK_TYPE_COLORS: Record<string, string> = {
+  crown:       '#3B82F6',
+  bridge:      '#8B5CF6',
+  veneer:      '#EC4899',
+  denture:     '#EF4444',
+  wizil:       '#F97316',
+  inlay_onlay: '#14B8A6',
+  other:       '#9CA3AF',
+};
 
 // ============================================================================
 // MAIN GENERATION FUNCTION
@@ -505,40 +543,66 @@ function translateWorkType(workType: string, translations: Record<string, string
  */
 function prepareTeethData(teethRecords: any[], translations: Record<string, string>) {
   // Create a map of selected teeth with full details
-  const selectedTeethMap = new Map();
+  const selectedTeethMap = new Map<string, { workType: string; workTypeKey: string; shade?: string; implant: boolean }>();
   teethRecords.forEach((tooth) => {
     selectedTeethMap.set(tooth.toothNumber, {
       workType: translateWorkType(tooth.workType, translations),
+      workTypeKey: tooth.workType.toLowerCase(),
       shade: tooth.shade,
+      implant: tooth.implant || false,
     });
   });
 
-  // Helper to create tooth data
+  // Helper to create tooth data with pre-computed styles
   const createTooth = (number: number): ToothData => {
     const toothNumber = number.toString();
     const selected = selectedTeethMap.has(toothNumber);
-    const toothData = selectedTeethMap.get(toothNumber);
+    const info = selectedTeethMap.get(toothNumber);
+
+    const position = number % 10 || 8; // e.g. 18 → 8, 11 → 1
+    const config = TOOTH_POSITION_CONFIG[position] ?? TOOTH_POSITION_CONFIG[6];
+
+    const bgColor = selected && info
+      ? (TOOTH_WORK_TYPE_COLORS[info.workTypeKey] ?? '#9CA3AF')
+      : '#F3F4F6';
+    const borderColor = selected ? 'rgba(0,0,0,0.22)' : '#E5E7EB';
+    const { crownRadius } = config;
+
     return {
       number: toothNumber,
       selected,
-      workType: selected ? toothData.workType : undefined,
-      shade: selected ? toothData.shade : undefined,
+      workType: selected ? info?.workType : undefined,
+      shade: selected ? info?.shade : undefined,
+      implant: selected ? (info?.implant ?? false) : false,
+      bgColor,
+      borderColor,
+      borderWidth: selected ? '2px' : '1.5px',
+      width: config.width,
+      height: config.height,
+      crownRadius,
+      archOffset: config.archOffset,
+      borderRadiusUpper: `3px 3px ${crownRadius}px ${crownRadius}px`,
+      borderRadiusLower: `${crownRadius}px ${crownRadius}px 3px 3px`,
+      numberColor: selected ? '#374151' : '#9CA3AF',
+      numberWeight: selected ? '600' : '400',
     };
   };
 
-  // Generate selected teeth details list
+  // Generate selected teeth details list (with colour for legend)
   const selectedTeethDetails = teethRecords.map((tooth) => ({
     toothNumber: tooth.toothNumber,
     workType: translateWorkType(tooth.workType, translations),
     shade: tooth.shade || undefined,
+    implant: tooth.implant || false,
+    bgColor: TOOTH_WORK_TYPE_COLORS[tooth.workType.toLowerCase()] ?? '#9CA3AF',
   }));
 
   // Generate all teeth for each quadrant
   return {
-    upperRight: Array.from({ length: 8 }, (_, i) => createTooth(18 - i)), // 18-11
-    upperLeft: Array.from({ length: 8 }, (_, i) => createTooth(21 + i)), // 21-28
-    lowerRight: Array.from({ length: 8 }, (_, i) => createTooth(48 - i)), // 48-41
-    lowerLeft: Array.from({ length: 8 }, (_, i) => createTooth(31 + i)), // 31-38
+    upperRight: Array.from({ length: 8 }, (_, i) => createTooth(18 - i)), // 18→11
+    upperLeft:  Array.from({ length: 8 }, (_, i) => createTooth(21 + i)), // 21→28
+    lowerRight: Array.from({ length: 8 }, (_, i) => createTooth(48 - i)), // 48→41
+    lowerLeft:  Array.from({ length: 8 }, (_, i) => createTooth(31 + i)), // 31→38
     selectedTeethDetails,
   };
 }

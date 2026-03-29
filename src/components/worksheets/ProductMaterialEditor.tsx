@@ -48,6 +48,11 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Badge } from '@/components/ui/badge';
@@ -360,30 +365,58 @@ export function ProductMaterialEditor({
                   <CollapsibleContent className="mt-2 pt-2 border-t space-y-2">
                     {/* Row 1: Tooth, Quantity, LOT - Optimized widths */}
                     <div className="grid grid-cols-[1fr_1fr_2fr] gap-2">
-                      {/* Tooth Association - First (Small) */}
+                      {/* Tooth Association - Multi-select */}
                       <div>
                         <Label className="text-[10px] text-gray-600 mb-0.5 block">
                           {t('productMaterialEditor.toothFieldLabel')}
                         </Label>
-                        <Select
-                          value={instance.toothNumber || ''}
-                          onValueChange={(value) => updateInstance(index, { toothNumber: value || undefined })}
-                          disabled={readOnly}
-                        >
-                          <SelectTrigger className="h-8 text-xs">
-                            <SelectValue placeholder={t('productMaterialEditor.selectPlaceholder')} />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="_none" className="text-sm text-gray-500">
-                              {t('productMaterialEditor.noToothOption')}
-                            </SelectItem>
-                            {availableTeeth.map((tooth) => (
-                              <SelectItem key={tooth} value={tooth} className="text-sm">
-                                {t('productMaterialEditor.toothOption', { number: tooth })}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
+                        {readOnly ? (
+                          <div className="h-8 text-xs flex items-center px-2 border rounded-md bg-gray-50 text-gray-700">
+                            {instance.toothNumber || '—'}
+                          </div>
+                        ) : (
+                          <Popover>
+                            <PopoverTrigger asChild>
+                              <button
+                                type="button"
+                                className="h-8 w-full text-xs flex items-center justify-between px-2 border rounded-md bg-white hover:bg-gray-50 text-left truncate"
+                              >
+                                <span className="truncate text-gray-700">
+                                  {instance.toothNumber
+                                    ? instance.toothNumber.split(',').join(', ')
+                                    : <span className="text-gray-400">{t('productMaterialEditor.selectPlaceholder')}</span>
+                                  }
+                                </span>
+                                <span className="ml-1 text-gray-400 shrink-0">▾</span>
+                              </button>
+                            </PopoverTrigger>
+                            <PopoverContent className="w-44 p-2" align="start">
+                              <div className="space-y-1 max-h-48 overflow-y-auto">
+                                {availableTeeth.map((tooth) => {
+                                  const selected = (instance.toothNumber || '').split(',').filter(Boolean).includes(tooth);
+                                  return (
+                                    <label key={tooth} className="flex items-center gap-2 px-1 py-0.5 rounded hover:bg-gray-50 cursor-pointer text-xs">
+                                      <Checkbox
+                                        checked={selected}
+                                        onCheckedChange={(checked) => {
+                                          const current = (instance.toothNumber || '').split(',').filter(Boolean);
+                                          const next = checked
+                                            ? [...current, tooth].sort((a, b) => parseInt(a) - parseInt(b))
+                                            : current.filter(v => v !== tooth);
+                                          updateInstance(index, { toothNumber: next.length ? next.join(',') : undefined });
+                                        }}
+                                      />
+                                      {tooth}
+                                    </label>
+                                  );
+                                })}
+                                {availableTeeth.length === 0 && (
+                                  <p className="text-xs text-gray-400 px-1">{t('productMaterialEditor.noToothOption')}</p>
+                                )}
+                              </div>
+                            </PopoverContent>
+                          </Popover>
+                        )}
                       </div>
 
                       {/* Quantity - Second (Small) */}

@@ -182,8 +182,8 @@ export async function POST(request: NextRequest) {
     });
 
     return NextResponse.json({ success: true, data: worksheet }, { status: 201 });
-  } catch (error) {
+  } catch (error: any) {
     console.error('POST /api/worksheets error:', error);
-    return NextResponse.json({ success: false, error: 'Failed to create worksheet' }, { status: 500 });
+    return NextResponse.json({ success: false, error: error?.message || 'Failed to create worksheet' }, { status: 500 });
   }
 }
