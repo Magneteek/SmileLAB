@@ -83,14 +83,15 @@ function getDateColumn(dueDate: string | null): string {
   return 'later';
 }
 
-const DATE_COLUMNS: Column[] = [
-  { key: 'overdue',  label: 'Zamude',      headerColor: 'bg-red-50 border-red-200 text-red-800',       icon: AlertCircle },
-  { key: 'today',    label: 'Danes',       headerColor: 'bg-orange-50 border-orange-200 text-orange-800' },
-  { key: 'tomorrow', label: 'Jutri',       headerColor: 'bg-yellow-50 border-yellow-200 text-yellow-800' },
-  { key: 'week',     label: 'Ta teden',    headerColor: 'bg-blue-50 border-blue-200 text-blue-800' },
-  { key: 'later',    label: 'Pozneje',     headerColor: 'bg-gray-50 border-gray-200 text-gray-700' },
-  { key: 'none',     label: 'Brez datuma', headerColor: 'bg-gray-50 border-gray-200 text-gray-400' },
-];
+// Labels are set at runtime using t() — see buildColumns() in the page component
+const DATE_COLUMN_DEFS = [
+  { key: 'overdue',  tKey: 'columnOverdue',  headerColor: 'bg-red-50 border-red-200 text-red-800',       icon: AlertCircle },
+  { key: 'today',    tKey: 'columnToday',    headerColor: 'bg-orange-50 border-orange-200 text-orange-800' },
+  { key: 'tomorrow', tKey: 'columnTomorrow', headerColor: 'bg-yellow-50 border-yellow-200 text-yellow-800' },
+  { key: 'week',     tKey: 'columnWeek',     headerColor: 'bg-blue-50 border-blue-200 text-blue-800' },
+  { key: 'later',    tKey: 'columnLater',    headerColor: 'bg-gray-50 border-gray-200 text-gray-700' },
+  { key: 'none',     tKey: 'columnNone',     headerColor: 'bg-gray-50 border-gray-200 text-gray-400' },
+] as const;
 
 // ── Stage-based columns ───────────────────────────────────────────────────────
 
@@ -102,13 +103,13 @@ function getStageColumn(ws: { scanReceivedAt: string | null; designCompletedAt: 
   return 'done';
 }
 
-const STAGE_COLUMNS: Column[] = [
-  { key: 'scan',     label: 'Čaka sken',    headerColor: 'bg-slate-50 border-slate-200 text-slate-700',  icon: Scan },
-  { key: 'design',   label: 'CAD / Design', headerColor: 'bg-indigo-50 border-indigo-200 text-indigo-800', icon: Cpu },
-  { key: 'milling',  label: 'Rezkanje / Tiskanje', headerColor: 'bg-purple-50 border-purple-200 text-purple-800', icon: Hammer },
-  { key: 'received', label: 'Prevzem',      headerColor: 'bg-amber-50 border-amber-200 text-amber-800',   icon: PackageCheck },
-  { key: 'done',     label: 'Pripravljeno', headerColor: 'bg-green-50 border-green-200 text-green-800',   icon: CheckCircle2 },
-];
+const STAGE_COLUMN_DEFS = [
+  { key: 'scan',     tKey: 'stageScan',     headerColor: 'bg-slate-50 border-slate-200 text-slate-700',  icon: Scan },
+  { key: 'design',   tKey: 'stageDesign',   headerColor: 'bg-indigo-50 border-indigo-200 text-indigo-800', icon: Cpu },
+  { key: 'milling',  tKey: 'stageMilling',  headerColor: 'bg-purple-50 border-purple-200 text-purple-800', icon: Hammer },
+  { key: 'received', tKey: 'stageReceived', headerColor: 'bg-amber-50 border-amber-200 text-amber-800',   icon: PackageCheck },
+  { key: 'done',     tKey: 'stageDone',     headerColor: 'bg-green-50 border-green-200 text-green-800',   icon: CheckCircle2 },
+] as const;
 
 // ─── Phase step component ─────────────────────────────────────────────────────
 
@@ -188,19 +189,19 @@ function WorksheetCard({
               {ws.worksheetNumber}
             </Link>
             {ws.status === 'DRAFT' && (
-              <Badge className="bg-slate-100 text-slate-600 border-slate-200 text-[10px] px-1 py-0">Osnutek</Badge>
+              <Badge className="bg-slate-100 text-slate-600 border-slate-200 text-[10px] px-1 py-0">{t('statusDraft')}</Badge>
             )}
             {ws.status === 'QC_PENDING' && (
-              <Badge className="bg-blue-100 text-blue-700 border-blue-200 text-[10px] px-1 py-0">QC čaka</Badge>
+              <Badge className="bg-blue-100 text-blue-700 border-blue-200 text-[10px] px-1 py-0">{t('statusQcPending')}</Badge>
             )}
             {ws.status === 'QC_REJECTED' && (
-              <Badge className="bg-orange-100 text-orange-700 border-orange-200 text-[10px] px-1 py-0">Popravek</Badge>
+              <Badge className="bg-orange-100 text-orange-700 border-orange-200 text-[10px] px-1 py-0">{t('statusQcRejected')}</Badge>
             )}
             {ws.order.priority === 2 && (
-              <Badge className="bg-red-100 text-red-700 border-red-200 text-[10px] px-1 py-0">NUJNO</Badge>
+              <Badge className="bg-red-100 text-red-700 border-red-200 text-[10px] px-1 py-0">{t('urgent')}</Badge>
             )}
             {ws.order.priority === 1 && (
-              <Badge className="bg-amber-100 text-amber-700 border-amber-200 text-[10px] px-1 py-0">Hitro</Badge>
+              <Badge className="bg-amber-100 text-amber-700 border-amber-200 text-[10px] px-1 py-0">{t('high')}</Badge>
             )}
           </div>
           <p className="text-sm font-medium truncate mt-0.5">{ws.patientName || '—'}</p>
@@ -223,7 +224,7 @@ function WorksheetCard({
               )}>
                 {overdue && <AlertCircle className="h-3 w-3" />}
                 <CalendarIcon className="h-3 w-3" />
-                {dueDate ? format(dueDate, 'd. M.') : <span className="text-[10px]">Datum?</span>}
+                {dueDate ? format(dueDate, 'd. M.') : <span className="text-[10px]">{t('dateUnset')}</span>}
               </button>
             </PopoverTrigger>
             <PopoverContent className="w-auto p-0" align="end">
@@ -237,7 +238,7 @@ function WorksheetCard({
                 <div className="p-2 border-t">
                   <Button variant="ghost" size="sm" className="w-full text-muted-foreground text-xs"
                     onClick={() => onUpdateDueDate(undefined)}>
-                    Počisti datum
+                    {t('clearDate')}
                   </Button>
                 </div>
               )}
@@ -258,14 +259,14 @@ function WorksheetCard({
           ))}
         </div>
       ) : (
-        <span className="text-xs text-muted-foreground italic">Ni produktov</span>
+        <span className="text-xs text-muted-foreground italic">{t('noProducts')}</span>
       )}
 
       {/* ── Scan source ── */}
       {(ws.scanSource || ws.order.impressionType === 'DIGITAL_SCAN') && (
         <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
           <Scan className="h-3 w-3 flex-shrink-0" />
-          <span>{ws.scanSource ? SCAN_SOURCE_LABELS[ws.scanSource] ?? ws.scanSource : 'Digitalni sken'}</span>
+          <span>{ws.scanSource ? SCAN_SOURCE_LABELS[ws.scanSource] ?? ws.scanSource : t('digitalScan')}</span>
           {ws.scanReference && (
             <a
               href={ws.scanReference.startsWith('http') ? ws.scanReference : undefined}
@@ -283,7 +284,7 @@ function WorksheetCard({
       {(ws.designType === 'EXTERNAL' && ws.designPartner) && (
         <div className="flex items-center gap-1 text-xs">
           <Cpu className="h-3 w-3 text-indigo-500 flex-shrink-0" />
-          <span className="text-indigo-700 font-medium truncate">CAD: {ws.designPartner.name}</span>
+          <span className="text-indigo-700 font-medium truncate">CAD: {ws.designPartner?.name}</span>
           {ws.designSentAt && (
             <span className="text-muted-foreground ml-auto flex-shrink-0">{format(parseISO(ws.designSentAt), 'd.M.')}</span>
           )}
@@ -292,33 +293,33 @@ function WorksheetCard({
       {(ws.millingType === 'EXTERNAL' && ws.millingPartner) && (
         <div className="flex items-center gap-1 text-xs">
           <Hammer className="h-3 w-3 text-purple-500 flex-shrink-0" />
-          <span className="text-purple-700 font-medium truncate">{ws.manufacturingMethod === 'PRINTING' ? 'Tiskanje' : 'Rezkanje'}: {ws.millingPartner.name}</span>
+          <span className="text-purple-700 font-medium truncate">{ws.manufacturingMethod === 'PRINTING' ? t('phasePrinting') : t('phaseMilling')}: {ws.millingPartner?.name}</span>
         </div>
       )}
 
       {/* ── Progress bar ── */}
       <div className="space-y-1.5">
         <div className="flex items-center justify-between">
-          <span className="text-[10px] text-muted-foreground">Napredek</span>
+          <span className="text-[10px] text-muted-foreground">{t('progress')}</span>
           <span className="text-[10px] font-medium text-muted-foreground">{progressCount}/4</span>
         </div>
         <div className="grid grid-cols-4 gap-1">
           <PhaseStep
-            icon={Scan} done={!!ws.scanReceivedAt} label="Sken"
+            icon={Scan} done={!!ws.scanReceivedAt} label={t('phaseScan')}
             onToggle={() => onTogglePhase('scanReceivedAt')} disabled={isUpdating}
           />
           <PhaseStep
-            icon={Cpu} done={!!ws.designCompletedAt} label="CAD"
+            icon={Cpu} done={!!ws.designCompletedAt} label={t('phaseCAD')}
             onToggle={() => onTogglePhase('designCompletedAt')} disabled={isUpdating}
             sub={ws.designType === 'EXTERNAL' && ws.designPartner ? ws.designPartner.name : null}
           />
           <PhaseStep
-            icon={Hammer} done={!!ws.millingSentAt} label={ws.manufacturingMethod === 'PRINTING' ? 'Tiskanje' : 'Rezkanje'}
+            icon={Hammer} done={!!ws.millingSentAt} label={ws.manufacturingMethod === 'PRINTING' ? t('phasePrinting') : t('phaseMilling')}
             onToggle={() => onTogglePhase('millingSentAt')} disabled={isUpdating}
             sub={ws.millingType === 'EXTERNAL' && ws.millingPartner ? ws.millingPartner.name : null}
           />
           <PhaseStep
-            icon={PackageCheck} done={!!ws.millingReceivedAt} label="Prevzem"
+            icon={PackageCheck} done={!!ws.millingReceivedAt} label={t('phaseReceived')}
             onToggle={() => onTogglePhase('millingReceivedAt')} disabled={isUpdating}
           />
         </div>
@@ -337,7 +338,7 @@ function WorksheetCard({
         <Button variant="ghost" size="sm" className="h-7 text-xs text-muted-foreground px-2 gap-1"
           onClick={onOpenDrawer}>
           <Settings2 className="h-3 w-3" />
-          Nastavitve
+          {t('settings')}
         </Button>
 
         {allDone ? (
@@ -350,7 +351,7 @@ function WorksheetCard({
         ) : (
           <Link href={`/${locale}/worksheets/${ws.id}`}>
             <Button variant="outline" size="sm" className="h-7 text-xs px-2">
-              Odpri
+              {t('open')}
             </Button>
           </Link>
         )}
@@ -389,7 +390,7 @@ export default function ProductionPage() {
       if (wsRes.ok) setWorksheets((await wsRes.json()).data);
       if (pRes.ok) setPartners((await pRes.json()).data);
     } catch {
-      toast({ title: 'Error', description: 'Failed to load production data', variant: 'destructive' });
+      toast({ title: t('errorTitle'), description: t('errorLoad'), variant: 'destructive' });
     } finally {
       setIsLoading(false);
     }
@@ -411,7 +412,7 @@ export default function ProductionPage() {
       if (!res.ok) throw new Error();
     } catch {
       setWorksheets((prev) => prev.map((w) => w.id === ws.id ? { ...w, [field]: current } : w));
-      toast({ title: 'Napaka', description: 'Posodobitev ni uspela', variant: 'destructive' });
+      toast({ title: t('errorTitle'), description: t('errorUpdate'), variant: 'destructive' });
     } finally {
       setUpdatingId(null);
     }
@@ -429,7 +430,7 @@ export default function ProductionPage() {
       });
       if (!res.ok) throw new Error();
     } catch {
-      toast({ title: 'Napaka', description: 'Datum ni bil shranjen', variant: 'destructive' });
+      toast({ title: t('errorTitle'), description: t('errorDate'), variant: 'destructive' });
       fetchData();
     }
   };
@@ -443,10 +444,10 @@ export default function ProductionPage() {
         body: JSON.stringify({ newStatus: 'QC_PENDING' }),
       });
       if (!res.ok) throw new Error();
-      toast({ title: 'Poslano v QC', description: `${ws.worksheetNumber} čaka na kontrolo kakovosti.` });
+      toast({ title: t('sentToQCTitle'), description: t('sentToQCDesc', { worksheetNumber: ws.worksheetNumber }) });
       setWorksheets((prev) => prev.filter((w) => w.id !== ws.id));
     } catch {
-      toast({ title: 'Napaka', description: 'Prehod v QC ni uspel', variant: 'destructive' });
+      toast({ title: t('errorTitle'), description: t('errorQC'), variant: 'destructive' });
     } finally {
       setUpdatingId(null);
     }
@@ -474,16 +475,19 @@ export default function ProductionPage() {
       });
       if (!res.ok) throw new Error();
       setWorksheets((prev) => prev.map((w) => w.id === drawerWorksheet.id ? { ...drawerWorksheet } : w));
-      toast({ title: 'Shranjeno', description: 'Podatki posodobljeni.' });
+      toast({ title: t('savedTitle'), description: t('savedDesc') });
       setDrawerOpen(false);
     } catch {
-      toast({ title: 'Napaka', description: 'Shranjevanje ni uspelo', variant: 'destructive' });
+      toast({ title: t('errorTitle'), description: t('errorSave'), variant: 'destructive' });
     } finally {
       setDrawerSaving(false);
     }
   };
 
   // ── Group worksheets into columns ─────────────────────────────────────────
+
+  const DATE_COLUMNS: Column[] = DATE_COLUMN_DEFS.map((d) => ({ key: d.key, label: t(d.tKey), headerColor: d.headerColor, icon: 'icon' in d ? d.icon as React.ElementType : undefined }));
+  const STAGE_COLUMNS: Column[] = STAGE_COLUMN_DEFS.map((d) => ({ key: d.key, label: t(d.tKey), headerColor: d.headerColor, icon: d.icon as React.ElementType }));
 
   const COLUMNS = groupMode === 'date' ? DATE_COLUMNS : STAGE_COLUMNS;
   const getColKey = (ws: ProductionWorksheet) =>
@@ -500,7 +504,7 @@ export default function ProductionPage() {
     return (
       <div className="flex items-center justify-center h-64 text-muted-foreground">
         <Loader2 className="h-5 w-5 animate-spin mr-2" />
-        Nalaganje...
+        {t('loading')}
       </div>
     );
   }
@@ -512,9 +516,9 @@ export default function ProductionPage() {
         <div className="flex items-center gap-3">
           <Factory className="h-5 w-5 text-muted-foreground" />
           <div>
-            <h1 className="text-base font-bold leading-none">Produkcijska tabla</h1>
+            <h1 className="text-base font-bold leading-none">{t('title')}</h1>
             <p className="text-xs text-muted-foreground mt-0.5">
-              {worksheets.length} aktivnih nalogov
+              {t('activeOrders', { count: worksheets.length })}
             </p>
           </div>
         </div>
@@ -531,7 +535,7 @@ export default function ProductionPage() {
               )}
             >
               <CalendarIcon className="h-3.5 w-3.5" />
-              Po datumu
+              {t('groupByDate')}
             </button>
             <button
               onClick={() => setGroupMode('stage')}
@@ -543,12 +547,12 @@ export default function ProductionPage() {
               )}
             >
               <LayoutGrid className="h-3.5 w-3.5" />
-              Po fazi
+              {t('groupByStage')}
             </button>
           </div>
           <Button variant="outline" size="sm" onClick={fetchData} className="gap-1.5">
             <RefreshCw className="h-3.5 w-3.5" />
-            Osveži
+            {t('refresh')}
           </Button>
         </div>
       </div>
@@ -557,8 +561,8 @@ export default function ProductionPage() {
         <div className="flex-1 flex items-center justify-center text-muted-foreground">
           <div className="text-center">
             <Factory className="h-12 w-12 mx-auto mb-3 opacity-20" />
-            <p className="font-medium">Ni aktivnih nalogov</p>
-            <p className="text-sm">Vsi nalogi so končani ali v QC.</p>
+            <p className="font-medium">{t('noActive')}</p>
+            <p className="text-sm">{t('noActiveDesc')}</p>
           </div>
         </div>
       ) : (
@@ -617,7 +621,7 @@ export default function ProductionPage() {
           {drawerWorksheet && (
             <>
               <SheetHeader className="px-6 pt-6 pb-4 border-b">
-                <SheetTitle className="text-base">{drawerWorksheet.worksheetNumber} — Nastavitve</SheetTitle>
+                <SheetTitle className="text-base">{t('drawerTitle', { number: drawerWorksheet.worksheetNumber })}</SheetTitle>
                 <SheetDescription>
                   {drawerWorksheet.patientName} · {(drawerWorksheet.dentist ?? drawerWorksheet.order.dentist)?.clinicName ?? '—'}
                 </SheetDescription>
@@ -626,28 +630,28 @@ export default function ProductionPage() {
               <div className="px-6 py-6 space-y-6">
                 {/* Scan source */}
                 <div className="space-y-3">
-                  <h3 className="text-sm font-semibold">Sken / digitalni odtis</h3>
+                  <h3 className="text-sm font-semibold">{t('drawerScanTitle')}</h3>
                   <div className="space-y-2">
-                    <Label>Vir skena</Label>
+                    <Label>{t('scanSource')}</Label>
                     <Select
                       value={drawerWorksheet.scanSource ?? 'none'}
                       onValueChange={(v) => setDrawerWorksheet((w) => w ? { ...w, scanSource: v === 'none' ? null : v } : w)}
                     >
-                      <SelectTrigger><SelectValue placeholder="Izberite vir..." /></SelectTrigger>
+                      <SelectTrigger><SelectValue placeholder={t('scanSourcePlaceholder')} /></SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="none">Ni digitalnega skena</SelectItem>
+                        <SelectItem value="none">{t('scanSourceNone')}</SelectItem>
                         <SelectItem value="MEDIT">Medit Link</SelectItem>
                         <SelectItem value="SHINING3D">Shining 3D</SelectItem>
                         <SelectItem value="GOOGLE_DRIVE">Google Drive</SelectItem>
                         <SelectItem value="THREESHAPE">3Shape</SelectItem>
-                        <SelectItem value="OTHER">Drugo</SelectItem>
+                        <SelectItem value="OTHER">{t('scanSourceOther')}</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
                   <div className="space-y-2">
-                    <Label>Referenca / URL</Label>
+                    <Label>{t('scanRef')}</Label>
                     <Input
-                      placeholder="URL ali ID primera..."
+                      placeholder={t('scanRefPlaceholder')}
                       value={drawerWorksheet.scanReference ?? ''}
                       onChange={(e) => setDrawerWorksheet((w) => w ? { ...w, scanReference: e.target.value || null } : w)}
                     />
@@ -658,24 +662,24 @@ export default function ProductionPage() {
 
                 {/* Design */}
                 <div className="space-y-3">
-                  <h3 className="text-sm font-semibold">CAD / Design</h3>
+                  <h3 className="text-sm font-semibold">{t('designSection')}</h3>
                   <div className="space-y-2">
-                    <Label>Kdo dela design</Label>
+                    <Label>{t('designDoneBy')}</Label>
                     <Select
                       value={drawerWorksheet.designType}
                       onValueChange={(v) => setDrawerWorksheet((w) => w ? { ...w, designType: v, designPartner: v === 'INTERNAL' ? null : w.designPartner } : w)}
                     >
                       <SelectTrigger><SelectValue /></SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="INTERNAL">Interno</SelectItem>
-                        <SelectItem value="EXTERNAL">Zunanji partner</SelectItem>
+                        <SelectItem value="INTERNAL">{t('designInternal')}</SelectItem>
+                        <SelectItem value="EXTERNAL">{t('designExternal')}</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
                   {drawerWorksheet.designType === 'EXTERNAL' && (
                     <>
                       <div className="space-y-2">
-                        <Label>Partner</Label>
+                        <Label>{t('designPartnerLabel')}</Label>
                         <Select
                           value={drawerWorksheet.designPartner?.id ?? 'none'}
                           onValueChange={(v) => {
@@ -683,9 +687,9 @@ export default function ProductionPage() {
                             setDrawerWorksheet((w) => w ? { ...w, designPartner: p } : w);
                           }}
                         >
-                          <SelectTrigger><SelectValue placeholder="Izberite partnerja..." /></SelectTrigger>
+                          <SelectTrigger><SelectValue placeholder={t('designPartnerPlaceholder')} /></SelectTrigger>
                           <SelectContent>
-                            <SelectItem value="none">— brez —</SelectItem>
+                            <SelectItem value="none">{t('partnerNone')}</SelectItem>
                             {partners.filter((p) => p.type === 'DESIGN' || p.type === 'BOTH').map((p) => (
                               <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>
                             ))}
@@ -693,7 +697,7 @@ export default function ProductionPage() {
                         </Select>
                       </div>
                       <div className="space-y-2">
-                        <Label>Datum pošiljanja</Label>
+                        <Label>{t('sentDate')}</Label>
                         <Input
                           type="date"
                           value={drawerWorksheet.designSentAt ? format(parseISO(drawerWorksheet.designSentAt), 'yyyy-MM-dd') : ''}
@@ -708,36 +712,36 @@ export default function ProductionPage() {
 
                 {/* Milling / Printing */}
                 <div className="space-y-3">
-                  <h3 className="text-sm font-semibold">Rezkanje / tiskanje</h3>
+                  <h3 className="text-sm font-semibold">{t('millingSection')}</h3>
                   <div className="space-y-2">
-                    <Label>Metoda</Label>
+                    <Label>{t('millingMethodLabel')}</Label>
                     <Select
                       value={drawerWorksheet.manufacturingMethod ?? 'MILLING'}
                       onValueChange={(v) => setDrawerWorksheet((w) => w ? { ...w, manufacturingMethod: v } : w)}
                     >
                       <SelectTrigger><SelectValue /></SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="MILLING">Rezkanje</SelectItem>
-                        <SelectItem value="PRINTING">Tiskanje / 3D print</SelectItem>
+                        <SelectItem value="MILLING">{t('millingMilling')}</SelectItem>
+                        <SelectItem value="PRINTING">{t('millingPrinting')}</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
                   <div className="space-y-2">
-                    <Label>Kdo dela</Label>
+                    <Label>{t('millingDoneBy')}</Label>
                     <Select
                       value={drawerWorksheet.millingType}
                       onValueChange={(v) => setDrawerWorksheet((w) => w ? { ...w, millingType: v, millingPartner: v === 'INTERNAL' ? null : w.millingPartner } : w)}
                     >
                       <SelectTrigger><SelectValue /></SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="INTERNAL">Interno</SelectItem>
-                        <SelectItem value="EXTERNAL">Zunanji partner</SelectItem>
+                        <SelectItem value="INTERNAL">{t('millingInternal')}</SelectItem>
+                        <SelectItem value="EXTERNAL">{t('millingExternal')}</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
                   {drawerWorksheet.millingType === 'EXTERNAL' && (
                     <div className="space-y-2">
-                      <Label>Partner</Label>
+                      <Label>{t('millingPartnerLabel')}</Label>
                       <Select
                         value={drawerWorksheet.millingPartner?.id ?? 'none'}
                         onValueChange={(v) => {
@@ -745,9 +749,9 @@ export default function ProductionPage() {
                           setDrawerWorksheet((w) => w ? { ...w, millingPartner: p } : w);
                         }}
                       >
-                        <SelectTrigger><SelectValue placeholder="Izberite partnerja..." /></SelectTrigger>
+                        <SelectTrigger><SelectValue placeholder={t('millingPartnerPlaceholder')} /></SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="none">— brez —</SelectItem>
+                          <SelectItem value="none">{t('partnerNone')}</SelectItem>
                           {partners.filter((p) => p.type === 'MILLING' || p.type === 'BOTH').map((p) => (
                             <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>
                           ))}
@@ -759,11 +763,11 @@ export default function ProductionPage() {
 
                 <div className="flex gap-3 pt-4 border-t">
                   <Button variant="outline" className="flex-1" onClick={() => setDrawerOpen(false)}>
-                    Prekliči
+                    {t('cancel')}
                   </Button>
                   <Button className="flex-1" onClick={saveDrawer} disabled={drawerSaving}>
                     {drawerSaving && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
-                    Shrani
+                    {t('save')}
                   </Button>
                 </div>
               </div>

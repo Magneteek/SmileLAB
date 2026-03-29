@@ -7,7 +7,7 @@
  */
 
 import { useState, useEffect, useCallback } from 'react';
-import { useLocale } from 'next-intl';
+import { useLocale, useTranslations } from 'next-intl';
 import { formatDistanceToNow, format, parseISO } from 'date-fns';
 import { sl } from 'date-fns/locale';
 import Link from 'next/link';
@@ -94,6 +94,7 @@ function getSourceConfig(scanSource: string | null, impressionType: string) {
 // ─── Card ─────────────────────────────────────────────────────────────────────
 
 function IncomingCard({ ws, locale }: { ws: IncomingWorksheet; locale: string }) {
+  const t = useTranslations('incoming');
   const src = getSourceConfig(ws.scanSource, ws.order.impressionType);
   const SrcIcon = src.icon;
   const dueDate = ws.order.dueDate ? parseISO(ws.order.dueDate) : null;
@@ -117,10 +118,10 @@ function IncomingCard({ ws, locale }: { ws: IncomingWorksheet; locale: string })
                 {src.label}
               </Badge>
               {ws.order.priority === 2 && (
-                <Badge className="bg-red-100 text-red-700 border-red-200 text-[10px] px-1 py-0">NUJNO</Badge>
+                <Badge className="bg-red-100 text-red-700 border-red-200 text-[10px] px-1 py-0">{t('priorityUrgent')}</Badge>
               )}
               {ws.order.priority === 1 && (
-                <Badge className="bg-amber-100 text-amber-700 border-amber-200 text-[10px] px-1 py-0">Hitro</Badge>
+                <Badge className="bg-amber-100 text-amber-700 border-amber-200 text-[10px] px-1 py-0">{t('priorityHigh')}</Badge>
               )}
             </div>
             <p className="text-sm font-medium truncate mt-0.5">{ws.patientName || '—'}</p>
@@ -140,7 +141,7 @@ function IncomingCard({ ws, locale }: { ws: IncomingWorksheet; locale: string })
               {format(dueDate, 'd. M.')}
             </span>
           ) : (
-            <span className="text-xs text-muted-foreground">Brez roka</span>
+            <span className="text-xs text-muted-foreground">{t('noDueDate')}</span>
           )}
           <p className="text-[10px] text-muted-foreground mt-1">
             {formatDistanceToNow(parseISO(ws.createdAt), { addSuffix: true, locale: sl })}
@@ -187,7 +188,7 @@ function IncomingCard({ ws, locale }: { ws: IncomingWorksheet; locale: string })
         <Link href={`/${locale}/worksheets/${ws.id}`}>
           <Button size="sm" className="h-7 text-xs gap-1">
             <ChevronRight className="h-3 w-3" />
-            Odpri delovni nalog
+            {t('openWorksheet')}
           </Button>
         </Link>
       </div>
@@ -198,6 +199,7 @@ function IncomingCard({ ws, locale }: { ws: IncomingWorksheet; locale: string })
 // ─── Order-only card (no worksheet yet) ──────────────────────────────────────
 
 function OrderCard({ order, locale }: { order: OrderWithoutWorksheet; locale: string }) {
+  const t = useTranslations('incoming');
   const dueDate = order.dueDate ? parseISO(order.dueDate) : null;
   const overdue = dueDate && dueDate < new Date();
   const src = order.impressionType === 'PHYSICAL_IMPRINT'
@@ -219,12 +221,12 @@ function OrderCard({ order, locale }: { order: OrderWithoutWorksheet; locale: st
               >
                 {order.orderNumber}
               </Link>
-              <Badge variant="outline" className="text-[10px] px-1.5 py-0 text-gray-500">Brez naloga</Badge>
+              <Badge variant="outline" className="text-[10px] px-1.5 py-0 text-gray-500">{t('noWorksheet')}</Badge>
               {order.priority === 2 && (
-                <Badge className="bg-red-100 text-red-700 border-red-200 text-[10px] px-1 py-0">NUJNO</Badge>
+                <Badge className="bg-red-100 text-red-700 border-red-200 text-[10px] px-1 py-0">{t('priorityUrgent')}</Badge>
               )}
               {order.priority === 1 && (
-                <Badge className="bg-amber-100 text-amber-700 border-amber-200 text-[10px] px-1 py-0">Hitro</Badge>
+                <Badge className="bg-amber-100 text-amber-700 border-amber-200 text-[10px] px-1 py-0">{t('priorityHigh')}</Badge>
               )}
             </div>
             <p className="text-sm font-medium truncate mt-0.5">{order.patientName || '—'}</p>
@@ -242,7 +244,7 @@ function OrderCard({ order, locale }: { order: OrderWithoutWorksheet; locale: st
               {format(dueDate, 'd. M.')}
             </span>
           ) : (
-            <span className="text-xs text-muted-foreground">Brez roka</span>
+            <span className="text-xs text-muted-foreground">{t('noDueDate')}</span>
           )}
           <p className="text-[10px] text-muted-foreground mt-1">
             {formatDistanceToNow(parseISO(order.createdAt), { addSuffix: true, locale: sl })}
@@ -258,7 +260,7 @@ function OrderCard({ order, locale }: { order: OrderWithoutWorksheet; locale: st
         <Link href={`/${locale}/worksheets/new?orderId=${order.id}`}>
           <Button size="sm" variant="outline" className="h-7 text-xs gap-1">
             <Plus className="h-3 w-3" />
-            Ustvari delovni nalog
+            {t('createWorksheet')}
           </Button>
         </Link>
       </div>
@@ -277,6 +279,7 @@ function QuickAddSheet({
   onCreated: () => void;
   locale: string;
 }) {
+  const t = useTranslations('incoming');
   const { toast } = useToast();
   const [saving, setSaving] = useState(false);
   const [dueDateOpen, setDueDateOpen] = useState(false);
@@ -308,7 +311,7 @@ function QuickAddSheet({
 
   const handleSubmit = async () => {
     if (!form.source || !form.dentistId) {
-      toast({ title: 'Manjkajoči podatki', description: 'Izberite vir in zobozdravnika.', variant: 'destructive' });
+      toast({ title: t('errorMissingData'), description: t('errorMissingDataDesc'), variant: 'destructive' });
       return;
     }
     setSaving(true);
@@ -330,13 +333,13 @@ function QuickAddSheet({
       if (!res.ok) throw new Error(data.error || 'Napaka');
       const worksheetId = data.data.worksheet.id;
       const worksheetNumber = data.data.worksheet.worksheetNumber;
-      toast({ title: 'Naročilo dodano', description: `Ustvarjen ${worksheetNumber} — preusmerjanje...` });
+      toast({ title: t('successTitle'), description: t('successDesc', { worksheetNumber }) });
       reset();
       onCreated();
       onClose();
       window.location.href = `/${locale}/worksheets/${worksheetId}`;
     } catch (err: any) {
-      toast({ title: 'Napaka', description: err.message, variant: 'destructive' });
+      toast({ title: t('errorTitle'), description: err.message, variant: 'destructive' });
     } finally {
       setSaving(false);
     }
@@ -346,19 +349,17 @@ function QuickAddSheet({
     <Sheet open={open} onOpenChange={(o) => { if (!o) onClose(); }}>
       <SheetContent className="w-full sm:max-w-md overflow-y-auto p-6">
         <SheetHeader className="pb-4 border-b mb-2">
-          <SheetTitle>Novo naročilo</SheetTitle>
-          <SheetDescription>
-            Hitro dodajte naročilo iz kateregakoli vira. Samodejno se ustvari nalog in delovni nalog.
-          </SheetDescription>
+          <SheetTitle>{t('sheetTitle')}</SheetTitle>
+          <SheetDescription>{t('sheetDesc')}</SheetDescription>
         </SheetHeader>
 
         <div className="space-y-4 mt-4">
           {/* Source */}
           <div className="space-y-1.5">
-            <Label>Vir naročila <span className="text-red-500">*</span></Label>
+            <Label>{t('sourceLabel')} <span className="text-red-500">*</span></Label>
             <Select value={form.source} onValueChange={(v) => setForm((f) => ({ ...f, source: v as Source }))}>
               <SelectTrigger>
-                <SelectValue placeholder="Izberite vir..." />
+                <SelectValue placeholder={t('sourcePlaceholder')} />
               </SelectTrigger>
               <SelectContent>
                 {SOURCES.map((s) => (
@@ -371,22 +372,22 @@ function QuickAddSheet({
           {/* Reference (only for digital sources) */}
           {hasRef && (
             <div className="space-y-1.5">
-              <Label>Referenca / ID primera</Label>
+              <Label>{t('refLabel')}</Label>
               <Input
-                placeholder={form.source === 'GOOGLE_DRIVE' ? 'https://drive.google.com/...' : 'ID primera ali URL'}
+                placeholder={form.source === 'GOOGLE_DRIVE' ? t('refPlaceholderDrive') : t('refPlaceholderGeneric')}
                 value={form.scanReference}
                 onChange={(e) => setForm((f) => ({ ...f, scanReference: e.target.value }))}
               />
-              <p className="text-xs text-muted-foreground">URL ali identifikator primera na zunanji platformi.</p>
+              <p className="text-xs text-muted-foreground">{t('refHint')}</p>
             </div>
           )}
 
           {/* Dentist */}
           <div className="space-y-1.5">
-            <Label>Zobozdravnik <span className="text-red-500">*</span></Label>
+            <Label>{t('dentistLabel')} <span className="text-red-500">*</span></Label>
             <Select value={form.dentistId} onValueChange={(v) => setForm((f) => ({ ...f, dentistId: v }))}>
               <SelectTrigger>
-                <SelectValue placeholder="Izberite zobozdravnika..." />
+                <SelectValue placeholder={t('dentistPlaceholder')} />
               </SelectTrigger>
               <SelectContent>
                 {dentists.map((d) => (
@@ -400,9 +401,9 @@ function QuickAddSheet({
 
           {/* Patient */}
           <div className="space-y-1.5">
-            <Label>Ime pacienta</Label>
+            <Label>{t('patientLabel')}</Label>
             <Input
-              placeholder="Ime ali šifra pacienta..."
+              placeholder={t('patientPlaceholder')}
               value={form.patientName}
               onChange={(e) => setForm((f) => ({ ...f, patientName: e.target.value }))}
             />
@@ -410,7 +411,7 @@ function QuickAddSheet({
 
           {/* Due date */}
           <div className="space-y-1.5">
-            <Label>Rok dokončanja</Label>
+            <Label>{t('dueDateLabel')}</Label>
             <Popover open={dueDateOpen} onOpenChange={setDueDateOpen}>
               <PopoverTrigger asChild>
                 <div
@@ -422,7 +423,7 @@ function QuickAddSheet({
                   )}
                 >
                   <CalendarIcon className="mr-2 h-4 w-4" />
-                  {form.dueDate ? format(form.dueDate, 'd. M. yyyy') : 'Izberite datum...'}
+                  {form.dueDate ? format(form.dueDate, 'd. M. yyyy') : t('dueDatePlaceholder')}
                 </div>
               </PopoverTrigger>
               <PopoverContent className="w-auto p-0" align="start">
@@ -436,7 +437,7 @@ function QuickAddSheet({
                   <div className="p-2 border-t">
                     <Button variant="ghost" size="sm" className="w-full text-xs text-muted-foreground"
                       onClick={() => setForm((f) => ({ ...f, dueDate: undefined }))}>
-                      Počisti datum
+                      {t('clearDate')}
                     </Button>
                   </div>
                 )}
@@ -446,7 +447,7 @@ function QuickAddSheet({
 
           {/* Priority */}
           <div className="space-y-1.5">
-            <Label>Prioriteta</Label>
+            <Label>{t('priorityLabel')}</Label>
             <Select
               value={String(form.priority)}
               onValueChange={(v) => setForm((f) => ({ ...f, priority: parseInt(v) }))}
@@ -455,18 +456,18 @@ function QuickAddSheet({
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="0">Normalno</SelectItem>
-                <SelectItem value="1">Hitro</SelectItem>
-                <SelectItem value="2">NUJNO</SelectItem>
+                <SelectItem value="0">{t('priorityNormal')}</SelectItem>
+                <SelectItem value="1">{t('priorityHigh')}</SelectItem>
+                <SelectItem value="2">{t('priorityUrgent')}</SelectItem>
               </SelectContent>
             </Select>
           </div>
 
           {/* Notes */}
           <div className="space-y-1.5">
-            <Label>Opomba</Label>
+            <Label>{t('notesLabel')}</Label>
             <Textarea
-              placeholder="Dodatne informacije o naročilu..."
+              placeholder={t('notesPlaceholder')}
               value={form.notes}
               onChange={(e) => setForm((f) => ({ ...f, notes: e.target.value }))}
               rows={3}
@@ -475,11 +476,11 @@ function QuickAddSheet({
 
           <div className="flex gap-2 pt-2">
             <Button variant="outline" className="flex-1" onClick={onClose} disabled={saving}>
-              Prekliči
+              {t('cancelButton')}
             </Button>
             <Button className="flex-1" onClick={handleSubmit} disabled={saving}>
               {saving ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Plus className="h-4 w-4 mr-2" />}
-              Dodaj naročilo
+              {t('addButton')}
             </Button>
           </div>
         </div>
@@ -492,6 +493,7 @@ function QuickAddSheet({
 
 export default function IncomingPage() {
   const locale = useLocale();
+  const t = useTranslations('incoming');
   const { toast } = useToast();
 
   const [worksheets, setWorksheets] = useState<IncomingWorksheet[]>([]);
@@ -525,7 +527,7 @@ export default function IncomingPage() {
         setLastPoll(p.lastPoll ? new Date(p.lastPoll) : null);
       }
     } catch {
-      toast({ title: 'Napaka', description: 'Ni bilo mogoče naložiti podatkov.', variant: 'destructive' });
+      toast({ title: t('errorTitle'), description: t('errorLoad'), variant: 'destructive' });
     } finally {
       setIsLoading(false);
     }
@@ -537,14 +539,14 @@ export default function IncomingPage() {
       const res = await fetch('/api/email-inbox/poll', { method: 'POST' });
       const data = await res.json();
       if (data.result?.processed > 0) {
-        toast({ title: `${data.result.processed} novo naročilo iz e-pošte`, description: data.result.newOrders.map((o: any) => o.worksheetNumber).join(', ') });
+        toast({ title: t('syncNewOrders', { count: data.result.processed }), description: data.result.newOrders.map((o: any) => o.worksheetNumber).join(', ') });
         await fetchData();
       } else {
-        toast({ title: 'Ni novih e-poštnih naročil', description: 'Nabiralnik je prazen.' });
+        toast({ title: t('syncEmpty'), description: t('syncEmptyDesc') });
       }
       setLastPoll(new Date());
     } catch {
-      toast({ title: 'Sinhronizacija ni uspela', variant: 'destructive' });
+      toast({ title: t('syncFailed'), variant: 'destructive' });
     } finally {
       setIsSyncing(false);
     }
@@ -597,12 +599,12 @@ export default function IncomingPage() {
           <div className="flex items-center gap-3">
             <Inbox className="h-5 w-5 text-muted-foreground" />
             <div>
-              <h1 className="text-xl font-semibold">Prihod naročil</h1>
+              <h1 className="text-xl font-semibold">{t('title')}</h1>
               <p className="text-sm text-muted-foreground">
-                {worksheets.length > 0 && `${worksheets.length} DRAFT nalogov`}
+                {worksheets.length > 0 && t('subtitleDraft', { count: worksheets.length })}
                 {worksheets.length > 0 && ordersWithoutWorksheet.length > 0 && ' · '}
-                {ordersWithoutWorksheet.length > 0 && `${ordersWithoutWorksheet.length} naročil brez naloga`}
-                {worksheets.length === 0 && ordersWithoutWorksheet.length === 0 && 'Ni čakajočih naročil'}
+                {ordersWithoutWorksheet.length > 0 && t('subtitleOrders', { count: ordersWithoutWorksheet.length })}
+                {worksheets.length === 0 && ordersWithoutWorksheet.length === 0 && t('subtitleEmpty')}
               </p>
             </div>
           </div>
@@ -612,18 +614,18 @@ export default function IncomingPage() {
                 Sync: {formatDistanceToNow(lastPoll, { addSuffix: true, locale: sl })}
               </span>
             )}
-            <Button variant="outline" size="sm" onClick={handleSync} disabled={isSyncing} title="Preveri e-pošto">
+            <Button variant="outline" size="sm" onClick={handleSync} disabled={isSyncing} title={t('emailButtonTitle')}>
               {isSyncing
                 ? <Loader2 className="h-4 w-4 animate-spin" />
                 : <Download className="h-4 w-4" />}
-              <span className="ml-1 hidden sm:inline">E-pošta</span>
+              <span className="ml-1 hidden sm:inline">{t('emailButton')}</span>
             </Button>
             <Button variant="outline" size="sm" onClick={fetchData} disabled={isLoading}>
               <RefreshCw className={cn('h-4 w-4', isLoading && 'animate-spin')} />
             </Button>
             <Button size="sm" onClick={() => setAddOpen(true)}>
               <Plus className="h-4 w-4 mr-1" />
-              Novo naročilo
+              {t('newOrder')}
             </Button>
           </div>
         </div>
@@ -631,9 +633,9 @@ export default function IncomingPage() {
         {/* View mode toggle */}
         <div className="flex items-center gap-2 mt-4">
           {([
-            { value: 'all', label: 'Vse' },
-            { value: 'worksheets', label: 'DRAFT nalogi' },
-            { value: 'orders', label: 'Brez naloga' },
+            { value: 'all', label: t('viewAll') },
+            { value: 'worksheets', label: t('viewWorksheets') },
+            { value: 'orders', label: t('viewOrders') },
           ] as const).map((m) => (
             <button
               key={m.value}
@@ -663,7 +665,7 @@ export default function IncomingPage() {
                 : 'text-gray-600 border-gray-200 hover:border-gray-400'
             )}
           >
-            Vsi viri ({worksheets.length + ordersWithoutWorksheet.length})
+            {t('filterAll', { count: worksheets.length + ordersWithoutWorksheet.length })}
           </button>
           {SOURCES.map((s) => {
             const count = countBySource[s.value] ?? 0;
@@ -695,10 +697,10 @@ export default function IncomingPage() {
         ) : totalCount === 0 ? (
           <div className="flex flex-col items-center justify-center h-40 text-muted-foreground gap-2">
             <Inbox className="h-10 w-10 opacity-30" />
-            <p className="text-sm">Ni čakajočih naročil</p>
+            <p className="text-sm">{t('noPendingOrders')}</p>
             <Button variant="outline" size="sm" onClick={() => setAddOpen(true)}>
               <Plus className="h-4 w-4 mr-1" />
-              Dodaj prvo naročilo
+              {t('addFirst')}
             </Button>
           </div>
         ) : (
@@ -708,7 +710,7 @@ export default function IncomingPage() {
               <div>
                 {viewMode === 'all' && (
                   <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide mb-3">
-                    Naročila brez delovnega naloga ({filteredOrders.length})
+                    {t('ordersSection', { count: filteredOrders.length })}
                   </h2>
                 )}
                 <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
@@ -724,7 +726,7 @@ export default function IncomingPage() {
               <div>
                 {viewMode === 'all' && (
                   <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide mb-3">
-                    DRAFT delovni nalogi ({filteredWorksheets.length})
+                    {t('draftSection', { count: filteredWorksheets.length })}
                   </h2>
                 )}
                 <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
