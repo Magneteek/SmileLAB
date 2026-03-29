@@ -1,133 +1,72 @@
 'use client';
 
 /**
- * WorkTypeToolbar - Horizontal Toolbar for Work Type Selection
+ * WorkTypeToolbar — Compact horizontal work-type selector strip
  *
- * Displays all available work types as toolbar buttons.
- * Users select a work type first, then click teeth to apply it.
+ * Primary types (larger): crown, bridge, veneer, implant, root_canal
+ * Secondary types (smaller, muted): filling, inlay, onlay, denture, extraction
  */
 
 import { useTranslations } from 'next-intl';
 import type { WorkType } from './types';
 import { WORK_TYPE_COLORS } from './constants';
-import { Check } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 export interface WorkTypeToolbarProps {
-  /** Currently selected work type */
   selectedWorkType: WorkType;
-
-  /** Callback when work type is selected */
   onSelectWorkType: (workType: WorkType) => void;
-
-  /** Available work types to display */
   availableWorkTypes?: WorkType[];
-
-  /** Whether toolbar is disabled */
   disabled?: boolean;
 }
 
-// All available work types
-const ALL_WORK_TYPES: WorkType[] = [
-  'crown',
-  'bridge',
-  'filling',
-  'implant',
-  'denture',
-  'veneer',
-  'inlay',
-  'onlay',
-  'root_canal',
-  'extraction',
-];
+const PRIMARY_TYPES: WorkType[] = ['crown', 'bridge', 'veneer', 'implant', 'root_canal'];
+const SECONDARY_TYPES: WorkType[] = ['filling', 'inlay', 'onlay', 'denture', 'extraction'];
 
-/**
- * WorkTypeToolbar Component
- *
- * Horizontal toolbar showing all dental work types as color-coded buttons.
- */
 export function WorkTypeToolbar({
   selectedWorkType,
   onSelectWorkType,
-  availableWorkTypes = ALL_WORK_TYPES,
   disabled = false,
 }: WorkTypeToolbarProps) {
-  const tWorkTypes = useTranslations('fdi.workTypes');
   const tFdi = useTranslations('fdi');
+  const tWorkTypes = useTranslations('fdi.workTypes');
 
-  // Get translated work type label
-  const getWorkTypeLabel = (workType: WorkType): string => {
-    // Use the fdi.workTypes translation keys we added
-    return tWorkTypes(workType.toUpperCase() as any);
+  const renderButton = (workType: WorkType, isPrimary: boolean) => {
+    const isSelected = selectedWorkType === workType;
+    return (
+      <button
+        key={workType}
+        type="button"
+        onClick={() => !disabled && onSelectWorkType(workType)}
+        disabled={disabled}
+        className={cn(
+          'rounded transition-all duration-100 whitespace-nowrap',
+          isPrimary ? 'px-2.5 py-1 text-xs font-medium' : 'px-2 py-0.5 text-[11px] font-normal',
+          isSelected ? 'ring-2 ring-offset-1 scale-105 shadow-sm' : 'opacity-80 hover:opacity-100',
+          disabled && 'cursor-default'
+        )}
+        style={{
+          backgroundColor: WORK_TYPE_COLORS[workType],
+          color: '#fff',
+          ['--tw-ring-color' as string]: WORK_TYPE_COLORS[workType],
+        }}
+        aria-pressed={isSelected}
+      >
+        {tWorkTypes(workType.toUpperCase() as any)}
+      </button>
+    );
   };
 
   return (
-    <div className="w-full">
-      {/* Toolbar Header */}
-      <div className="mb-2 flex items-center justify-between">
-        <div>
-          <h3 className="text-sm font-semibold text-gray-900">
-            {tFdi('selectWorkType')}
-          </h3>
-          <p className="text-xs text-gray-600">
-            {tFdi('clickToSelect')}
-          </p>
-        </div>
-        {/* Current selection indicator */}
-        <div className="text-xs text-gray-600 flex items-center gap-1">
-          <span className="font-medium">Selected:</span>
-          <span
-            className="px-2 py-0.5 rounded text-white font-medium"
-            style={{ backgroundColor: WORK_TYPE_COLORS[selectedWorkType] }}
-          >
-            {getWorkTypeLabel(selectedWorkType)}
-          </span>
-        </div>
+    <div className="rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 space-y-1.5">
+      <div className="flex flex-wrap items-center gap-1.5">
+        <span className="text-[11px] text-gray-400 mr-0.5">{tFdi('selectWorkType')}:</span>
+        {PRIMARY_TYPES.map(wt => renderButton(wt, true))}
+        {SECONDARY_TYPES.map(wt => renderButton(wt, false))}
       </div>
-
-      {/* Work Type Buttons */}
-      <div className="flex flex-wrap gap-2">
-        {availableWorkTypes.map((workType) => {
-          const isSelected = selectedWorkType === workType;
-
-          return (
-            <button
-              key={workType}
-              type="button"
-              onClick={() => !disabled && onSelectWorkType(workType)}
-              disabled={disabled}
-              className={cn(
-                'relative px-3 py-1.5 rounded-md text-xs font-medium transition-all duration-150',
-                'focus:outline-none focus:ring-2 focus:ring-offset-1',
-                'disabled:opacity-50 disabled:cursor-not-allowed',
-                isSelected
-                  ? 'ring-2 ring-offset-1 shadow-md scale-105'
-                  : 'hover:scale-102 hover:shadow-sm active:scale-95'
-              )}
-              style={{
-                backgroundColor: WORK_TYPE_COLORS[workType],
-                color: '#FFFFFF',
-                ['--tw-ring-color' as string]: WORK_TYPE_COLORS[workType],
-              }}
-              aria-label={`${getWorkTypeLabel(workType)} ${isSelected ? '(selected)' : ''}`}
-              aria-pressed={isSelected}
-            >
-              {/* Checkmark for selected */}
-              {isSelected && (
-                <Check className="absolute -top-1 -right-1 w-3 h-3 bg-white rounded-full text-green-600" />
-              )}
-
-              <span>{getWorkTypeLabel(workType)}</span>
-            </button>
-          );
-        })}
-      </div>
-
-      {/* Help Text */}
-      <div className="mt-2 text-xs text-gray-500 space-y-0.5">
-        <p>• {tFdi('helpClickTeeth')}</p>
-        <p>• {tFdi('helpShiftClick')}</p>
-        <p>• {tFdi('helpRightClick')}</p>
+      <div className="flex gap-4 text-[10px] text-gray-400">
+        <span>• {tFdi('helpClickTeeth')}</span>
+        <span>• {tFdi('helpShiftClick')}</span>
+        <span>• {tFdi('helpRightClick')}</span>
       </div>
     </div>
   );

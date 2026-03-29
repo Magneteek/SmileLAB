@@ -1,65 +1,72 @@
 'use client';
 
 /**
- * ToothElement - Individual Tooth SVG Component
+ * ToothElement — Individual tooth button (HTML/CSS, no SVG)
  *
- * Renders a single tooth in the FDI notation system with:
- * - Anatomically accurate dimensions
- * - Interactive states (hover, selected)
- * - Work type color coding
- * - Tooth number label
- * - Accessibility support
+ * Renders a single tooth as a styled HTML button with:
+ * - Anatomically-inspired shape via border-radius (crown vs root end)
+ * - Proportional sizing by tooth type (incisor/canine/premolar/molar)
+ * - Arch-curve offset: central incisors sit at the arch midpoint,
+ *   molars are elevated to simulate the curved jaw shape
+ * - Number label outside the tooth (above for upper, below for lower)
+ * - Color fill matching the assigned work type when selected
  */
 
-import { useMemo } from 'react';
 import type { ToothData, WorkType } from './types';
-import {
-  WORK_TYPE_COLORS,
-  TOOTH_COLORS,
-  CANVAS_CONFIG,
-} from './constants';
-import { getToothCoordinates, getToothDimensions } from './utils';
+import { WORK_TYPE_COLORS } from './constants';
+
+// ============================================================================
+// TOOTH PROPORTIONS BY POSITION
+// ============================================================================
+
+/**
+ * Visual config for each tooth position (1 = central incisor → 8 = wisdom)
+ *
+ * width/height: pixel dimensions of the tooth button
+ * crownRadius: border-radius (px) on the occlusal/incisal side (crown end)
+ * archOffset: margin-bottom (upper) or margin-top (lower) in px — creates arch curve
+ */
+const POSITION_CONFIG: Record<number, {
+  width: number;
+  height: number;
+  crownRadius: number;
+  archOffset: number;
+}> = {
+  1: { width: 19, height: 32, crownRadius: 9,  archOffset: 0  }, // central incisor
+  2: { width: 17, height: 30, crownRadius: 8,  archOffset: 3  }, // lateral incisor
+  3: { width: 17, height: 34, crownRadius: 11, archOffset: 7  }, // canine (tallest)
+  4: { width: 20, height: 27, crownRadius: 7,  archOffset: 10 }, // first premolar
+  5: { width: 20, height: 25, crownRadius: 6,  archOffset: 12 }, // second premolar
+  6: { width: 24, height: 24, crownRadius: 5,  archOffset: 14 }, // first molar
+  7: { width: 23, height: 23, crownRadius: 4,  archOffset: 15 }, // second molar
+  8: { width: 21, height: 22, crownRadius: 4,  archOffset: 16 }, // wisdom tooth
+};
+
+// ============================================================================
+// PROPS
+// ============================================================================
 
 export interface ToothElementProps {
-  /** Tooth data (FDI notation and metadata) */
   tooth: ToothData;
-
-  /** Whether this tooth is currently selected */
+  jaw: 'upper' | 'lower';
   isSelected: boolean;
-
-  /** Whether this tooth is currently hovered */
   isHovered: boolean;
-
-  /** Work type assigned to this tooth (if selected) */
   workType?: WorkType;
-
-  /** Click handler for tooth selection - receives mouse event for Shift key detection */
   onClick: (event?: React.MouseEvent) => void;
-
-  /** Right-click handler for tooth deselection */
   onRightClick?: () => void;
-
-  /** Mouse enter handler for hover state */
   onMouseEnter: () => void;
-
-  /** Mouse leave handler for hover state */
   onMouseLeave: () => void;
-
-  /** Whether interaction is disabled (read-only mode) */
   disabled?: boolean;
-
-  /** Whether to show tooth number label */
   showLabel?: boolean;
 }
 
-/**
- * ToothElement Component
- *
- * Renders an individual tooth as an SVG element with proper positioning,
- * sizing, and styling based on FDI notation and current state.
- */
+// ============================================================================
+// COMPONENT
+// ============================================================================
+
 export function ToothElement({
   tooth,
+  jaw,
   isSelected,
   isHovered,
   workType,
@@ -70,166 +77,89 @@ export function ToothElement({
   disabled = false,
   showLabel = true,
 }: ToothElementProps) {
-  /**
-   * Calculate tooth position and dimensions
-   * Memoized to avoid recalculation on every render
-   */
-  const coordinates = useMemo(
-    () => getToothCoordinates(tooth, CANVAS_CONFIG.width, CANVAS_CONFIG.height),
-    [tooth]
-  );
+  const config = POSITION_CONFIG[tooth.position] ?? POSITION_CONFIG[6];
 
-  const dimensions = useMemo(() => getToothDimensions(tooth), [tooth]);
+  // Fill: work-type color when selected, hover gray, default light gray
+  const bgColor = isSelected && workType
+    ? WORK_TYPE_COLORS[workType]
+    : isHovered && !disabled
+    ? '#D1D5DB'
+    : '#F3F4F6';
 
-  /**
-   * Determine fill color based on state
-   * Priority: work type color > selected > hover > default
-   */
-  const fillColor = useMemo(() => {
-    if (isSelected && workType) {
-      return WORK_TYPE_COLORS[workType];
-    }
-    if (isSelected) {
-      return TOOTH_COLORS.selected;
-    }
-    if (isHovered && !disabled) {
-      return TOOTH_COLORS.hover;
-    }
-    return TOOTH_COLORS.default;
-  }, [isSelected, isHovered, workType, disabled]);
+  const borderColor = isSelected && workType
+    ? 'rgba(0,0,0,0.2)'
+    : isHovered && !disabled
+    ? '#9CA3AF'
+    : '#E5E7EB';
 
-  /**
-   * Determine border color and width
-   */
-  const strokeColor = isHovered && !disabled
-    ? TOOTH_COLORS.borderHover
-    : TOOTH_COLORS.border;
+  // Crown (biting) end faces down on upper teeth, up on lower teeth
+  const br = config.crownRadius;
+  const borderRadius = jaw === 'upper'
+    ? `3px 3px ${br}px ${br}px`
+    : `${br}px ${br}px 3px 3px`;
 
-  const strokeWidth = isHovered && !disabled ? 2.5 : 1.5;
+  // Push tooth outward from midline to form arch curve
+  const archStyle = jaw === 'upper'
+    ? { marginBottom: `${config.archOffset}px` }
+    : { marginTop: `${config.archOffset}px` };
 
-  /**
-   * Determine opacity
-   */
-  const opacity = disabled ? 0.5 : isSelected ? 1 : 0.85;
-
-  /**
-   * Calculate text color for readability
-   * Use white text on dark backgrounds, dark text on light backgrounds
-   */
-  const textColor = isSelected && workType ? '#FFFFFF' : TOOTH_COLORS.text;
-
-  /**
-   * Calculate text position (centered on tooth)
-   */
-  const textX = coordinates.x + coordinates.width / 2;
-  const textY = coordinates.y + coordinates.height / 2 + 4; // +4 for vertical centering
+  const numberStyle: React.CSSProperties = {
+    fontSize: '8px',
+    fontFamily: 'ui-monospace, monospace',
+    color: isSelected ? '#374151' : '#9CA3AF',
+    fontWeight: isSelected ? 600 : 400,
+    lineHeight: 1,
+    userSelect: 'none',
+  };
 
   return (
-    <g
-      className={`tooth-element ${disabled ? 'cursor-default' : 'cursor-pointer'} transition-all duration-150`}
-      onClick={disabled ? undefined : (e) => onClick(e as any)}
-      onContextMenu={(e) => {
-        if (!disabled && onRightClick && isSelected) {
-          e.preventDefault();
-          onRightClick();
-        }
-      }}
-      onMouseEnter={disabled ? undefined : onMouseEnter}
-      onMouseLeave={disabled ? undefined : onMouseLeave}
-      role="button"
-      tabIndex={disabled ? -1 : 0}
-      aria-label={`Tooth ${tooth.number}, ${tooth.name}${
-        workType ? `, ${workType}` : ''
-      }`}
-      aria-pressed={isSelected}
-      aria-disabled={disabled}
-      onKeyDown={(e) => {
-        if (!disabled && (e.key === 'Enter' || e.key === ' ')) {
-          e.preventDefault();
-          onClick();
-        }
-      }}
-    >
-      {/* Tooth Shape (Rounded Rectangle) */}
-      <rect
-        x={coordinates.x}
-        y={coordinates.y}
-        width={coordinates.width}
-        height={coordinates.height}
-        rx={5} // Rounded corners
-        ry={5}
-        fill={fillColor}
-        stroke={strokeColor}
-        strokeWidth={strokeWidth}
-        opacity={opacity}
-        className="tooth-shape transition-all duration-150"
+    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '2px', ...archStyle }}>
+      {/* Number above — upper jaw only */}
+      {showLabel && jaw === 'upper' && (
+        <span style={numberStyle}>{tooth.number}</span>
+      )}
+
+      {/* Tooth button */}
+      <button
+        type="button"
+        onClick={disabled ? undefined : (e) => onClick(e)}
+        onContextMenu={(e) => {
+          if (!disabled && onRightClick && isSelected) {
+            e.preventDefault();
+            onRightClick();
+          }
+        }}
+        onMouseEnter={disabled ? undefined : onMouseEnter}
+        onMouseLeave={disabled ? undefined : onMouseLeave}
+        aria-label={`Tooth ${tooth.number}`}
+        aria-pressed={isSelected}
+        disabled={disabled}
         style={{
-          filter: isHovered && !disabled
-            ? 'drop-shadow(0 2px 4px rgba(0,0,0,0.1))'
+          width: `${config.width}px`,
+          height: `${config.height}px`,
+          backgroundColor: bgColor,
+          border: `${isSelected ? 2 : 1.5}px solid ${borderColor}`,
+          borderRadius,
+          cursor: disabled ? 'default' : 'pointer',
+          transition: 'all 0.1s ease',
+          transform: isHovered && !disabled ? 'scaleY(1.07)' : 'scaleY(1)',
+          opacity: disabled ? 0.55 : 1,
+          outline: 'none',
+          padding: 0,
+          display: 'block',
+          flexShrink: 0,
+          boxShadow: isSelected
+            ? `0 2px 6px ${bgColor}99`
+            : isHovered && !disabled
+            ? '0 1px 3px rgba(0,0,0,0.12)'
             : 'none',
         }}
       />
 
-      {/* Tooth Number Label */}
-      {showLabel && (
-        <text
-          x={textX}
-          y={textY}
-          textAnchor="middle"
-          dominantBaseline="middle"
-          className="text-sm font-semibold select-none pointer-events-none"
-          fill={textColor}
-          style={{
-            fontSize: '13px',
-            fontFamily: 'system-ui, -apple-system, sans-serif',
-          }}
-        >
-          {tooth.number}
-        </text>
+      {/* Number below — lower jaw only */}
+      {showLabel && jaw === 'lower' && (
+        <span style={numberStyle}>{tooth.number}</span>
       )}
-
-      {/* Selection Indicator (checkmark for selected teeth) */}
-      {isSelected && (
-        <g className="selection-indicator">
-          {/* Small circle badge in top-right corner */}
-          <circle
-            cx={coordinates.x + coordinates.width - 8}
-            cy={coordinates.y + 8}
-            r={6}
-            fill="#10B981"
-            stroke="#FFFFFF"
-            strokeWidth={1.5}
-          />
-          {/* Checkmark */}
-          <path
-            d={`M ${coordinates.x + coordinates.width - 10} ${coordinates.y + 8}
-                L ${coordinates.x + coordinates.width - 8} ${coordinates.y + 10}
-                L ${coordinates.x + coordinates.width - 5} ${coordinates.y + 6}`}
-            stroke="#FFFFFF"
-            strokeWidth={1.5}
-            fill="none"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          />
-        </g>
-      )}
-
-      {/* Hover Highlight Effect */}
-      {isHovered && !disabled && (
-        <rect
-          x={coordinates.x - 2}
-          y={coordinates.y - 2}
-          width={coordinates.width + 4}
-          height={coordinates.height + 4}
-          rx={7}
-          ry={7}
-          fill="none"
-          stroke={TOOTH_COLORS.borderHover}
-          strokeWidth={2}
-          opacity={0.5}
-          className="hover-highlight animate-pulse"
-        />
-      )}
-    </g>
+    </div>
   );
 }

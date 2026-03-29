@@ -1,52 +1,34 @@
 'use client';
 
 /**
- * TeethSelector - FDI Tooth Notation Selector Component
+ * TeethSelector — FDI dental arch selector (HTML/CSS layout)
  *
- * Main component implementing the FDI World Dental Federation two-digit
- * notation system (ISO 3950) for selecting teeth in dental worksheets.
+ * Renders two rows of HTML buttons arranged as upper and lower arches.
+ * Each tooth is sized and shaped by type (incisor/canine/premolar/molar)
+ * with the arch-curve effect achieved via flex alignment + per-tooth margin.
  *
- * Features:
- * - Visual jaw diagram with 4 quadrants
- * - Support for permanent (32 teeth) and primary (20 teeth) dentition
- * - Interactive multi-tooth selection
- * - Work type assignment (crown, bridge, filling, implant, denture, etc.)
- * - Responsive design for desktop, tablet, and mobile
- * - Accessibility compliant (WCAG 2.1 AA)
+ * Layout (patient's perspective, standard dental chart orientation):
+ *   Upper: [18..11 | 21..28]   Q1 mirrored left, Q2 right
+ *   Lower: [48..41 | 31..38]   Q4 mirrored left, Q3 right
  *
- * @example
- * ```tsx
- * const [selectedTeeth, setSelectedTeeth] = useState<ToothSelection[]>([]);
- *
- * <TeethSelector
- *   selectedTeeth={selectedTeeth}
- *   onTeethChange={setSelectedTeeth}
- *   mode="permanent"
- * />
- * ```
+ * Numbers appear outside the arch (above upper, below lower).
+ * Hover tooltip appears in a fixed bar at the bottom of the chart.
  */
 
-import { useState, useCallback, useMemo, useRef } from 'react';
+import { useState, useCallback, useMemo } from 'react';
 import { useTranslations } from 'next-intl';
 import { cn } from '@/lib/utils';
-import type { TeethSelectorProps, ToothData, WorkType } from './types';
-import { PERMANENT_TEETH, PRIMARY_TEETH, CANVAS_CONFIG } from './constants';
+import type { TeethSelectorProps, WorkType } from './types';
+import { PERMANENT_TEETH, PRIMARY_TEETH } from './constants';
 import { ToothElement } from './ToothElement';
 import { WorkTypeToolbar } from './WorkTypeToolbar';
 import { TeethLegend } from './TeethLegend';
 import { SelectionSummary } from './SelectionSummary';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Paintbrush, FileText } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { X } from 'lucide-react';
 
-/**
- * Main TeethSelector Component
- *
- * Displays an interactive dental chart allowing users to select teeth
- * and assign work types using the FDI notation system.
- */
 export function TeethSelector({
   selectedTeeth = [],
   onTeethChange,
@@ -55,424 +37,286 @@ export function TeethSelector({
   className,
   showLegend = true,
   showLabels = true,
-  layout = 'default', // 'default' or 'sidebar'
+  layout = 'default',
 }: TeethSelectorProps & { layout?: 'default' | 'sidebar' }) {
   const t = useTranslations();
   const tFdi = useTranslations('fdi');
 
-  // Local state for UI interactions
   const [hoveredTooth, setHoveredTooth] = useState<string | null>(null);
   const [selectedWorkType, setSelectedWorkType] = useState<WorkType>('crown');
   const [lastClickedTooth, setLastClickedTooth] = useState<string | null>(null);
-  const [editingShade, setEditingShade] = useState<string>('');
-  const [editingToothShape, setEditingToothShape] = useState<string>('');
-  const [editingNotes, setEditingNotes] = useState<string>('');
+  const [editingShade, setEditingShade] = useState('');
+  const [editingNotes, setEditingNotes] = useState('');
 
-  /**
-   * Get teeth based on current display mode
-   */
+  // ============================================================================
+  // TOOTH DATA — grouped by quadrant in display order
+  // ============================================================================
+
   const displayTeeth = useMemo(() => {
-    if (mode === 'primary') {
-      return PRIMARY_TEETH;
-    }
-    if (mode === 'mixed') {
-      return [...PERMANENT_TEETH, ...PRIMARY_TEETH];
-    }
-    return PERMANENT_TEETH; // Default: permanent
+    if (mode === 'primary') return PRIMARY_TEETH;
+    if (mode === 'mixed') return [...PERMANENT_TEETH, ...PRIMARY_TEETH];
+    return PERMANENT_TEETH;
   }, [mode]);
 
-  /**
-   * Group teeth by quadrant for organized rendering
-   */
-  const teethByQuadrant = useMemo(() => {
-    const grouped = new Map<number, ToothData[]>();
-
-    displayTeeth.forEach((tooth) => {
-      const existing = grouped.get(tooth.quadrant) || [];
-      grouped.set(tooth.quadrant, [...existing, tooth]);
-    });
-
-    return grouped;
-  }, [displayTeeth]);
-
-  /**
-   * Get teeth in range between two tooth numbers
-   */
-  const getTeethInRange = useCallback(
-    (startTooth: string, endTooth: string): string[] => {
-      // Find start and end indices in displayTeeth
-      const startIndex = displayTeeth.findIndex((t) => t.number === startTooth);
-      const endIndex = displayTeeth.findIndex((t) => t.number === endTooth);
-
-      if (startIndex === -1 || endIndex === -1) return [];
-
-      // Get all teeth between start and end (inclusive)
-      const minIndex = Math.min(startIndex, endIndex);
-      const maxIndex = Math.max(startIndex, endIndex);
-
-      return displayTeeth.slice(minIndex, maxIndex + 1).map((t) => t.number);
-    },
+  // Q1 (11–18) reversed: 18 17 16 ... 11 — patient's upper-right shown on viewer's left
+  const q1 = useMemo(() =>
+    displayTeeth.filter(t => t.quadrant === 1).sort((a, b) => b.position - a.position),
+    [displayTeeth]
+  );
+  // Q2 (21–28) forward: 21 22 ... 28
+  const q2 = useMemo(() =>
+    displayTeeth.filter(t => t.quadrant === 2).sort((a, b) => a.position - b.position),
+    [displayTeeth]
+  );
+  // Q4 (41–48) reversed: 48 47 ... 41
+  const q4 = useMemo(() =>
+    displayTeeth.filter(t => t.quadrant === 4).sort((a, b) => b.position - a.position),
+    [displayTeeth]
+  );
+  // Q3 (31–38) forward: 31 32 ... 38
+  const q3 = useMemo(() =>
+    displayTeeth.filter(t => t.quadrant === 3).sort((a, b) => a.position - b.position),
     [displayTeeth]
   );
 
-  /**
-   * Handle tooth click - applies selected work type from toolbar
-   * Supports Shift+click for range selection
-   */
-  const handleToothClick = useCallback(
-    (toothNumber: string, event?: React.MouseEvent) => {
-      if (readOnly) return;
+  // ============================================================================
+  // INTERACTION HANDLERS
+  // ============================================================================
 
-      const existing = selectedTeeth.find((t) => t.toothNumber === toothNumber);
+  const getTeethInRange = useCallback((start: string, end: string): string[] => {
+    const si = displayTeeth.findIndex(t => t.number === start);
+    const ei = displayTeeth.findIndex(t => t.number === end);
+    if (si === -1 || ei === -1) return [];
+    const min = Math.min(si, ei);
+    const max = Math.max(si, ei);
+    return displayTeeth.slice(min, max + 1).map(t => t.number);
+  }, [displayTeeth]);
 
-      // Handle Shift+click for range selection
-      if (event?.shiftKey && lastClickedTooth && lastClickedTooth !== toothNumber) {
-        // Get all teeth in range
-        const teethInRange = getTeethInRange(lastClickedTooth, toothNumber);
+  const handleToothClick = useCallback((toothNumber: string, event?: React.MouseEvent) => {
+    if (readOnly) return;
 
-        // Add/update all teeth in range with current selected work type
-        const updatedTeeth = [...selectedTeeth];
+    const existing = selectedTeeth.find(t => t.toothNumber === toothNumber);
 
-        teethInRange.forEach((tooth) => {
-          const existingIndex = updatedTeeth.findIndex((t) => t.toothNumber === tooth);
-
-          if (existingIndex !== -1) {
-            // Update existing tooth with new work type
-            updatedTeeth[existingIndex] = {
-              ...updatedTeeth[existingIndex],
-              workType: selectedWorkType,
-            };
-          } else {
-            // Add new tooth
-            updatedTeeth.push({ toothNumber: tooth, workType: selectedWorkType });
-          }
-        });
-
-        onTeethChange(updatedTeeth);
+    // Denture: auto-select entire jaw on first click; toggle off if already all selected
+    if (selectedWorkType === 'denture') {
+      const clickedTooth = displayTeeth.find(t => t.number === toothNumber);
+      if (clickedTooth) {
+        const jawTeeth = displayTeeth.filter(t => t.jaw === clickedTooth.jaw);
+        const jawNumbers = jawTeeth.map(t => t.number);
+        const allJawSelected = jawNumbers.every(n =>
+          selectedTeeth.some(t => t.toothNumber === n && t.workType === 'denture')
+        );
+        if (allJawSelected) {
+          // Deselect entire jaw
+          onTeethChange(selectedTeeth.filter(t => !jawNumbers.includes(t.toothNumber)));
+        } else {
+          // Select entire jaw (replace any existing entries for those teeth)
+          const without = selectedTeeth.filter(t => !jawNumbers.includes(t.toothNumber));
+          onTeethChange([...without, ...jawNumbers.map(n => ({ toothNumber: n, workType: 'denture' as const }))]);
+        }
         setLastClickedTooth(toothNumber);
         return;
       }
+    }
 
-      // Normal click behavior
-      if (existing) {
-        // Already selected - update work type
-        const updated = selectedTeeth.map((t) =>
-          t.toothNumber === toothNumber ? { ...t, workType: selectedWorkType } : t
-        );
-        onTeethChange(updated);
-      } else {
-        // New selection - add with selected work type from toolbar
-        onTeethChange([...selectedTeeth, { toothNumber, workType: selectedWorkType }]);
-      }
-
+    // Shift+click: range selection
+    if (event?.shiftKey && lastClickedTooth && lastClickedTooth !== toothNumber) {
+      const range = getTeethInRange(lastClickedTooth, toothNumber);
+      const updated = [...selectedTeeth];
+      range.forEach(n => {
+        const idx = updated.findIndex(t => t.toothNumber === n);
+        if (idx !== -1) updated[idx] = { ...updated[idx], workType: selectedWorkType };
+        else updated.push({ toothNumber: n, workType: selectedWorkType });
+      });
+      onTeethChange(updated);
       setLastClickedTooth(toothNumber);
-    },
-    [
-      selectedTeeth,
-      onTeethChange,
-      readOnly,
-      selectedWorkType,
-      lastClickedTooth,
-      getTeethInRange,
-    ]
-  );
+      return;
+    }
 
-  /**
-   * Handle tooth removal (deselect)
-   */
-  const handleToothRemove = useCallback(
-    (toothNumber: string) => {
-      const filtered = selectedTeeth.filter((t) => t.toothNumber !== toothNumber);
-      onTeethChange(filtered);
-    },
-    [selectedTeeth, onTeethChange]
-  );
+    if (existing) {
+      // Same work type → deselect; different → update type
+      if (existing.workType === selectedWorkType) {
+        onTeethChange(selectedTeeth.filter(t => t.toothNumber !== toothNumber));
+      } else {
+        onTeethChange(selectedTeeth.map(t =>
+          t.toothNumber === toothNumber ? { ...t, workType: selectedWorkType } : t
+        ));
+      }
+    } else {
+      onTeethChange([...selectedTeeth, { toothNumber, workType: selectedWorkType }]);
+    }
+    setLastClickedTooth(toothNumber);
+  }, [selectedTeeth, onTeethChange, readOnly, selectedWorkType, lastClickedTooth, getTeethInRange, displayTeeth]);
 
-  /**
-   * Handle shade and notes update for all selected teeth
-   */
+  const handleToothRemove = useCallback((toothNumber: string) => {
+    onTeethChange(selectedTeeth.filter(t => t.toothNumber !== toothNumber));
+  }, [selectedTeeth, onTeethChange]);
+
   const handleShadeNotesUpdate = useCallback(() => {
     if (selectedTeeth.length === 0) return;
-
-    const updated = selectedTeeth.map((t) => ({
+    onTeethChange(selectedTeeth.map(t => ({
       ...t,
       shade: editingShade || t.shade,
-      toothShape: editingToothShape || t.toothShape,
       notes: editingNotes || t.notes,
-    }));
-    onTeethChange(updated);
-  }, [selectedTeeth, editingShade, editingToothShape, editingNotes, onTeethChange]);
+    })));
+  }, [selectedTeeth, editingShade, editingNotes, onTeethChange]);
 
-  // Compact shade/notes editor (below canvas)
-  const shadeNotesElement = !readOnly && selectedTeeth.length > 0 && (
-    <Card className="border-gray-200">
-      <CardHeader className="pb-3">
-        <CardTitle className="text-sm font-medium flex items-center gap-2">
-          <Paintbrush className="h-4 w-4 text-purple-600" />
-          {t('teethSelector.shadeNotesTitle')}
-        </CardTitle>
-      </CardHeader>
-      <CardContent className="pt-0">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-          {/* Shade Input */}
-          <div className="space-y-1.5">
-            <Label htmlFor="global-shade" className="text-xs font-medium text-gray-700">
-              {t('teethSelector.shadeLabel')}
-            </Label>
-            <Input
-              id="global-shade"
-              type="text"
-              placeholder={t('teethSelector.shadePlaceholder')}
-              value={editingShade}
-              onChange={(e) => setEditingShade(e.target.value)}
-              onBlur={handleShadeNotesUpdate}
-              className="text-sm h-8"
-            />
-          </div>
+  // ============================================================================
+  // TOOTH RENDER HELPER
+  // ============================================================================
 
-          {/* Tooth Shape Input */}
-          <div className="space-y-1.5">
-            <Label htmlFor="global-tooth-shape" className="text-xs font-medium text-gray-700">
-              {t('teethSelector.toothShapeLabel')}
-            </Label>
-            <Input
-              id="global-tooth-shape"
-              type="text"
-              placeholder={t('teethSelector.toothShapePlaceholder')}
-              value={editingToothShape}
-              onChange={(e) => setEditingToothShape(e.target.value)}
-              onBlur={handleShadeNotesUpdate}
-              className="text-sm h-8"
-            />
-          </div>
-
-          {/* Notes Input */}
-          <div className="space-y-1.5">
-            <Label htmlFor="global-notes" className="text-xs font-medium text-gray-700 flex items-center gap-1">
-              <FileText className="h-3 w-3" />
-              {t('teethSelector.notesLabel')}
-            </Label>
-            <Input
-              id="global-notes"
-              type="text"
-              placeholder={t('teethSelector.notesPlaceholder')}
-              value={editingNotes}
-              onChange={(e) => setEditingNotes(e.target.value)}
-              onBlur={handleShadeNotesUpdate}
-              className="text-sm h-8"
-            />
-          </div>
-        </div>
-      </CardContent>
-    </Card>
+  const renderTooth = (tooth: typeof PERMANENT_TEETH[0], jaw: 'upper' | 'lower') => (
+    <ToothElement
+      key={tooth.number}
+      tooth={tooth}
+      jaw={jaw}
+      isSelected={selectedTeeth.some(t => t.toothNumber === tooth.number)}
+      isHovered={hoveredTooth === tooth.number}
+      workType={selectedTeeth.find(t => t.toothNumber === tooth.number)?.workType}
+      onClick={(e) => handleToothClick(tooth.number, e)}
+      onRightClick={() => handleToothRemove(tooth.number)}
+      onMouseEnter={() => setHoveredTooth(tooth.number)}
+      onMouseLeave={() => setHoveredTooth(null)}
+      disabled={readOnly}
+      showLabel={showLabels}
+    />
   );
 
-  // Render canvas component
-  const canvasElement = (
-    <div className="relative w-full overflow-hidden rounded-lg border border-gray-200 bg-gray-50 shadow-sm">
-        <svg
-          viewBox={`0 0 ${CANVAS_CONFIG.width} ${CANVAS_CONFIG.height}`}
-          className="w-full h-auto"
-          xmlns="http://www.w3.org/2000/svg"
-          role="application"
-          aria-label="FDI Tooth Notation Selector"
-        >
-          {/* Background */}
-          <rect
-            width={CANVAS_CONFIG.width}
-            height={CANVAS_CONFIG.height}
-            fill="#F9FAFB"
-          />
+  // ============================================================================
+  // SUB-ELEMENTS
+  // ============================================================================
 
-          {/* Upper Jaw Label */}
-          <text
-            x={CANVAS_CONFIG.width / 2}
-            y={18}
-            textAnchor="middle"
-            className="text-sm font-semibold fill-gray-700"
-            style={{ fontSize: '14px' }}
-          >
-            {tFdi('upperJaw')}
-          </text>
-
-          {/* Lower Jaw Label */}
-          <text
-            x={CANVAS_CONFIG.width / 2}
-            y={CANVAS_CONFIG.height - 8}
-            textAnchor="middle"
-            className="text-sm font-semibold fill-gray-700"
-            style={{ fontSize: '14px' }}
-          >
-            {tFdi('lowerJaw')}
-          </text>
-
-          {/* Midline Divider (Vertical) */}
-          <line
-            x1={CANVAS_CONFIG.width / 2}
-            y1={CANVAS_CONFIG.padding}
-            x2={CANVAS_CONFIG.width / 2}
-            y2={CANVAS_CONFIG.height - CANVAS_CONFIG.padding}
-            stroke="#D1D5DB"
-            strokeWidth="2"
-            strokeDasharray="4 4"
-          />
-
-          {/* Horizontal Divider (Upper/Lower jaw separation) */}
-          <line
-            x1={CANVAS_CONFIG.padding}
-            y1={CANVAS_CONFIG.height / 2}
-            x2={CANVAS_CONFIG.width - CANVAS_CONFIG.padding}
-            y2={CANVAS_CONFIG.height / 2}
-            stroke="#D1D5DB"
-            strokeWidth="2"
-            strokeDasharray="4 4"
-          />
-
-          {/* Quadrant Labels */}
-          <g className="quadrant-labels opacity-50">
-            {/* Quadrant 2 Label (Upper Left - appears on RIGHT side) */}
-            <text
-              x={CANVAS_CONFIG.width - CANVAS_CONFIG.padding - 5}
-              y={38}
-              textAnchor="end"
-              className="text-xs fill-gray-500"
-              style={{ fontSize: '10px' }}
+  const chartElement = (
+    <div className="rounded-xl border border-gray-200 bg-white shadow-sm overflow-hidden select-none">
+      {/* Header bar */}
+      <div className="flex items-center justify-between px-4 py-1.5 bg-gray-50 border-b border-gray-100 text-xs text-gray-400">
+        <span className="font-medium text-gray-500">{tFdi('upperJaw')}</span>
+        <span>FDI / ISO 3950</span>
+        <div className="flex items-center gap-3">
+          {!readOnly && selectedTeeth.length > 0 && (
+            <button
+              type="button"
+              onClick={() => onTeethChange([])}
+              className="flex items-center gap-1 text-gray-400 hover:text-red-500 transition-colors"
             >
-              Q2
-            </text>
-
-            {/* Quadrant 1 Label (Upper Right - appears on LEFT side) */}
-            <text
-              x={CANVAS_CONFIG.padding + 5}
-              y={38}
-              textAnchor="start"
-              className="text-xs fill-gray-500"
-              style={{ fontSize: '10px' }}
-            >
-              Q1
-            </text>
-
-            {/* Quadrant 3 Label (Lower Left - appears on RIGHT side) */}
-            <text
-              x={CANVAS_CONFIG.width - CANVAS_CONFIG.padding - 5}
-              y={CANVAS_CONFIG.height - CANVAS_CONFIG.padding - 5}
-              textAnchor="end"
-              className="text-xs fill-gray-500"
-              style={{ fontSize: '10px' }}
-            >
-              Q3
-            </text>
-
-            {/* Quadrant 4 Label (Lower Right - appears on LEFT side) */}
-            <text
-              x={CANVAS_CONFIG.padding + 5}
-              y={CANVAS_CONFIG.height - CANVAS_CONFIG.padding - 5}
-              textAnchor="start"
-              className="text-xs fill-gray-500"
-              style={{ fontSize: '10px' }}
-            >
-              Q4
-            </text>
-          </g>
-
-          {/* Teeth - Grouped by Quadrant */}
-          {Array.from(teethByQuadrant.entries()).map(([quadrant, teeth]) => (
-            <g key={quadrant} id={`quadrant-${quadrant}`} className="quadrant-group">
-              {teeth.map((tooth) => (
-                <ToothElement
-                  key={tooth.number}
-                  tooth={tooth}
-                  isSelected={selectedTeeth.some(
-                    (t) => t.toothNumber === tooth.number
-                  )}
-                  isHovered={hoveredTooth === tooth.number}
-                  workType={
-                    selectedTeeth.find((t) => t.toothNumber === tooth.number)
-                      ?.workType
-                  }
-                  onClick={(event) => handleToothClick(tooth.number, event)}
-                  onRightClick={() => handleToothRemove(tooth.number)}
-                  onMouseEnter={() => setHoveredTooth(tooth.number)}
-                  onMouseLeave={() => setHoveredTooth(null)}
-                  disabled={readOnly}
-                  showLabel={showLabels}
-                />
-              ))}
-            </g>
-          ))}
-
-          {/* Tooltip for hovered tooth (optional enhancement) */}
-          {hoveredTooth && !readOnly && (
-            <g className="tooth-tooltip">
-              <text
-                x={CANVAS_CONFIG.width / 2}
-                y={CANVAS_CONFIG.height / 2 - 20}
-                textAnchor="middle"
-                className="text-sm font-medium fill-gray-900"
-                style={{ fontSize: '14px' }}
-              >
-                {tFdi(`teeth.${hoveredTooth}`)}
-              </text>
-            </g>
+              <X className="h-3 w-3" />
+              {t('teethSelector.noTeethSelected').split('.')[0].includes('No') ? 'Clear all' : 'Počisti'}
+            </button>
           )}
-        </svg>
+          <span className="font-medium text-gray-500">{tFdi('lowerJaw')}</span>
+        </div>
+      </div>
+
+      {/* Arch chart */}
+      <div className="px-4 pt-3 pb-2">
+        {/* UPPER arch — items-end so arch offset (margin-bottom) lifts molars up */}
+        <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'center', gap: '2px', paddingBottom: '3px' }}>
+          {q1.map(t => renderTooth(t, 'upper'))}
+          {/* Midline: subtle dashed divider */}
+          <div style={{ width: '8px', alignSelf: 'stretch', position: 'relative' }}>
+            <div style={{ position: 'absolute', left: '50%', top: 0, bottom: 0, borderLeft: '1.5px dashed #D1D5DB' }} />
+          </div>
+          {q2.map(t => renderTooth(t, 'upper'))}
+        </div>
+
+        {/* Jaw separation — gum line */}
+        <div style={{ margin: '0 4px 0 4px', borderTop: '2px dashed #E9EAEC' }} />
+
+        {/* LOWER arch — items-start so arch offset (margin-top) drops molars down */}
+        <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'center', gap: '2px', paddingTop: '3px' }}>
+          {q4.map(t => renderTooth(t, 'lower'))}
+          <div style={{ width: '8px', alignSelf: 'stretch', position: 'relative' }}>
+            <div style={{ position: 'absolute', left: '50%', top: 0, bottom: 0, borderLeft: '1.5px dashed #D1D5DB' }} />
+          </div>
+          {q3.map(t => renderTooth(t, 'lower'))}
+        </div>
+      </div>
+
+      {/* Hover tooltip bar */}
+      <div className="px-4 py-1.5 border-t border-gray-100 bg-gray-50/50 min-h-[26px] text-xs text-gray-500">
+        {hoveredTooth ? (
+          <>
+            <span className="font-mono font-semibold text-gray-700">{hoveredTooth}</span>
+            {' — '}
+            {tFdi(`teeth.${hoveredTooth}`)}
+            {selectedTeeth.find(t => t.toothNumber === hoveredTooth) && !readOnly && (
+              <span className="ml-2 text-gray-400">
+                (click to {selectedTeeth.find(t => t.toothNumber === hoveredTooth)?.workType === selectedWorkType ? 'deselect' : 'change type'})
+              </span>
+            )}
+          </>
+        ) : (
+          <span className="text-gray-300">
+            {!readOnly ? tFdi('helpClickTeeth') : ''}
+          </span>
+        )}
+      </div>
     </div>
   );
 
-  // Render sidebar element (legend + summary)
+  const shadeNotesElement = !readOnly && selectedTeeth.length > 0 && (
+    <div className="flex gap-3 p-3 bg-gray-50 rounded-lg border border-gray-200">
+      <div className="flex-1 space-y-1">
+        <Label className="text-xs text-gray-500">{t('teethSelector.shadeLabel')}</Label>
+        <Input
+          value={editingShade}
+          onChange={(e) => setEditingShade(e.target.value)}
+          onBlur={handleShadeNotesUpdate}
+          placeholder={t('teethSelector.shadePlaceholder')}
+          className="h-7 text-xs"
+        />
+      </div>
+      <div className="flex-1 space-y-1">
+        <Label className="text-xs text-gray-500">{t('teethSelector.notesLabel')}</Label>
+        <Input
+          value={editingNotes}
+          onChange={(e) => setEditingNotes(e.target.value)}
+          onBlur={handleShadeNotesUpdate}
+          placeholder={t('teethSelector.notesPlaceholder')}
+          className="h-7 text-xs"
+        />
+      </div>
+    </div>
+  );
+
+  const toolbarElement = !readOnly && (
+    <WorkTypeToolbar
+      selectedWorkType={selectedWorkType}
+      onSelectWorkType={setSelectedWorkType}
+      disabled={readOnly}
+    />
+  );
+
   const sidebarElement = (
     <div className="space-y-3">
-      {/* Legend */}
       {showLegend && <TeethLegend />}
-
-      {/* Selection Summary */}
       <SelectionSummary
         selectedTeeth={selectedTeeth}
         onRemoveTooth={readOnly ? undefined : handleToothRemove}
         readOnly={readOnly}
       />
-
-      {/* Responsive Text Hints */}
       {!readOnly && selectedTeeth.length === 0 && (
-        <div className="text-xs text-gray-500 text-center mt-2">
-          <p className="hidden md:block">
-            Click a tooth to select and assign work type
-          </p>
-          <p className="md:hidden">Tap a tooth to select and assign work type</p>
-        </div>
+        <p className="text-xs text-gray-400 text-center pt-2">
+          {t('teethSelector.noTeethSelected')}
+        </p>
       )}
     </div>
   );
 
-  // Render toolbar (common to both layouts)
-  const toolbarElement = !readOnly && (
-    <Card className="border-gray-200">
-      <CardContent className="p-3">
-        <WorkTypeToolbar
-          selectedWorkType={selectedWorkType}
-          onSelectWorkType={setSelectedWorkType}
-          disabled={readOnly}
-        />
-      </CardContent>
-    </Card>
-  );
+  // ============================================================================
+  // LAYOUT
+  // ============================================================================
 
-  // Return layout based on prop
   if (layout === 'sidebar') {
     return (
       <div className={cn('teeth-selector w-full', className)}>
-        {/* Work Type Toolbar */}
         {toolbarElement && <div className="mb-3">{toolbarElement}</div>}
-
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-          {/* Left: Canvas (50%) */}
+        <div className="grid grid-cols-1 lg:grid-cols-[3fr_2fr] gap-4">
           <div className="space-y-3">
-            {canvasElement}
-          </div>
-
-          {/* Right: Shade/Notes + Sidebar (50%) */}
-          <div className="space-y-3">
+            {chartElement}
             {shadeNotesElement}
+          </div>
+          <div className="space-y-3">
             {sidebarElement}
           </div>
         </div>
@@ -480,19 +324,11 @@ export function TeethSelector({
     );
   }
 
-  // Default stacked layout
   return (
     <div className={cn('teeth-selector w-full', className)}>
-      {/* Work Type Toolbar */}
       {toolbarElement && <div className="mb-3">{toolbarElement}</div>}
-
-      {/* Canvas */}
-      {canvasElement}
-
-      {/* Shade & Notes Section */}
+      {chartElement}
       {shadeNotesElement && <div className="mt-3">{shadeNotesElement}</div>}
-
-      {/* Legend and Summary */}
       <div className="mt-3">{sidebarElement}</div>
     </div>
   );
