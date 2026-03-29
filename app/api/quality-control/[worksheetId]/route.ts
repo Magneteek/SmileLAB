@@ -224,7 +224,7 @@ export async function POST(
           worksheetId,
           inspectorId: session.user.id,
           result: data.result as QCResult,
-          inspectionDate: new Date(),
+          inspectionDate: data.manufactureDate ? new Date(data.manufactureDate) : new Date(),
           aesthetics: data.aesthetics,
           fit: data.fit,
           occlusion: data.occlusion,
@@ -241,7 +241,7 @@ export async function POST(
         update: {
           inspectorId: session.user.id,
           result: data.result as QCResult,
-          inspectionDate: new Date(),
+          inspectionDate: data.manufactureDate ? new Date(data.manufactureDate) : new Date(),
           aesthetics: data.aesthetics,
           fit: data.fit,
           occlusion: data.occlusion,

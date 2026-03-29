@@ -162,7 +162,7 @@ export async function generateAnnexXIII(
     console.log(`[Annex XIII] Translations loaded for locale: ${locale}`, Object.keys(translations).length, 'keys');
 
     // Prepare template data
-    const data = await prepareTemplateData(worksheet, labConfig, user.name, translations);
+    const data = await prepareTemplateData(worksheet, labConfig, user.name, translations, locale);
     console.log(`[Annex XIII] Template data prepared with ${data.materials.length} materials`);
 
     // Compile Handlebars template
@@ -314,10 +314,14 @@ async function prepareTemplateData(
   worksheet: any,
   labConfig: any,
   generatedBy: string,
-  translations: Record<string, string>
+  translations: Record<string, string>,
+  locale: string = 'en'
 ): Promise<AnnexXIIIData> {
-  const now = new Date();
-  const retentionUntil = new Date();
+  // Use QC inspection date (= manufacture date set by user) as document date,
+  // falling back to actual now only if no QC record exists
+  const qcDate = worksheet.qualityControls[0]?.inspectionDate;
+  const now = qcDate ? new Date(qcDate) : new Date();
+  const retentionUntil = new Date(now);
   retentionUntil.setFullYear(retentionUntil.getFullYear() + 10);
 
   // Convert logo to base64 if it exists
@@ -409,7 +413,7 @@ async function prepareTemplateData(
   const qcInspection = worksheet.qualityControls[0]
     ? {
         inspectorName: labConfig.responsiblePersonName,  // Use Annex XIII responsible person from lab config
-        inspectionDate: formatDateLocalized(worksheet.qualityControls[0].inspectionDate, translations),
+        inspectionDate: formatDateLocalized(worksheet.qualityControls[0].inspectionDate, locale),
         result: worksheet.qualityControls[0].result,
         resultTranslated: translateResult(worksheet.qualityControls[0].result),
         notes: worksheet.qualityControls[0].notes,
@@ -422,8 +426,8 @@ async function prepareTemplateData(
     : undefined;
 
   // Format dates with locale awareness
-  const generationDateFormatted = formatDateLocalized(now, translations);
-  const retentionUntilFormatted = formatDateLocalized(retentionUntil, translations);
+  const generationDateFormatted = formatDateLocalized(now, locale);
+  const retentionUntilFormatted = formatDateLocalized(retentionUntil, locale);
 
   // Process translations with placeholders
   const processedTranslations = { ...translations };
@@ -480,9 +484,9 @@ async function prepareTemplateData(
     deviceDescription: worksheet.deviceDescription || 'Custom-made dental device',
     intendedUse: worksheet.intendedUse || 'Dental restoration',
     manufactureDate: worksheet.manufactureDate
-      ? formatDateLocalized(worksheet.manufactureDate, translations)
+      ? formatDateLocalized(worksheet.manufactureDate, locale)
       : generationDateFormatted,
-    deliveryDate: worksheet.deliveryDate ? formatDateLocalized(worksheet.deliveryDate, translations) : null,
+    deliveryDate: worksheet.deliveryDate ? formatDateLocalized(worksheet.deliveryDate, locale) : null,
     patientName: worksheet.patientName || 'Confidential',
     // Extract just the numeric part of order number (e.g., "26001" from "Order #26001" or just "26001")
     orderNumber: worksheet.order.orderNumber.replace(/[^0-9]/g, ''),
@@ -662,13 +666,10 @@ function formatDate(date: Date): string {
 
 /**
  * Format date for display with locale awareness
- * Uses Slovenian format (dd. MMMM yyyy) when translations indicate sl locale
  */
-function formatDateLocalized(date: Date, translations: Record<string, string>): string {
-  // Check if we're in Slovenian locale by checking a translation key
-  const isSlovenian = translations.documentTitle?.includes('PRILOGA') || false;
-
-  return new Intl.DateTimeFormat(isSlovenian ? 'sl-SI' : 'en-GB', {
+function formatDateLocalized(date: Date, locale: string): string {
+  const intlLocale = locale === 'sl' ? 'sl-SI' : 'en-GB';
+  return new Intl.DateTimeFormat(intlLocale, {
     day: '2-digit',
     month: 'long',
     year: 'numeric',
