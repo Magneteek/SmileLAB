@@ -59,6 +59,9 @@ export async function GET(request: NextRequest) {
     // Build where clause
     const where: any = {
       status: 'QC_APPROVED',
+      order: {
+        status: { notIn: ['INVOICED', 'DELIVERED', 'CANCELLED'] },
+      },
       dentist: {
         requiresInvoicing: true, // Only show dentists that need invoices
       },
