@@ -144,6 +144,15 @@ const transitionActions: Record<string, TransitionAction> = {
     requiresNotes: true,
     descKey: 'worksheet.workflowCancelWorksheetDesc',
   },
+  'QC_APPROVED->DELIVERED': {
+    targetStatus: 'DELIVERED',
+    labelKey: 'worksheet.workflowMarkDelivered',
+    icon: <Truck className="h-4 w-4" />,
+    variant: 'outline',
+    requiresConfirmation: true,
+    requiresNotes: false,
+    descKey: 'worksheet.workflowMarkDeliveredDesc',
+  },
 };
 
 // State machine transitions (from worksheet-state-machine.ts)

@@ -604,6 +604,8 @@
     "workflowResumeProductionDesc": "Nadaljuj proizvodnjo po odpravi QC pripomb.",
     "workflowCancelWorksheet": "Prekliči delovni nalog",
     "workflowCancelWorksheetDesc": "Prekliči ta delovni nalog. Tega dejanja ni mogoče razveljaviti.",
+    "workflowMarkDelivered": "Označi kot fakturirano",
+    "workflowMarkDeliveredDesc": "Označi delovni nalog kot fakturiran in zaključen. Ne bo več prikazan v seznamu za fakturiranje."
     "workflowVoidedMessage": "Ta delovni nalog je bil razveljavljen. Ustvariti je treba nov delovni nalog z dodatkom revizije.",
     "workflowCreateRevision": "Ustvari revizijski delovni nalog",
     "workflowDeliveredMessage": "Ta delovni nalog je bil dostavljen. Nobenih dodatnih akcij ni na voljo.",
