@@ -603,7 +603,7 @@
     "workflowCancelWorksheet": "Cancel Worksheet",
     "workflowCancelWorksheetDesc": "Cancel this worksheet. This action cannot be undone.",
     "workflowMarkDelivered": "Mark as Invoiced",
-    "workflowMarkDeliveredDesc": "Mark this worksheet as invoiced and completed. It will no longer appear in the invoicing list."
+    "workflowMarkDeliveredDesc": "Mark this worksheet as invoiced and completed. It will no longer appear in the invoicing list.",
     "workflowVoidedMessage": "This worksheet has been voided. A new worksheet with revision suffix must be created.",
     "workflowCreateRevision": "Create Revision Worksheet",
     "workflowDeliveredMessage": "This worksheet has been delivered. No further actions available.",
@@ -1626,6 +1626,8 @@
     "inspector": "Inspector",
     "document": "Document",
     "viewButton": "View",
+    "viewMdrButton": "View MDR",
+    "viewCompletedButton": "Completed inspections",
     "downloadButton": "Download",
     "approved": "Approved",
     "rejected": "Rejected",

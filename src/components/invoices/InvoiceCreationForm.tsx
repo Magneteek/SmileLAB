@@ -135,6 +135,9 @@ export function InvoiceCreationForm() {
   const [invoiceDate, setInvoiceDate] = useState<Date>(new Date());
   const [dueDate, setDueDate] = useState<Date | undefined>(undefined);
   const [serviceDate, setServiceDate] = useState<Date>(new Date()); // Default to invoice date
+  const [invoiceDateOpen, setInvoiceDateOpen] = useState(false);
+  const [dueDateOpen, setDueDateOpen] = useState(false);
+  const [serviceDateOpen, setServiceDateOpen] = useState(false);
   const [issuedBy, setIssuedBy] = useState<string>('Rommy Balzan Verbič'); // Default issuer
   const [taxEnabled, setTaxEnabled] = useState<boolean>(false); // Medical workers default: no tax
   const [taxRate, setTaxRate] = useState<number>(22); // Only used if tax is enabled
@@ -746,13 +749,13 @@ export function InvoiceCreationForm() {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div className="space-y-2">
           <Label>{t('invoices.invoiceDateLabel')}</Label>
-          <Popover>
+          <Popover open={invoiceDateOpen} onOpenChange={setInvoiceDateOpen}>
             <PopoverTrigger className="inline-flex items-center justify-start gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 border border-input bg-background shadow-sm hover:bg-accent hover:text-accent-foreground h-9 px-4 py-2 w-full text-left">
               <CalendarIcon className="mr-2 h-4 w-4" />
               {format(invoiceDate, 'PPP')}
             </PopoverTrigger>
-            <PopoverContent className="w-auto p-0">
-              <Calendar mode="single" selected={invoiceDate} onSelect={(date) => date && setInvoiceDate(date as Date)} />
+            <PopoverContent className="w-auto p-0" align="start" side="top">
+              <Calendar mode="single" selected={invoiceDate} onSelect={(date) => { date && setInvoiceDate(date as Date); setInvoiceDateOpen(false); }} />
             </PopoverContent>
           </Popover>
           <p className="text-xs text-gray-500">
@@ -762,13 +765,13 @@ export function InvoiceCreationForm() {
 
         <div className="space-y-2">
           <Label>{t('invoices.dueDateLabel')}</Label>
-          <Popover>
+          <Popover open={dueDateOpen} onOpenChange={setDueDateOpen}>
             <PopoverTrigger className="inline-flex items-center justify-start gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 border border-input bg-background shadow-sm hover:bg-accent hover:text-accent-foreground h-9 px-4 py-2 w-full text-left">
               <CalendarIcon className="mr-2 h-4 w-4" />
               {dueDate ? format(dueDate, 'PPP') : t('invoices.selectDueDatePlaceholder')}
             </PopoverTrigger>
-            <PopoverContent className="w-auto p-0">
-              <Calendar mode="single" selected={dueDate} onSelect={(date) => setDueDate(date as Date | undefined)} />
+            <PopoverContent className="w-auto p-0" align="start" side="top">
+              <Calendar mode="single" selected={dueDate} onSelect={(date) => { setDueDate(date as Date | undefined); setDueDateOpen(false); }} />
             </PopoverContent>
           </Popover>
         </div>
@@ -778,13 +781,13 @@ export function InvoiceCreationForm() {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div className="space-y-2">
           <Label>{t('invoices.serviceDateLabel')}</Label>
-          <Popover>
+          <Popover open={serviceDateOpen} onOpenChange={setServiceDateOpen}>
             <PopoverTrigger className="inline-flex items-center justify-start gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 border border-input bg-background shadow-sm hover:bg-accent hover:text-accent-foreground h-9 px-4 py-2 w-full text-left">
               <CalendarIcon className="mr-2 h-4 w-4" />
               {format(serviceDate, 'PPP')}
             </PopoverTrigger>
-            <PopoverContent className="w-auto p-0">
-              <Calendar mode="single" selected={serviceDate} onSelect={(date) => date && setServiceDate(date as Date)} />
+            <PopoverContent className="w-auto p-0" align="start" side="top">
+              <Calendar mode="single" selected={serviceDate} onSelect={(date) => { date && setServiceDate(date as Date); setServiceDateOpen(false); }} />
             </PopoverContent>
           </Popover>
           <p className="text-xs text-gray-500">

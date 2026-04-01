@@ -218,14 +218,15 @@ export async function GET(
       );
     }
 
-    // Return PDF file
+    // Return PDF file — inline for ?view=true (browser display), attachment otherwise
     const filename = document.fileName || `Annex-XIII-${document.worksheet?.worksheetNumber || 'Unknown'}.pdf`;
+    const view = req.nextUrl.searchParams.get('view') === 'true';
 
     return new NextResponse(new Uint8Array(fileBuffer), {
       status: 200,
       headers: {
         'Content-Type': 'application/pdf',
-        'Content-Disposition': `attachment; filename="${filename}"`,
+        'Content-Disposition': `${view ? 'inline' : 'attachment'}; filename="${filename}"`,
       },
     });
   } catch (error: any) {

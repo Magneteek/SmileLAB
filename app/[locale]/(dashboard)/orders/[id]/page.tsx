@@ -23,7 +23,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import { ArrowLeft, Edit, Trash2, Loader2, FileText } from 'lucide-react';
+import { ArrowLeft, Edit, Trash2, Loader2, FileText, Eye, Download, Receipt } from 'lucide-react';
 import { OrderDetailResponse } from '@/types/order';
 import { OrderStatus } from '@prisma/client';
 
@@ -354,75 +354,150 @@ export default function OrderDetailPage({ params }: { params: Promise<{ id: stri
             </CardContent>
           </Card>
 
-          {/* Worksheet Information */}
+          {/* Worksheet + Documents grid */}
           <Card>
             <CardHeader>
-              <CardTitle>{t('worksheetTitle')}</CardTitle>
+              <CardTitle>Delovni nalog & Dokumenti</CardTitle>
             </CardHeader>
             <CardContent>
-              {(order as any).worksheets && (order as any).worksheets.length > 0 ? (
-                <div className="space-y-4">
-                  <div className="flex items-center justify-between">
-                    <div className="flex-1">
-                      <p className="text-sm font-medium text-muted-foreground">
+              {(order as any).worksheets && (order as any).worksheets.length > 0 ? (() => {
+                const ws = (order as any).worksheets[0];
+                const annexDoc = ws.documents?.[0];
+                const invoiceItems = ws.invoiceLineItems ?? [];
+                const finalizedInvoice = invoiceItems.find((item: any) => item.invoice && !item.invoice.isDraft)?.invoice;
+                const draftInvoice = !finalizedInvoice ? invoiceItems.find((item: any) => item.invoice?.isDraft)?.invoice : null;
+                const invoice = finalizedInvoice ?? draftInvoice;
+                return (
+                  <div className="grid grid-cols-3 gap-4">
+                    {/* Column 1: Worksheet */}
+                    <div className="border rounded-lg p-4 bg-gray-50 border-gray-200 flex flex-col gap-2">
+                      <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
                         {t('worksheetNumberLabel')}
                       </p>
                       <p className="text-lg font-semibold">
-                        {(order as any).worksheets[0].worksheetNumber}
-                        {(order as any).worksheets[0].revision > 1 && (
+                        {ws.worksheetNumber}
+                        {ws.revision > 1 && (
                           <span className="text-sm font-normal text-muted-foreground ml-2">
-                            (Rev {(order as any).worksheets[0].revision})
+                            (Rev {ws.revision})
                           </span>
                         )}
                       </p>
-                      <div className="text-sm text-muted-foreground mt-1">
-                        {t('statusLabel')}: <Badge className="ml-1">{(order as any).worksheets[0].status}</Badge>
+                      <div className="text-sm text-muted-foreground">
+                        {t('statusLabel')}: <Badge className="ml-1">{ws.status}</Badge>
                       </div>
-                    </div>
-                    <div className="flex gap-2">
-                      <Button asChild variant="outline">
-                        <Link href={`/worksheets/${(order as any).worksheets[0].id}`}>
-                          <FileText className="mr-2 h-4 w-4" />
-                          {t('viewWorksheetButton')}
-                        </Link>
-                      </Button>
-                      {(order as any).worksheets[0].status === 'VOIDED' && (
-                        <Button asChild>
-                          <Link href={`/worksheets/new?orderId=${order.id}`}>
+                      <div className="flex flex-col gap-1 mt-auto pt-2">
+                        <Button asChild variant="outline" size="sm">
+                          <Link href={`/worksheets/${ws.id}`}>
                             <FileText className="mr-2 h-4 w-4" />
-                            {t('createRevisionButton')}
+                            {t('viewWorksheetButton')}
                           </Link>
                         </Button>
-                      )}
-                      {(order as any).worksheets[0].status === 'CANCELLED' && (
-                        <Button
-                          variant="destructive"
-                          onClick={async () => {
-                            if (confirm(t('deleteWorksheetConfirm'))) {
-                              try {
-                                const response = await fetch(`/api/worksheets/${(order as any).worksheets[0].id}`, {
-                                  method: 'DELETE',
-                                });
-                                if (response.ok) {
-                                  window.location.reload();
-                                } else {
-                                  const result = await response.json();
-                                  alert(result.error || 'Failed to delete worksheet');
+                        {ws.status === 'VOIDED' && (
+                          <Button asChild size="sm">
+                            <Link href={`/worksheets/new?orderId=${order.id}`}>
+                              <FileText className="mr-2 h-4 w-4" />
+                              {t('createRevisionButton')}
+                            </Link>
+                          </Button>
+                        )}
+                        {ws.status === 'CANCELLED' && (
+                          <Button
+                            variant="destructive"
+                            size="sm"
+                            onClick={async () => {
+                              if (confirm(t('deleteWorksheetConfirm'))) {
+                                try {
+                                  const response = await fetch(`/api/worksheets/${ws.id}`, { method: 'DELETE' });
+                                  if (response.ok) {
+                                    window.location.reload();
+                                  } else {
+                                    const result = await response.json();
+                                    alert(result.error || 'Failed to delete worksheet');
+                                  }
+                                } catch {
+                                  alert('Failed to delete worksheet');
                                 }
-                              } catch (err) {
-                                alert('Failed to delete worksheet');
                               }
-                            }
-                          }}
-                        >
-                          <Trash2 className="mr-2 h-4 w-4" />
-                          {t('deleteWorksheetButton')}
-                        </Button>
+                            }}
+                          >
+                            <Trash2 className="mr-2 h-4 w-4" />
+                            {t('deleteWorksheetButton')}
+                          </Button>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Column 2: MDR Document */}
+                    <div className={`border rounded-lg p-4 flex flex-col gap-2 ${annexDoc ? 'bg-green-50 border-green-200' : 'bg-gray-50 border-gray-200'}`}>
+                      <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">MDR Annex XIII</p>
+                      {annexDoc ? (
+                        <>
+                          <p className="text-lg font-semibold font-mono text-green-800">{annexDoc.documentNumber}</p>
+                          <p className="text-sm text-muted-foreground">
+                            {new Date(annexDoc.generatedAt).toLocaleDateString('sl-SI')}
+                          </p>
+                          <div className="flex flex-col gap-1 mt-auto pt-2">
+                            <Button asChild size="sm" variant="outline">
+                              <Link href={`/api/documents/annex-xiii/${ws.id}?view=true`} target="_blank">
+                                <Eye className="mr-2 h-4 w-4" />
+                                Poglej
+                              </Link>
+                            </Button>
+                            <Button asChild size="sm" variant="outline">
+                              <Link href={`/api/documents/annex-xiii/${ws.id}`} target="_blank">
+                                <Download className="mr-2 h-4 w-4" />
+                                Prenesi
+                              </Link>
+                            </Button>
+                          </div>
+                        </>
+                      ) : (
+                        <p className="text-sm text-muted-foreground mt-1">Ni generiranega MDR</p>
+                      )}
+                    </div>
+
+                    {/* Column 3: Invoice */}
+                    <div className={`border rounded-lg p-4 flex flex-col gap-2 ${finalizedInvoice ? 'bg-purple-50 border-purple-200' : invoice ? 'bg-yellow-50 border-yellow-200' : 'bg-gray-50 border-gray-200'}`}>
+                      <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Račun</p>
+                      {invoice ? (
+                        <>
+                          <p className="text-lg font-semibold font-mono">
+                            {invoice.invoiceNumber ?? (finalizedInvoice ? '' : 'Osnutek')}
+                          </p>
+                          {invoice.invoiceDate && (
+                            <p className="text-sm text-muted-foreground">
+                              {new Date(invoice.invoiceDate).toLocaleDateString('sl-SI')}
+                            </p>
+                          )}
+                          {invoice.totalAmount != null && (
+                            <p className="text-sm font-semibold">{Number(invoice.totalAmount).toFixed(2)} €</p>
+                          )}
+                          <div className="flex flex-col gap-1 mt-auto pt-2">
+                            <Button asChild size="sm" variant="outline">
+                              <Link href="/invoices">
+                                <Eye className="mr-2 h-4 w-4" />
+                                Odpri
+                              </Link>
+                            </Button>
+                            {finalizedInvoice && (
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => window.open(`/api/invoices/${invoice.id}/pdf`, '_blank')}
+                              >
+                                <Download className="mr-2 h-4 w-4" />
+                                Prenesi PDF
+                              </Button>
+                            )}
+                          </div>
+                        </>
+                      ) : (
+                        <p className="text-sm text-muted-foreground mt-1">Ni generiranega računa</p>
                       )}
                     </div>
                   </div>
-                </div>
-              ) : (
+                );
+              })() : (
                 <div className="text-center py-6 text-muted-foreground">
                   <p>{t('noWorksheetMessage')}</p>
                   <Button className="mt-4" asChild>

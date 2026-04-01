@@ -265,6 +265,30 @@ export async function getOrderById(
               },
             },
           },
+          documents: {
+            where: { type: 'ANNEX_XIII' },
+            orderBy: { generatedAt: 'desc' },
+            take: 1,
+            select: {
+              id: true,
+              documentNumber: true,
+              generatedAt: true,
+              fileName: true,
+            },
+          },
+          invoiceLineItems: {
+            include: {
+              invoice: {
+                select: {
+                  id: true,
+                  invoiceNumber: true,
+                  isDraft: true,
+                  invoiceDate: true,
+                  totalAmount: true,
+                },
+              },
+            },
+          },
         },
         orderBy: {
           revision: 'desc',

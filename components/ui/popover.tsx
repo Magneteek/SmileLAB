@@ -17,6 +17,7 @@ export interface PopoverProps {
 
 export function Popover({ open, onOpenChange, children }: PopoverProps) {
   const [isOpen, setIsOpen] = React.useState(open ?? false);
+  const containerRef = React.useRef<HTMLDivElement>(null);
 
   React.useEffect(() => {
     if (open !== undefined) {
@@ -29,9 +30,23 @@ export function Popover({ open, onOpenChange, children }: PopoverProps) {
     onOpenChange?.(newOpen);
   };
 
+  // Close on outside click
+  React.useEffect(() => {
+    if (!isOpen) return;
+    const handler = (e: MouseEvent) => {
+      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
+        handleOpenChange(false);
+      }
+    };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, [isOpen]);
+
   return (
     <PopoverContext.Provider value={{ open: isOpen, onOpenChange: handleOpenChange }}>
-      {children}
+      <div ref={containerRef} style={{ position: 'relative', display: 'inline-block', width: '100%' }}>
+        {children}
+      </div>
     </PopoverContext.Provider>
   );
 }
@@ -72,13 +87,14 @@ PopoverTrigger.displayName = 'PopoverTrigger';
 export interface PopoverContentProps
   extends React.HTMLAttributes<HTMLDivElement> {
   align?: 'start' | 'center' | 'end';
+  side?: 'top' | 'bottom';
   sideOffset?: number;
 }
 
 export const PopoverContent = React.forwardRef<
   HTMLDivElement,
   PopoverContentProps
->(({ className, align = 'center', sideOffset = 4, children, ...props }, ref) => {
+>(({ className, align = 'center', side = 'bottom', sideOffset = 4, children, ...props }, ref) => {
   const { open } = React.useContext(PopoverContext);
 
   if (!open) return null;
@@ -93,7 +109,11 @@ export const PopoverContent = React.forwardRef<
         align === 'end' && 'right-0',
         className
       )}
-      style={{ marginTop: `${sideOffset}px` }}
+      style={
+        side === 'top'
+          ? { bottom: `calc(100% + ${sideOffset}px)` }
+          : { top: `calc(100% + ${sideOffset}px)` }
+      }
       {...props}
     >
       {children}

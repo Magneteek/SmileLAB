@@ -539,7 +539,12 @@ export default function InvoicesPage() {
                                 </Link>
                               </Button>
                               {!invoice.isDraft && (
-                                <Button variant="ghost" size="sm" title={t('invoice.downloadPDFTitle')}>
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  title={t('invoice.downloadPDFTitle')}
+                                  onClick={() => window.open(`/api/invoices/${invoice.id}/pdf`, '_blank')}
+                                >
                                   <Download className="h-4 w-4" />
                                 </Button>
                               )}

@@ -105,109 +105,6 @@ async function getQCPendingWorksheets() {
 }
 
 /**
- * Fetch QC approved/completed worksheets with documents
- * Includes all worksheets that have passed through QC inspection
- */
-async function getQCCompletedWorksheets() {
-  const worksheets = await prisma.workSheet.findMany({
-    where: {
-      status: {
-        in: ['QC_APPROVED', 'QC_REJECTED', 'DELIVERED'],
-      },
-      deletedAt: null,
-    },
-    include: {
-      order: {
-        include: {
-          dentist: {
-            select: {
-              id: true,
-              dentistName: true,
-              clinicName: true,
-              email: true,
-            },
-          },
-        },
-      },
-      products: {
-        include: {
-          product: {
-            select: {
-              id: true,
-              name: true,
-              category: true,
-            },
-          },
-        },
-      },
-      materials: {
-        include: {
-          material: {
-            select: {
-              id: true,
-              name: true,
-              type: true,
-            },
-          },
-          materialLot: {
-            select: {
-              id: true,
-              lotNumber: true,
-            },
-          },
-        },
-      },
-      qualityControls: {
-        include: {
-          inspector: {
-            select: {
-              id: true,
-              name: true,
-            },
-          },
-        },
-        orderBy: {
-          inspectionDate: 'desc',
-        },
-        take: 1,
-      },
-      documents: {
-        where: {
-          type: 'ANNEX_XIII',
-        },
-        select: {
-          id: true,
-          type: true,
-          documentNumber: true,
-          generatedAt: true,
-          retentionUntil: true,
-        },
-      },
-      createdBy: {
-        select: {
-          id: true,
-          name: true,
-        },
-      },
-    },
-    orderBy: {
-      updatedAt: 'desc', // Most recently updated first
-    },
-    take: 50, // Limit to last 50 completed worksheets
-  });
-
-  // Convert Decimal fields to numbers for client component
-  return worksheets.map(worksheet => ({
-    ...worksheet,
-    products: worksheet.products.map(p => ({
-      ...p,
-      priceAtSelection: Number(p.priceAtSelection),
-    })),
-    materials: worksheet.materials,
-  }));
-}
-
-/**
  * Fetch QC statistics
  */
 async function getQCStatistics() {
@@ -284,9 +181,8 @@ export default async function QualityControlPage() {
   }
 
   // Fetch data
-  const [worksheets, completedWorksheets, statistics] = await Promise.all([
+  const [worksheets, statistics] = await Promise.all([
     getQCPendingWorksheets(),
-    getQCCompletedWorksheets(),
     getQCStatistics(),
   ]);
 
@@ -301,7 +197,6 @@ export default async function QualityControlPage() {
 
       <QCDashboard
         worksheets={worksheets}
-        completedWorksheets={completedWorksheets}
         statistics={statistics}
         userRole={session.user.role}
       />

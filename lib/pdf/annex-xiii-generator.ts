@@ -170,7 +170,12 @@ export async function generateAnnexXIII(
     console.log(`[Annex XIII] Template compiled successfully`);
 
     // Generate PDF using Puppeteer
-    const pdfBuffer = await generatePDF(html);
+    const pdfBuffer = await generatePDF(html, {
+      documentId: data.documentId,
+      patientName: data.patientName,
+      dentistName: data.dentist.name,
+      generationDate: data.generationDate,
+    });
     console.log(`[Annex XIII] PDF generated: ${pdfBuffer.length} bytes`);
 
     // Save to database
@@ -541,25 +546,44 @@ async function compileTemplate(data: AnnexXIIIData): Promise<string> {
  * Template includes brand styling from pdf-styles.ts (already extracted)
  * Header/footer embedded in Handlebars template annex-xiii.hbs
  */
-async function generatePDF(html: string): Promise<Buffer> {
+interface PageFooterInfo {
+  documentId: string;
+  patientName: string;
+  dentistName: string;
+  generationDate: string;
+}
+
+async function generatePDF(html: string, footerInfo?: PageFooterInfo): Promise<Buffer> {
   try {
-    // Use unified PDF generator
-    // No header/footer needed - they're embedded in the Handlebars template
-    // This template is the SOURCE of our beautiful brand styling
+    const footerTemplate = footerInfo ? `
+      <div style="width:100%; font-family:Arial,sans-serif; font-size:7pt; color:#333;
+                  border-top:1.5px solid #000; padding:4px 15mm 0 15mm;
+                  display:flex; justify-content:space-between; align-items:center;">
+        <span style="font-weight:800; font-size:9pt; letter-spacing:0.5px;">${footerInfo.documentId}</span>
+        <span style="border-left:2px solid #000; padding-left:8px; line-height:1.5;">
+          <span style="font-weight:700;">${footerInfo.patientName}</span>
+          &nbsp;|&nbsp;${footerInfo.dentistName}
+          &nbsp;|&nbsp;${footerInfo.generationDate}
+        </span>
+        <span style="color:#666;">
+          <span class="pageNumber"></span> / <span class="totalPages"></span>
+        </span>
+      </div>` : '';
+
     const result = await generatePDFFromTemplate(
       html,
       '', // No separate header (in template)
-      '', // No separate footer (in template)
+      footerTemplate,
       {
         format: 'A4',
         margins: {
           top: '20mm',
           right: '15mm',
-          bottom: '20mm',
+          bottom: footerInfo ? '18mm' : '20mm',
           left: '15mm',
         },
         printBackground: true,
-        displayHeaderFooter: false, // Headers/footers are in the template itself
+        displayHeaderFooter: !!footerInfo,
       }
     );
 
