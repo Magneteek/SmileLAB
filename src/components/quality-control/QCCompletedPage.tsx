@@ -20,7 +20,9 @@ import {
   FolderDown,
   CheckCircle,
   ArrowLeft,
+  Mail,
 } from 'lucide-react';
+import { SendEmailDialog } from '@/components/email/SendEmailDialog';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
@@ -91,6 +93,14 @@ export function QCCompletedPage({ completedWorksheets }: QCCompletedPageProps) {
   const [page, setPage] = useState(1);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [isDownloading, setIsDownloading] = useState(false);
+  const [emailTarget, setEmailTarget] = useState<{
+    dentistId: string;
+    dentistName: string;
+    dentistEmail: string | null;
+    docId: string;
+    documentNumber: string;
+    worksheetNumber: string;
+  } | null>(null);
 
   const pageSize = 20;
 
@@ -443,6 +453,21 @@ export function QCCompletedPage({ completedWorksheets }: QCCompletedPageProps) {
                                 <Download className="h-4 w-4" />
                               </Link>
                             </Button>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              title="Pošlji MDR po e-pošti"
+                              onClick={() => setEmailTarget({
+                                dentistId: worksheet.order.dentist.id,
+                                dentistName: worksheet.order.dentist.dentistName,
+                                dentistEmail: worksheet.order.dentist.email,
+                                docId: annexDoc.id,
+                                documentNumber: annexDoc.documentNumber,
+                                worksheetNumber: worksheet.worksheetNumber,
+                              })}
+                            >
+                              <Mail className="h-4 w-4" />
+                            </Button>
                           </>
                         )}
                       </div>
@@ -484,6 +509,22 @@ export function QCCompletedPage({ completedWorksheets }: QCCompletedPageProps) {
             </Button>
           </div>
         </div>
+      )}
+
+      {/* Send email dialog */}
+      {emailTarget && (
+        <SendEmailDialog
+          dentistId={emailTarget.dentistId}
+          dentistName={emailTarget.dentistName}
+          dentistEmail={emailTarget.dentistEmail}
+          documents={[{
+            id: emailTarget.docId,
+            documentNumber: emailTarget.documentNumber,
+            worksheetNumber: emailTarget.worksheetNumber,
+          }]}
+          open={!!emailTarget}
+          onOpenChange={(open) => { if (!open) setEmailTarget(null); }}
+        />
       )}
     </div>
   );

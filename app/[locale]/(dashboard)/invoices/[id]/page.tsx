@@ -66,6 +66,8 @@ import { formatDate } from '@/lib/utils';
 import { useToast } from '@/components/ui/use-toast';
 import { FinalizeDraftButton } from '@/src/components/invoices/FinalizeDraftButton';
 import { DeleteCanceledInvoiceButton } from '@/src/components/invoices/DeleteCanceledInvoiceButton';
+import { SendEmailDialog, type EmailDocument } from '@/components/email/SendEmailDialog';
+import { EmailHistoryCard } from '@/components/email/EmailHistoryCard';
 
 // ============================================================================
 // MAIN PAGE COMPONENT
@@ -83,7 +85,8 @@ export default function InvoiceDetailPage({
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
-  const [sendingEmail, setSendingEmail] = useState(false);
+  const [emailDialogOpen, setEmailDialogOpen] = useState(false);
+  const [emailDialogDocs, setEmailDialogDocs] = useState<EmailDocument[]>([]);
 
   // Form state for payment update
   const [paymentStatus, setPaymentStatus] = useState<PaymentStatus>(PaymentStatus.DRAFT);
@@ -233,66 +236,39 @@ export default function InvoiceDetailPage({
     }
   };
 
-  // Handle send invoice via email
-  const handleSendEmail = async () => {
+  // Open email dialog — fetch MDR docs for worksheets in this invoice
+  const handleOpenEmailDialog = async () => {
     if (!invoice) return;
+    // Deduplicate worksheet IDs (lineItems may reference the same worksheet multiple times)
+    const worksheetIds: string[] = [...new Set(
+      ((invoice as any).worksheets || [])
+        .map((w: any) => w.id)
+        .filter(Boolean) as string[]
+    )];
 
-    // Check if dentist has email
-    if (!invoice.dentist?.email) {
-      toast({
-        title: t('invoices.errorTitle'),
-        description: t('invoices.dentistEmailNotAvailable'),
-        variant: 'destructive',
-      });
-      return;
+    const seenDocIds = new Set<string>();
+    const docs: EmailDocument[] = [];
+    for (const wsId of worksheetIds) {
+      try {
+        const res = await fetch(`/api/documents?type=ANNEX_XIII&worksheetId=${wsId}`);
+        if (res.ok) {
+          const data = await res.json();
+          const items = data.documents || data;
+          for (const d of items) {
+            if (!seenDocIds.has(d.id)) {
+              seenDocIds.add(d.id);
+              docs.push({
+                id: d.id,
+                documentNumber: d.documentNumber,
+                worksheetNumber: d.worksheet?.worksheetNumber || wsId,
+              });
+            }
+          }
+        }
+      } catch { /* ignore */ }
     }
-
-    // Confirm sending
-    const confirmed = window.confirm(
-      t('invoices.confirmSendEmail', { number: invoice.invoiceNumber || 'Draft', email: invoice.dentist.email })
-    );
-
-    if (!confirmed) return;
-
-    try {
-      setSendingEmail(true);
-
-      const response = await fetch(`/api/invoices/${invoice.id}/send-email`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          recipientEmail: invoice.dentist.email,
-        }),
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || t('invoices.failedLoadProducts'));
-      }
-
-      const result = await response.json();
-
-      toast({
-        title: t('invoices.successTitle'),
-        description: t('invoices.invoiceSentSuccess', { email: result.sentTo }),
-      });
-
-      // Refresh invoice data to update payment status
-      const updatedResponse = await fetch(`/api/invoices/${invoice.id}`);
-      const updatedResult = await updatedResponse.json();
-      setInvoice(updatedResult.data || updatedResult);
-    } catch (err) {
-      console.error('Error sending email:', err);
-      toast({
-        title: t('invoices.errorTitle'),
-        description: err instanceof Error ? err.message : t('invoices.failedLoadProducts'),
-        variant: 'destructive',
-      });
-    } finally {
-      setSendingEmail(false);
-    }
+    setEmailDialogDocs(docs);
+    setEmailDialogOpen(true);
   };
 
   // Helper function to translate payment status enum to localized label
@@ -418,12 +394,12 @@ export default function InvoiceDetailPage({
               </Button>
               <Button
                 variant="outline"
-                onClick={handleSendEmail}
-                disabled={sendingEmail || !invoice.pdfPath || !invoice.dentist?.email}
+                onClick={handleOpenEmailDialog}
+                disabled={!invoice.pdfPath}
                 className="w-full sm:w-auto"
               >
                 <Mail className="mr-2 h-4 w-4" />
-                <span className="truncate">{sendingEmail ? t('invoices.sendingEmail') : t('invoices.sendEmailButton')}</span>
+                <span className="truncate">{t('invoices.sendEmailButton')}</span>
               </Button>
             </>
           )}
@@ -789,8 +765,32 @@ export default function InvoiceDetailPage({
               </CardContent>
             </Card>
           )}
+
+          <EmailHistoryCard invoiceId={invoice.id} />
         </div>
       </div>
+
+      {/* Email Dialog */}
+      {invoice && (
+        <SendEmailDialog
+          dentistId={invoice.dentistId || ''}
+          dentistName={invoice.dentist?.dentistName || ''}
+          dentistEmail={invoice.dentist?.email || null}
+          invoice={invoice.invoiceNumber ? {
+            id: invoice.id,
+            invoiceNumber: invoice.invoiceNumber,
+            totalAmount: Number(invoice.totalAmount),
+          } : null}
+          documents={emailDialogDocs}
+          open={emailDialogOpen}
+          onOpenChange={setEmailDialogOpen}
+          onSuccess={async () => {
+            const res = await fetch(`/api/invoices/${invoice.id}`);
+            const data = await res.json();
+            setInvoice(data.data || data);
+          }}
+        />
+      )}
     </div>
   );
 }

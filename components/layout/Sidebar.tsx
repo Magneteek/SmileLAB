@@ -33,6 +33,7 @@ import {
   Factory,
   Inbox,
   ScrollText,
+  Mail,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
@@ -104,6 +105,12 @@ const navItems: NavItem[] = [
     translationKey: 'nav.invoices',
     href: '/invoices',
     icon: Receipt,
+  },
+  {
+    translationKey: 'nav.emails',
+    href: '/emails',
+    icon: Mail,
+    adminOnly: true,
   },
   {
     translationKey: 'nav.documents',

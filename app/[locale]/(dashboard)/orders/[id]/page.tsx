@@ -26,6 +26,7 @@ import {
 import { ArrowLeft, Edit, Trash2, Loader2, FileText, Eye, Download, Receipt } from 'lucide-react';
 import { OrderDetailResponse } from '@/types/order';
 import { OrderStatus } from '@prisma/client';
+import { EmailHistoryCard } from '@/components/email/EmailHistoryCard';
 
 // Status badge colors
 const statusColors: Record<OrderStatus, string> = {
@@ -509,6 +510,11 @@ export default function OrderDetailPage({ params }: { params: Promise<{ id: stri
               )}
             </CardContent>
           </Card>
+
+          {/* Email history */}
+          {(order as any).worksheets?.[0]?.id && (
+            <EmailHistoryCard worksheetId={(order as any).worksheets[0].id} />
+          )}
 
           {/* Metadata */}
           <Card>

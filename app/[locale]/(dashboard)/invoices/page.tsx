@@ -21,6 +21,7 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { Button } from '@/components/ui/button';
 import {
@@ -50,14 +51,11 @@ import {
 import { FilterDrawer } from '@/components/ui/filter-drawer';
 import {
   FileText,
-  Eye,
-  Download,
   CheckCircle,
   AlertCircle,
   Clock,
-  Search,
+  Eye,
   Plus,
-  Edit,
   Lock,
 } from 'lucide-react';
 import { PaymentStatus, type InvoiceSummary } from '@/src/types/invoice';
@@ -156,6 +154,7 @@ function PaymentStatusBadge({ status, overdue }: { status: PaymentStatus; overdu
 
 export default function InvoicesPage() {
   const t = useTranslations();
+  const router = useRouter();
   const [invoices, setInvoices] = useState<PaginatedInvoices | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -438,19 +437,22 @@ export default function InvoicesPage() {
                       >
                         {t('invoice.table.status')}
                       </SortableTableHeader>
-                      <TableHead className="text-right">{t('invoice.table.actions')}</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     {sortedInvoices.length === 0 ? (
                       <TableRow>
-                        <TableCell colSpan={9} className="text-center text-muted-foreground">
+                        <TableCell colSpan={8} className="text-center text-muted-foreground">
                           {t('invoice.noInvoicesFound')}
                         </TableCell>
                       </TableRow>
                     ) : (
                       sortedInvoices.map((invoice) => (
-                        <TableRow key={invoice.id}>
+                        <TableRow
+                          key={invoice.id}
+                          className="cursor-pointer hover:bg-muted/50"
+                          onClick={() => router.push(`/invoices/${invoice.id}`)}
+                        >
                           <TableCell className="font-medium">
                             {invoice.isDraft ? (
                               <Badge variant="outline">{t('invoice.draftBadge')}</Badge>
@@ -458,7 +460,7 @@ export default function InvoicesPage() {
                               invoice.invoiceNumber
                             )}
                           </TableCell>
-                          <TableCell>
+                          <TableCell onClick={e => e.stopPropagation()}>
                             {invoice.worksheets && invoice.worksheets.length > 0 ? (
                               invoice.worksheets.length === 1 ? (
                                 <Link
@@ -495,13 +497,7 @@ export default function InvoicesPage() {
                           <TableCell>{invoice.patientName || '-'}</TableCell>
                           <TableCell>{formatDate(invoice.invoiceDate)}</TableCell>
                           <TableCell>
-                            <div
-                              className={
-                                invoice.overdue
-                                  ? 'font-medium text-destructive'
-                                  : ''
-                              }
-                            >
+                            <div className={invoice.overdue ? 'font-medium text-destructive' : ''}>
                               {invoice.dueDate ? formatDate(invoice.dueDate) : 'N/A'}
                             </div>
                           </TableCell>
@@ -513,42 +509,6 @@ export default function InvoicesPage() {
                               status={invoice.paymentStatus}
                               overdue={invoice.overdue}
                             />
-                          </TableCell>
-                          <TableCell className="text-right">
-                            <div className="flex justify-end gap-2">
-                              {invoice.isDraft && (
-                                <Button
-                                  variant="ghost"
-                                  size="sm"
-                                  asChild
-                                  title={t('invoice.editDraftTitle')}
-                                >
-                                  <Link href={`/invoices/${invoice.id}/edit`}>
-                                    <Edit className="h-4 w-4" />
-                                  </Link>
-                                </Button>
-                              )}
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                asChild
-                                title={t('invoice.viewInvoiceTitle')}
-                              >
-                                <Link href={`/invoices/${invoice.id}`}>
-                                  <Eye className="h-4 w-4" />
-                                </Link>
-                              </Button>
-                              {!invoice.isDraft && (
-                                <Button
-                                  variant="ghost"
-                                  size="sm"
-                                  title={t('invoice.downloadPDFTitle')}
-                                  onClick={() => window.open(`/api/invoices/${invoice.id}/pdf`, '_blank')}
-                                >
-                                  <Download className="h-4 w-4" />
-                                </Button>
-                              )}
-                            </div>
                           </TableCell>
                         </TableRow>
                       ))

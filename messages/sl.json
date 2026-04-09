@@ -329,6 +329,7 @@
     "orders": "Naročila",
     "worksheets": "Delovni nalogi",
     "invoices": "Računi",
+    "emails": "E-pošta",
     "documents": "Dokumenti",
     "dentists": "Zobozdravniki",
     "materials": "Materiali",
@@ -1715,7 +1716,10 @@
     "inspectionTitle": "Kontrola kakovosti - {worksheetNumber}",
     "reviewAndApprove": "Preglejte in odobrite delovni nalog pred fakturiranjem",
     "teeth": "Zobje",
-    "fdiNotation": "FDI notacija"
+    "fdiNotation": "FDI notacija",
+    "qcResultApproved": "ODOBRENO",
+    "qcResultRejected": "ZAVRNJENO",
+    "qcResultConditional": "POGOJNO"
   },
   "invoices": {
     "createInvoiceTitle": "Ustvari račun",

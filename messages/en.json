@@ -329,6 +329,7 @@
     "orders": "Orders",
     "worksheets": "Worksheets",
     "invoices": "Invoices",
+    "emails": "Emails",
     "documents": "Documents",
     "dentists": "Dentists",
     "materials": "Materials",
@@ -1713,7 +1714,10 @@
     "inspectionTitle": "Quality Control Inspection - {worksheetNumber}",
     "reviewAndApprove": "Review and approve worksheet before invoicing",
     "teeth": "Teeth",
-    "fdiNotation": "FDI notation"
+    "fdiNotation": "FDI notation",
+    "qcResultApproved": "APPROVED",
+    "qcResultRejected": "REJECTED",
+    "qcResultConditional": "CONDITIONAL"
   },
   "invoices": {
     "createInvoiceTitle": "Create Invoice",

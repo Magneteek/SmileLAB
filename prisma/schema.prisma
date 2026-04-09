@@ -86,6 +86,7 @@ model Dentist {
   orders     Order[]
   worksheets WorkSheet[]
   invoices   Invoice[]
+  emailLogs  EmailLog[]
 
   @@index([clinicName])
   @@index([email])
@@ -698,6 +699,8 @@ model Document {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
+  emailLogDocuments EmailLogDocument[]
+
   @@index([worksheetId])
   @@index([type])
   @@index([documentNumber])
@@ -837,13 +840,17 @@ model EmailLog {
   invoiceId String?
   invoice   Invoice? @relation(fields: [invoiceId], references: [id], onDelete: SetNull)
 
+  dentistId String?
+  dentist   Dentist? @relation(fields: [dentistId], references: [id], onDelete: SetNull)
+
   sentById String
   sentBy   User   @relation(fields: [sentById], references: [id], onDelete: Restrict)
 
   // Email details
-  recipient String
-  subject   String
-  body      String @db.Text
+  recipient  String
+  subject    String
+  body       String  @db.Text
+  customNote String? @db.Text // Optional short note appended to email body
 
   // Attachments
   attachments String? @db.Text // JSON array of file paths
@@ -859,12 +866,28 @@ model EmailLog {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
+  documents EmailLogDocument[]
+
   @@index([invoiceId])
+  @@index([dentistId])
   @@index([sentById])
   @@index([recipient])
   @@index([status])
   @@index([sentAt])
   @@map("email_logs")
+}
+
+model EmailLogDocument {
+  id         String   @id @default(cuid())
+  emailLogId String
+  emailLog   EmailLog @relation(fields: [emailLogId], references: [id], onDelete: Cascade)
+  documentId String
+  document   Document @relation(fields: [documentId], references: [id], onDelete: Restrict)
+
+  @@unique([emailLogId, documentId])
+  @@index([emailLogId])
+  @@index([documentId])
+  @@map("email_log_documents")
 }
 
 // ============================================================================
