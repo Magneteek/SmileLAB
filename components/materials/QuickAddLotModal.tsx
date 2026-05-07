@@ -33,10 +33,7 @@ import { OCRScanner, OCRResult } from './OCRScanner';
 const createQuickAddLotSchema = (t: any) =>
   z.object({
     lotNumber: z.string().min(1, t('arrivalValidationLOTRequired')).max(100),
-    expiryDate: z.date().optional().refine(
-      (date) => !date || date > new Date(),
-      { message: t('arrivalValidationExpiryDateFuture') }
-    ),
+    expiryDate: z.date().optional(),
     supplierName: z.string().min(1, t('arrivalValidationSupplierRequired')),
     quantityReceived: z.number().positive(t('arrivalValidationQuantityMin')),
     notes: z.string().optional(),
@@ -296,7 +293,7 @@ export function QuickAddLotModal({
                     mode="single"
                     selected={form.watch('expiryDate')}
                     onSelect={(date) => form.setValue('expiryDate', date as Date | undefined)}
-                    disabled={(date) => date < new Date()}
+
                     initialFocus
                   />
                 </PopoverContent>

@@ -16,10 +16,7 @@ import { cn } from '@/lib/utils';
 
 const createStockArrivalSchema = (t: any) => z.object({
   lotNumber: z.string().min(1, t('material.arrivalValidationLOTRequired')).max(100),
-  expiryDate: z.date().optional().refine(
-    (date) => !date || date > new Date(),
-    { message: t('material.arrivalValidationExpiryDateFuture') }
-  ),
+  expiryDate: z.date().optional(),
   supplierName: z.string().optional(),
   quantityReceived: z.number().positive(t('material.arrivalValidationQuantityMin')),
   supplierBatchNumber: z.string().optional(),
@@ -91,7 +88,6 @@ export function StockArrivalForm({
               mode="single"
               selected={form.watch('expiryDate')}
               onSelect={(date) => form.setValue('expiryDate', date as Date | undefined)}
-              disabled={(date) => date < new Date()}
               initialFocus
             />
           </PopoverContent>
