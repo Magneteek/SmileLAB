@@ -99,6 +99,7 @@ export async function POST(req: NextRequest) {
       laboratoryLicense: body.laboratoryLicense,
       registrationNumber: body.registrationNumber,
       taxId: body.taxId,
+      euVatId: body.euVatId,
       technicianIdNumber: body.technicianIdNumber,
       street: body.street,
       city: body.city,
@@ -118,6 +119,7 @@ export async function POST(req: NextRequest) {
       defaultPaymentTerms: body.defaultPaymentTerms,
       defaultTaxRate: body.defaultTaxRate,
       invoiceLegalTerms: body.invoiceLegalTerms,
+      reverseChargeLegalTerms: body.reverseChargeLegalTerms,
     };
 
     const config = await createLabConfiguration(data, session.user.id);
@@ -166,6 +168,7 @@ export async function PATCH(req: NextRequest) {
       laboratoryLicense: body.laboratoryLicense,
       registrationNumber: body.registrationNumber,
       taxId: body.taxId,
+      euVatId: body.euVatId,
       technicianIdNumber: body.technicianIdNumber,
       street: body.street,
       city: body.city,
@@ -185,6 +188,7 @@ export async function PATCH(req: NextRequest) {
       defaultPaymentTerms: body.defaultPaymentTerms,
       defaultTaxRate: body.defaultTaxRate,
       invoiceLegalTerms: body.invoiceLegalTerms,
+      reverseChargeLegalTerms: body.reverseChargeLegalTerms,
     };
 
     const config = await updateLabConfiguration(data, session.user.id);

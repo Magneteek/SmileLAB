@@ -73,6 +73,9 @@ interface InvoiceData {
   paymentReference: string;
   generatedBy: string;
 
+  // Reverse charge flag (non-Slovenian clients)
+  isReverseCharge: boolean;
+
   // Laboratory information
   lab: {
     laboratoryName: string;
@@ -80,6 +83,7 @@ interface InvoiceData {
     laboratoryLicense?: string | null;
     registrationNumber?: string | null;
     taxId?: string | null;
+    euVatId?: string | null;
     street: string;
     city: string;
     postalCode: string;
@@ -93,6 +97,7 @@ interface InvoiceData {
     bankAccount?: string | null;
     bankSwift?: string | null;
     invoiceLegalTerms?: string | null;
+    reverseChargeLegalTerms?: string | null;
   };
 
   // Dentist (customer) information
@@ -258,6 +263,9 @@ async function prepareTemplateData(
   labConfig: any,
   generatedBy: string
 ): Promise<InvoiceData> {
+  // Detect reverse charge: non-Slovenian dentist
+  const isReverseCharge = invoice.dentist.country !== 'Slovenia';
+
   // Get dentist payment terms (default 30 days)
   const paymentTerms = invoice.dentist.paymentTerms || 30;
 
@@ -342,6 +350,7 @@ async function prepareTemplateData(
   }
 
   return {
+    isReverseCharge,
     invoiceNumber: invoice.invoiceNumber,
     invoiceDate: formatDate(invoice.invoiceDate),
     dueDate: invoice.dueDate ? formatDate(invoice.dueDate) : formatDate(
@@ -358,6 +367,7 @@ async function prepareTemplateData(
       laboratoryLicense: labConfig.laboratoryLicense,
       registrationNumber: labConfig.registrationNumber,
       taxId: labConfig.taxId,
+      euVatId: labConfig.euVatId,
       street: labConfig.street,
       city: labConfig.city,
       postalCode: labConfig.postalCode,
@@ -371,6 +381,7 @@ async function prepareTemplateData(
       bankAccount: primaryBankAccount?.iban || null,
       bankSwift: primaryBankAccount?.swiftBic || null,
       invoiceLegalTerms: labConfig.invoiceLegalTerms || null,
+      reverseChargeLegalTerms: labConfig.reverseChargeLegalTerms || null,
     },
 
     dentist: {
@@ -499,6 +510,7 @@ function formatDate(date: Date): string {
     day: '2-digit',
     month: '2-digit',
     year: 'numeric',
+    timeZone: 'Europe/Ljubljana',
   }).format(new Date(date));
 }
 

@@ -968,7 +968,8 @@ model LabConfiguration {
   laboratoryId       String? // Official laboratory registration ID
   laboratoryLicense  String? // License number
   registrationNumber String? // Business registration number (Matična številka)
-  taxId              String? // Tax ID (Davčna številka)
+  taxId              String? // Tax ID (Davčna številka) — used for domestic Slovenian invoices
+  euVatId            String? // EU VAT ID (ID za DDV) — used for reverse charge (non-Slovenian clients)
   technicianIdNumber String? // Technician ID/License number
 
   // Laboratory Address
@@ -1002,7 +1003,8 @@ model LabConfiguration {
   // Additional Settings
   defaultPaymentTerms Int     @default(30) // Days
   defaultTaxRate      Decimal @default(22.00) @db.Decimal(5, 2) // Slovenia VAT 22%
-  invoiceLegalTerms   String? @db.Text // Legal terms displayed at bottom of invoices
+  invoiceLegalTerms         String? @db.Text // Legal terms for domestic (Slovenian) invoices
+  reverseChargeLegalTerms   String? @db.Text // Legal terms for reverse charge (non-Slovenian) invoices
 
   // Metadata
   createdAt DateTime @default(now())

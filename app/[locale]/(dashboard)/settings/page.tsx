@@ -68,6 +68,7 @@ const labConfigSchema = z.object({
   laboratoryLicense: z.string().optional(),
   registrationNumber: z.string().optional(),
   taxId: z.string().optional(),
+  euVatId: z.string().optional(),
   technicianIdNumber: z.string().optional(),
 
   // Address
@@ -99,6 +100,7 @@ const labConfigSchema = z.object({
 
   // Invoice Legal Terms
   invoiceLegalTerms: z.string().optional(),
+  reverseChargeLegalTerms: z.string().optional(),
 });
 
 // Bank account schema
@@ -146,6 +148,7 @@ export default function SettingsPage() {
       laboratoryLicense: '',
       registrationNumber: '',
       taxId: '',
+      euVatId: '',
       technicianIdNumber: '',
       street: '',
       city: '',
@@ -165,6 +168,7 @@ export default function SettingsPage() {
       defaultPaymentTerms: 30,
       defaultTaxRate: 22.0,
       invoiceLegalTerms: 'Znesek računa plačajte v navedenem roku sicer bomo zaračunali zakonske zamudne obresti.\n\nV skladu s prvim odstavkom 94.člena z DDV-1 opravljam dejavnost oproščeno obračunavanja DDV.\n\nIzjavljam in prevzemam vso odgovornost za skladnost izdelka(ov) z bistvenimi zahtevami Pravilnika o medicinskih pripomočkih (Ur. l. RS št. 71/03).\n\nObveznosti za pogojnih zavez (UL) R.S. št 54/2021) ter Uredbe (UE) R.S. št 2017/745 o medicinskih pripomočkih.',
+      reverseChargeLegalTerms: '',
     },
   });
 
@@ -197,6 +201,7 @@ export default function SettingsPage() {
             laboratoryLicense: data.laboratoryLicense || '',
             registrationNumber: data.registrationNumber || '',
             taxId: data.taxId || '',
+            euVatId: data.euVatId || '',
             technicianIdNumber: data.technicianIdNumber || '',
             street: data.street || '',
             city: data.city || '',
@@ -216,6 +221,7 @@ export default function SettingsPage() {
             defaultPaymentTerms: data.defaultPaymentTerms ?? 30,
             defaultTaxRate: data.defaultTaxRate ?? 22.0,
             invoiceLegalTerms: data.invoiceLegalTerms || 'Znesek računa plačajte v navedenem roku sicer bomo zaračunali zakonske zamudne obresti.\n\nV skladu s prvim odstavkom 94.člena z DDV-1 opravljam dejavnost oproščeno obračunavanja DDV.\n\nIzjavljam in prevzemam vso odgovornost za skladnost izdelka(ov) z bistvenimi zahtevami Pravilnika o medicinskih pripomočkih (Ur. l. RS št. 71/03).\n\nObveznosti za pogojnih zavez (UL) R.S. št 54/2021) ter Uredbe (UE) R.S. št 2017/745 o medicinskih pripomočkih.',
+            reverseChargeLegalTerms: data.reverseChargeLegalTerms || '',
           };
 
           console.log('Populating form with cleaned data:', formData);
@@ -572,6 +578,22 @@ export default function SettingsPage() {
                         <FormControl>
                           <Input placeholder={t('taxIdPlaceholder')} {...field} />
                         </FormControl>
+                        <FormDescription className="text-xs">Za domače (slovenske) račune</FormDescription>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="euVatId"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>ID za DDV (EU / reverse charge)</FormLabel>
+                        <FormControl>
+                          <Input placeholder="npr. SI12345678" {...field} />
+                        </FormControl>
+                        <FormDescription className="text-xs">Prikazano na računih za partnerje izven Slovenije</FormDescription>
                         <FormMessage />
                       </FormItem>
                     )}
@@ -1054,6 +1076,7 @@ export default function SettingsPage() {
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel className="text-sm">{t('legalTermsText')}</FormLabel>
+                      <FormDescription className="text-xs">Za domače (slovenske) račune</FormDescription>
                       <FormControl>
                         <Textarea
                           placeholder={t('legalTermsPlaceholder')}
@@ -1061,9 +1084,25 @@ export default function SettingsPage() {
                           {...field}
                         />
                       </FormControl>
-                      <FormDescription className="text-xs">
-                        {t('legalTermsHelp')}
-                      </FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="reverseChargeLegalTerms"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="text-sm">Pravno besedilo — reverse charge (tujina)</FormLabel>
+                      <FormDescription className="text-xs">Prikazano na računih za partnerje izven Slovenije namesto standardnega besedila</FormDescription>
+                      <FormControl>
+                        <Textarea
+                          placeholder="npr. DDV ni obračunan — prenos davčne obveznosti na prejemnika storitve v skladu s 25. členom ZDDV-1 (reverse charge)."
+                          className="min-h-[120px] font-mono text-xs md:text-sm whitespace-pre-wrap break-words overflow-x-hidden"
+                          {...field}
+                        />
+                      </FormControl>
                       <FormMessage />
                     </FormItem>
                   )}

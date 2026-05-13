@@ -21,6 +21,7 @@ export interface CreateLabConfigurationDto {
   laboratoryLicense?: string;
   registrationNumber?: string;
   taxId?: string;
+  euVatId?: string;
   technicianIdNumber?: string;
 
   // Address
@@ -50,6 +51,7 @@ export interface CreateLabConfigurationDto {
   defaultPaymentTerms?: number;
   defaultTaxRate?: number | Decimal;
   invoiceLegalTerms?: string;
+  reverseChargeLegalTerms?: string;
 }
 
 export interface UpdateLabConfigurationDto extends Partial<CreateLabConfigurationDto> {
