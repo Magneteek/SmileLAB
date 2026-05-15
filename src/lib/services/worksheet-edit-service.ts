@@ -23,6 +23,10 @@ export interface WorksheetEditDto {
   technicalNotes?: string;
   manufactureDate?: Date;
 
+  // Shade reference (technician visual guide)
+  shadeIncisal?: string;
+  shadeCervical?: string;
+
   // Metadata
   reasonForChange: string; // REQUIRED for non-DRAFT edits
 }

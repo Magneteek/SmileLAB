@@ -30,6 +30,8 @@ const editWorksheetSchema = z.object({
   intendedUse: z.string().optional(),
   technicalNotes: z.string().optional(),
   manufactureDate: z.string().optional().transform((val) => val ? new Date(val) : undefined),
+  shadeIncisal: z.string().optional(),
+  shadeCervical: z.string().optional(),
   reasonForChange: z.string().min(10, 'Reason for change must be at least 10 characters').optional(),
 });
 

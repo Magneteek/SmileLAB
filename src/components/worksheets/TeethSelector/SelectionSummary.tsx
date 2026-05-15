@@ -1,19 +1,9 @@
 'use client';
 
-/**
- * SelectionSummary - Display summary of selected teeth
- *
- * Shows count, work types, shades, tooth types and notes for all selected teeth
- */
-
 import { useTranslations } from 'next-intl';
-import { Badge } from '@/components/ui/badge';
-import { Card } from '@/components/ui/card';
 import type { ToothSelection } from './types';
-import { X, Paintbrush } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { getToothByNumber, formatToothName } from './utils';
-import { WORK_TYPE_COLORS, IMPLANT_BADGE_COLOR } from './constants';
+import { X } from 'lucide-react';
+import { WORK_TYPE_COLORS } from './constants';
 
 export interface SelectionSummaryProps {
   selectedTeeth: ToothSelection[];
@@ -27,123 +17,48 @@ export function SelectionSummary({
   readOnly = false,
 }: SelectionSummaryProps) {
   const t = useTranslations();
-  const tFdi = useTranslations('fdi');
   const tWorkTypes = useTranslations('fdi.workTypes');
 
-  // Get translated work type label using FDI translation keys
-  const getWorkTypeLabel = (workType: string): string => {
-    return tWorkTypes(workType.toUpperCase() as any);
-  };
-
-  // Get translated tooth name
-  const getToothName = (toothNumber: string): string => {
-    return tFdi(`teeth.${toothNumber}`);
-  };
-
-  if (selectedTeeth.length === 0) {
-    return (
-      <div className="text-xs text-gray-500 italic py-2">
-        {t('teethSelector.noTeethSelected')}
-      </div>
-    );
-  }
-
-  // Group by work type for summary stats
-  const workTypeCounts = selectedTeeth.reduce((acc, tooth) => {
-    acc[tooth.workType] = (acc[tooth.workType] || 0) + 1;
-    return acc;
-  }, {} as Record<string, number>);
+  if (selectedTeeth.length === 0) return null;
 
   return (
-    <div className="space-y-2">
-      {/* Summary Stats */}
-      <div className="flex items-center gap-3 text-xs">
-        <div className="font-semibold">
-          {t(
-            selectedTeeth.length === 1
-              ? 'teethSelector.teethSelectedCount'
-              : 'teethSelector.teethSelectedCount_plural',
-            { count: selectedTeeth.length }
-          )}
-        </div>
-        <div className="flex gap-1.5 flex-wrap">
-          {Object.entries(workTypeCounts).map(([workType, count]) => (
-            <Badge key={workType} variant="secondary" className="text-xs py-0 px-1.5">
-              {getWorkTypeLabel(workType)}: {count}
-            </Badge>
-          ))}
-        </div>
+    <div>
+      <div className="text-[10px] font-semibold uppercase tracking-wider text-gray-400 mb-1 px-0.5">
+        {t('teethSelector.teethSelectedCount_plural', { count: selectedTeeth.length })}
       </div>
-
-      {/* Selected Teeth List */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-1.5">
-        {selectedTeeth.map((tooth) => {
-          return (
-            <Card key={tooth.toothNumber} className="p-2 relative group">
-              <div className="flex items-start justify-between gap-1.5">
-                <div className="flex-1 min-w-0">
-                  {/* Tooth Number and Work Type */}
-                  <div className="flex items-center gap-1.5 mb-0.5">
-                    <span className="font-mono font-bold text-base text-blue-600">
-                      #{tooth.toothNumber}
-                    </span>
-                    <Badge
-                      variant="outline"
-                      className="text-xs py-0 px-1 border-0 text-white font-medium"
-                      style={{ backgroundColor: WORK_TYPE_COLORS[tooth.workType] }}
-                    >
-                      {getWorkTypeLabel(tooth.workType)}
-                    </Badge>
-                    {tooth.implant && (
-                      <Badge
-                        variant="outline"
-                        className="text-xs py-0 px-1 border-0 text-white font-medium"
-                        style={{ backgroundColor: IMPLANT_BADGE_COLOR }}
-                      >
-                        🔩
-                      </Badge>
-                    )}
-                  </div>
-
-                  {/* Tooth Name */}
-                  <div className="text-xs text-gray-600 mb-0.5">
-                    {getToothName(tooth.toothNumber)}
-                  </div>
-
-                  {/* Shade Information - Prominent */}
-                  {tooth.shade && (
-                    <div className="flex items-center gap-1 text-xs font-medium text-gray-700 bg-gray-50 px-1.5 py-0.5 rounded mt-1">
-                      <Paintbrush className="h-3 w-3 text-purple-600" />
-                      <span className="text-gray-600">{t('teethSelector.shadeLabel')}:</span>
-                      <span className="text-purple-700">{tooth.shade}</span>
-                    </div>
-                  )}
-
-                  {/* Notes */}
-                  {tooth.notes && (
-                    <div className="text-xs text-gray-500 mt-1 truncate" title={tooth.notes}>
-                      💬 {tooth.notes}
-                    </div>
-                  )}
-                </div>
-
-                {/* Remove Button */}
-                {!readOnly && onRemoveTooth && (
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    className="h-6 w-6 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
-                    onClick={() => onRemoveTooth(tooth.toothNumber)}
-                    title="Remove tooth"
-                  >
-                    <X className="h-3 w-3" />
-                  </Button>
-                )}
-              </div>
-            </Card>
-          );
-        })}
+      <div className="space-y-0.5">
+        {selectedTeeth.map((tooth) => (
+          <div
+            key={tooth.toothNumber}
+            className="flex items-center gap-2 px-2 py-1.5 rounded hover:bg-gray-50 group text-xs"
+          >
+            {/* Color dot */}
+            <span
+              className="w-2 h-2 rounded-full shrink-0"
+              style={{ backgroundColor: WORK_TYPE_COLORS[tooth.workType] }}
+            />
+            {/* Number */}
+            <span className="font-mono font-bold text-gray-700 w-6 shrink-0">{tooth.toothNumber}</span>
+            {/* Work type */}
+            <span className="text-gray-500 flex-1 truncate">
+              {tWorkTypes(tooth.workType.toUpperCase() as any)}
+            </span>
+            {/* Implant arrows */}
+            {tooth.implant && (
+              <span className="text-gray-500 font-bold text-[10px] shrink-0">▲▼</span>
+            )}
+            {/* Remove */}
+            {!readOnly && onRemoveTooth && (
+              <button
+                type="button"
+                onClick={() => onRemoveTooth(tooth.toothNumber)}
+                className="opacity-0 group-hover:opacity-100 transition-opacity text-gray-400 hover:text-red-500 shrink-0 h-6 w-6 flex items-center justify-center rounded"
+              >
+                <X className="h-3.5 w-3.5" />
+              </button>
+            )}
+          </div>
+        ))}
       </div>
     </div>
   );

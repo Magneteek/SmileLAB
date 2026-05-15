@@ -1538,6 +1538,12 @@
     "cancelButton": "Cancel",
     "selectWorkTypeInstruction": "Click a work type to assign to this tooth"
   },
+  "toothShadeReference": {
+    "title": "Shade Reference",
+    "subtitle": "Visual guide for the technician — incisal and cervical zone shades",
+    "incisalLabel": "Incisal",
+    "cervicalLabel": "Cervical"
+  },
   "productSelector": {
     "selectedProductsTitle": "Selected Products ({count})",
     "noProductsSelected": "No products selected",

@@ -38,7 +38,8 @@ export function TeethSelector({
   showLegend = true,
   showLabels = true,
   layout = 'default',
-}: TeethSelectorProps & { layout?: 'default' | 'sidebar' }) {
+  sidebarExtra,
+}: TeethSelectorProps & { layout?: 'default' | 'sidebar'; sidebarExtra?: React.ReactNode }) {
   const t = useTranslations();
   const tFdi = useTranslations('fdi');
 
@@ -275,7 +276,7 @@ export function TeethSelector({
   );
 
   const shadeNotesElement = !readOnly && selectedTeeth.length > 0 && (
-    <div className="flex gap-3 p-3 bg-gray-50 rounded-lg border border-gray-200">
+    <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 p-3 bg-gray-50 rounded-lg border border-gray-200">
       <div className="flex-1 space-y-1">
         <Label className="text-xs text-gray-500">{t('teethSelector.shadeLabel')}</Label>
         <Input
@@ -283,7 +284,7 @@ export function TeethSelector({
           onChange={(e) => setEditingShade(e.target.value)}
           onBlur={handleShadeNotesUpdate}
           placeholder={t('teethSelector.shadePlaceholder')}
-          className="h-7 text-xs"
+          className="h-9 text-sm"
         />
       </div>
       <div className="flex-1 space-y-1">
@@ -293,7 +294,7 @@ export function TeethSelector({
           onChange={(e) => setEditingNotes(e.target.value)}
           onBlur={handleShadeNotesUpdate}
           placeholder={t('teethSelector.notesPlaceholder')}
-          className="h-7 text-xs"
+          className="h-9 text-sm"
         />
       </div>
     </div>
@@ -311,6 +312,7 @@ export function TeethSelector({
 
   const sidebarElement = (
     <div className="space-y-3">
+      {sidebarExtra}
       {showLegend && <TeethLegend />}
       <SelectionSummary
         selectedTeeth={selectedTeeth}
@@ -333,7 +335,7 @@ export function TeethSelector({
     return (
       <div className={cn('teeth-selector w-full', className)}>
         {toolbarElement && <div className="mb-3">{toolbarElement}</div>}
-        <div className="grid grid-cols-1 lg:grid-cols-[3fr_2fr] gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-[3fr_2fr] gap-4">
           <div className="space-y-3">
             {chartElement}
             {shadeNotesElement}

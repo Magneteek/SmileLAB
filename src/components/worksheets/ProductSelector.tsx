@@ -310,9 +310,9 @@ export function ProductSelector({
   return (
     <div className={className}>
       {/* 70/30 Grid Layout: Selected Products (70%) | Browse Products (30%) */}
-      <div className="grid grid-cols-1 lg:grid-cols-10 gap-4">
-        {/* Left Column: Selected Products (70%) */}
-        <Card className="lg:col-span-7">
+      <div className="grid grid-cols-1 md:grid-cols-[3fr_2fr] gap-4">
+        {/* Left Column: Selected Products */}
+        <Card>
           <CardHeader>
             <div className="flex items-center justify-between">
               <CardTitle className="text-base">
@@ -338,7 +338,7 @@ export function ProductSelector({
                 <p className="text-xs mt-1">{t('productSelector.selectInstruction')}</p>
               </div>
             ) : (
-              <div className="space-y-2 max-h-[600px] overflow-y-auto">
+              <div className="space-y-2 max-h-[50vh] overflow-y-auto">
                 {selectedProducts.map((product) => (
                   <div
                     key={product.productId}
@@ -418,8 +418,8 @@ export function ProductSelector({
           </CardContent>
         </Card>
 
-        {/* Right Column: Product Browser (30%) */}
-        <Card className="lg:col-span-3">
+        {/* Right Column: Product Browser */}
+        <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-base">
             <PackagePlus className="h-4 w-4" />
@@ -436,7 +436,7 @@ export function ProductSelector({
           )}
 
           {/* Search and Filters */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 gap-2">
             {/* Search */}
             <div>
               <Label htmlFor="product-search" className="text-xs">{t('productSelector.searchLabel')}</Label>
@@ -495,24 +495,24 @@ export function ProductSelector({
                 <p className="text-xs">{t('productSelector.noProductsFound')}</p>
               </div>
             ) : (
-              <div className="max-h-[500px] overflow-y-auto">
+              <div className="max-h-[45vh] overflow-y-auto">
                 {products.map((product) => {
                   const selected = isProductSelected(product.id);
                   return (
                     <div
                       key={product.id}
-                      className={`p-3 border-b last:border-b-0 hover:bg-gray-50 cursor-pointer ${
+                      className={`py-3 px-3 border-b last:border-b-0 hover:bg-gray-50 cursor-pointer ${
                         selected ? 'bg-blue-50 hover:bg-blue-100' : ''
                       }`}
                       onClick={() => !readOnly && toggleProduct(product)}
                     >
-                      <div className="flex items-start gap-2">
+                      <div className="flex items-start gap-2.5">
                         {!readOnly && (
                           <Checkbox
                             checked={selected}
                             onCheckedChange={() => toggleProduct(product)}
                             onClick={(e) => e.stopPropagation()}
-                            className="mt-0.5 h-3.5 w-3.5"
+                            className="mt-0.5 h-4 w-4 shrink-0"
                           />
                         )}
                         <div className="flex-1 min-w-0">
@@ -542,7 +542,7 @@ export function ProductSelector({
                 size="sm"
                 onClick={() => setPage((p) => Math.max(1, p - 1))}
                 disabled={page === 1 || readOnly}
-                className="h-7 text-xs"
+                className="h-9 text-xs px-3"
               >
                 {t('productSelector.paginationPrevious')}
               </Button>
@@ -555,7 +555,7 @@ export function ProductSelector({
                 size="sm"
                 onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
                 disabled={page === totalPages || readOnly}
-                className="h-7 text-xs"
+                className="h-9 text-xs px-3"
               >
                 {t('productSelector.paginationNext')}
               </Button>

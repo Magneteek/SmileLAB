@@ -328,15 +328,14 @@ export function ProductMaterialEditor({
             {/* Searchable combobox trigger — compact button */}
             <Popover open={materialComboOpen} onOpenChange={setMaterialComboOpen}>
               <PopoverTrigger asChild>
-                <Button type="button" variant="outline" size="sm" className="h-7 px-2 gap-1 text-xs">
+                <Button type="button" variant="outline" size="sm" className="h-9 px-3 gap-1.5 text-xs">
                   <Plus className="h-3.5 w-3.5" />
                   Dodaj surovino
                 </Button>
               </PopoverTrigger>
               <PopoverContent
-                className="p-0"
+                className="p-0 w-[min(320px,calc(100vw-1rem))]"
                 align="end"
-                style={{ width: '320px' }}
               >
                 <div className="p-2 border-b">
                   <Input
@@ -352,7 +351,7 @@ export function ProductMaterialEditor({
                     <button
                       key={mat.materialId}
                       type="button"
-                      className="w-full text-left px-3 py-2 text-sm hover:bg-muted flex items-center justify-between gap-2"
+                      className="w-full text-left px-3 py-2.5 text-sm hover:bg-muted flex items-center justify-between gap-2"
                       onClick={() => {
                         addMaterial(mat.materialId);
                         setMaterialComboOpen(false);
@@ -375,7 +374,7 @@ export function ProductMaterialEditor({
               type="button"
               variant="outline"
               size="sm"
-              className="h-7 w-7 p-0 shrink-0"
+              className="h-9 w-9 p-0 shrink-0"
               onClick={() => setShowCreateDialog(true)}
               title="Ustvari novo surovino"
             >
@@ -398,7 +397,7 @@ export function ProductMaterialEditor({
                 <div className="border rounded-md bg-white overflow-hidden">
                   {/* Collapsed header */}
                   <CollapsibleTrigger asChild>
-                    <div className="px-3 py-2 cursor-pointer hover:bg-gray-50 transition-colors">
+                    <div className="px-3 py-2.5 cursor-pointer hover:bg-gray-50 transition-colors">
                       <div className="flex items-center gap-2">
                         <Package className="h-3.5 w-3.5 text-gray-400 shrink-0" />
                         <span className="font-medium text-xs flex-1 truncate">
@@ -420,12 +419,12 @@ export function ProductMaterialEditor({
                         }
 
                         {!readOnly && (
-                          <div className="flex items-center gap-0.5 shrink-0" onClick={e => e.stopPropagation()}>
-                            <Button variant="ghost" size="sm" onClick={() => duplicateInstance(index)} className="h-6 w-6 p-0" title={t('productMaterialEditor.duplicateTitle')}>
-                              <Copy className="h-3 w-3" />
+                          <div className="flex items-center gap-1 shrink-0" onClick={e => e.stopPropagation()}>
+                            <Button variant="ghost" size="sm" onClick={() => duplicateInstance(index)} className="h-8 w-8 p-0" title={t('productMaterialEditor.duplicateTitle')}>
+                              <Copy className="h-3.5 w-3.5" />
                             </Button>
-                            <Button variant="ghost" size="sm" onClick={() => removeInstance(index)} className="h-6 w-6 p-0 text-red-600 hover:text-red-700 hover:bg-red-50" title={t('productMaterialEditor.removeTitle')}>
-                              <X className="h-3.5 w-3.5" />
+                            <Button variant="ghost" size="sm" onClick={() => removeInstance(index)} className="h-8 w-8 p-0 text-red-600 hover:text-red-700 hover:bg-red-50" title={t('productMaterialEditor.removeTitle')}>
+                              <X className="h-4 w-4" />
                             </Button>
                           </div>
                         )}

@@ -70,6 +70,7 @@ import {
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { TeethSelector, type ToothSelection, toTeethSelectionData } from './TeethSelector';
+import { ToothShadeReference } from './ToothShadeReference';
 import { ProductSelector, type ProductSelection } from './ProductSelector';
 import { MaterialSelector, type MaterialSelection } from './MaterialSelector';
 import type {
@@ -272,6 +273,14 @@ export function WorksheetForm({
   // General shade and tooth shape for all teeth
   const [generalShade, setGeneralShade] = useState<string>('');
   const [generalToothShape, setGeneralToothShape] = useState<string>('');
+
+  // Worksheet-level shade reference (for technician tooth card)
+  const [shadeIncisal, setShadeIncisal] = useState<string | null>(
+    (worksheet as any)?.shadeIncisal ?? null
+  );
+  const [shadeCervical, setShadeCervical] = useState<string | null>(
+    (worksheet as any)?.shadeCervical ?? null
+  );
 
   // Technician assignment — defaults to localStorage last used (read after hydration)
   const [technicianName, setTechnicianName] = useState<string>(
@@ -544,7 +553,9 @@ export function WorksheetForm({
           deviceDescription: data.deviceDescription,
           intendedUse: data.intendedUse,
           technicalNotes: data.technicalNotes,
-        });
+          shadeIncisal: shadeIncisal ?? undefined,
+          shadeCervical: shadeCervical ?? undefined,
+        } as any);
         currentWorksheetId = worksheet.id;
       } else if (mode === 'edit' && currentWorksheetId) {
         await updateWorksheet(currentWorksheetId, {
@@ -552,7 +563,9 @@ export function WorksheetForm({
           deviceDescription: data.deviceDescription,
           intendedUse: data.intendedUse,
           technicalNotes: data.technicalNotes,
-        });
+          shadeIncisal: shadeIncisal ?? undefined,
+          shadeCervical: shadeCervical ?? undefined,
+        } as any);
       }
 
       if (!currentWorksheetId) {
@@ -872,9 +885,20 @@ export function WorksheetForm({
                   onTeethChange={setSelectedTeeth}
                   mode="permanent"
                   readOnly={isReadOnly}
-                  showLegend={true}
+                  showLegend={false}
                   showLabels={true}
                   layout="sidebar"
+                  sidebarExtra={
+                    <ToothShadeReference
+                      shadeIncisal={shadeIncisal}
+                      shadeCervical={shadeCervical}
+                      onChange={(incisal, cervical) => {
+                        setShadeIncisal(incisal);
+                        setShadeCervical(cervical);
+                      }}
+                      readOnly={isReadOnly}
+                    />
+                  }
                 />
 
                 {!isReadOnly && (

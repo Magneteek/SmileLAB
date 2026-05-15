@@ -288,6 +288,7 @@ export async function assignTeeth(
       toothNumber: string;
       workType: string;
       shade?: string;
+      shadeGingival?: string;
       notes?: string;
       implant?: boolean;
     }>;
@@ -307,6 +308,7 @@ export async function assignTeeth(
           toothNumber: t.toothNumber,
           workType: t.workType,
           shade: t.shade ?? null,
+          shadeGingival: t.shadeGingival ?? null,
           notes: t.notes ?? null,
           implant: t.implant ?? false,
         })),

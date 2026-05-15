@@ -43,8 +43,7 @@ export function WorkTypeToolbar({
         onClick={() => !disabled && onSelectWorkType(workType)}
         disabled={disabled}
         className={cn(
-          'rounded transition-all duration-100 whitespace-nowrap',
-          isPrimary ? 'px-2.5 py-1 text-xs font-medium' : 'px-2 py-0.5 text-[11px] font-normal',
+          'rounded transition-all duration-100 whitespace-nowrap min-h-[36px] px-3 py-1.5 text-xs font-medium',
           isSelected ? 'ring-2 ring-offset-1 scale-105 shadow-sm' : 'opacity-80 hover:opacity-100',
           disabled && 'cursor-default'
         )}
@@ -62,19 +61,18 @@ export function WorkTypeToolbar({
 
   return (
     <div className="rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 space-y-1.5">
-      <div className="flex flex-wrap items-center gap-1.5">
-        <span className="text-[11px] text-gray-400 mr-0.5">{tFdi('selectWorkType')}:</span>
+      <div className="flex flex-wrap items-center gap-2">
+        <span className="text-[11px] text-gray-400 w-full sm:w-auto">{tFdi('selectWorkType')}:</span>
         {PRIMARY_TYPES.map(wt => renderButton(wt, true))}
         {SECONDARY_TYPES.map(wt => renderButton(wt, false))}
 
-        {/* Implant toggle — separate from work types */}
-        <div className="w-px h-4 bg-gray-300 mx-1" />
+        {/* Implant toggle */}
         <button
           type="button"
           onClick={() => !disabled && onToggleImplantMode()}
           disabled={disabled}
           className={cn(
-            'rounded transition-all duration-100 whitespace-nowrap px-2.5 py-1 text-xs font-medium',
+            'rounded transition-all duration-100 whitespace-nowrap min-h-[36px] px-3 py-1.5 text-xs font-medium',
             implantMode ? 'ring-2 ring-offset-1 scale-105 shadow-sm' : 'opacity-80 hover:opacity-100',
             disabled && 'cursor-default'
           )}
@@ -86,10 +84,10 @@ export function WorkTypeToolbar({
           aria-pressed={implantMode}
           title={tFdi('implantModeHelp')}
         >
-          🔩 {tFdi('implantMode')}
+          ▼▲ {tFdi('implantMode')}
         </button>
       </div>
-      <div className="flex gap-4 text-[10px] text-gray-400">
+      <div className="hidden sm:flex flex-wrap gap-3 text-[10px] text-gray-400">
         <span>• {tFdi('helpClickTeeth')}</span>
         <span>• {tFdi('helpShiftClick')}</span>
         <span>• {tFdi('helpRightClick')}</span>
@@ -97,6 +95,9 @@ export function WorkTypeToolbar({
           <span className="text-amber-500 font-medium">• {tFdi('implantModeActive')}</span>
         )}
       </div>
+      {implantMode && (
+        <div className="sm:hidden text-[10px] text-amber-500 font-medium">• {tFdi('implantModeActive')}</div>
+      )}
     </div>
   );
 }

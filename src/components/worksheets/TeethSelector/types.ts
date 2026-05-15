@@ -152,9 +152,14 @@ export interface ToothSelection {
   implant?: boolean;
 
   /**
-   * Optional tooth shade/color
+   * Incisal/occlusal shade code (e.g. A1, B2, D3)
    */
   shade?: string;
+
+  /**
+   * Cervical/gingival shade code (e.g. A3, C2)
+   */
+  shadeGingival?: string;
 
   /**
    * Optional tooth shape (e.g., square, triangular, ovoid)
@@ -520,6 +525,7 @@ export function toTeethSelectionData(
       toothNumber: sel.toothNumber,
       workType: toGlobalWorkType(sel.workType),
       shade: sel.shade,
+      shadeGingival: sel.shadeGingival,
       notes: sel.notes,
       implant: sel.implant,
     })),

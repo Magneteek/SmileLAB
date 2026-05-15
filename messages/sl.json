@@ -1540,6 +1540,12 @@
     "cancelButton": "Prekliči",
     "selectWorkTypeInstruction": "Kliknite na vrsto dela, da ga dodelite temu zobu"
   },
+  "toothShadeReference": {
+    "title": "Referenca barve",
+    "subtitle": "Vizualni vodič za tehnika — barva incizalne in cervikalne cone",
+    "incisalLabel": "Incizalno",
+    "cervicalLabel": "Cervikalno"
+  },
   "productSelector": {
     "selectedProductsTitle": "Izbrani produkti ({count})",
     "noProductsSelected": "Ni izbranih produktov",
