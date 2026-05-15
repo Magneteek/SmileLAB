@@ -3,7 +3,8 @@
  *
  * Manages material assignments for a single product with support for:
  * - Multiple instances of same material (different LOTs)
- * - LOT selection with stock indicators
+ * - LOT selection with inline "Add LOT" form (no dialog context switch needed)
+ * - Searchable material combobox (name only, no code)
  * - Tooth association (FDI notation)
  * - Notes/clarification per instance
  * - Progressive disclosure UI (expandable sections)
@@ -12,7 +13,7 @@
 
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useForm } from 'react-hook-form';
 import { useTranslations } from 'next-intl';
 import { ProductMaterialInstance } from '@/src/types/worksheet';
@@ -56,8 +57,9 @@ import {
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Badge } from '@/components/ui/badge';
-import { X, Plus, Copy, AlertTriangle, Package, Loader2, AlertCircle } from 'lucide-react';
+import { X, Plus, Copy, AlertTriangle, Package, Loader2, AlertCircle, ChevronDown, Camera } from 'lucide-react';
 import type { MaterialType } from '@prisma/client';
+import { OCRScanner, type OCRResult } from '@/components/materials/OCRScanner';
 
 // ============================================================================
 // TYPES
@@ -79,12 +81,23 @@ interface AvailableMaterial {
   }>;
 }
 
+interface InlineLotState {
+  instanceIndex: number;
+  lotNumber: string;
+  quantity: string;
+  supplierName: string;
+  expiryDate: string;
+  submitting: boolean;
+  error: string | null;
+  showScanner: boolean;
+}
+
 interface ProductMaterialEditorProps {
   productId: string;
   productName: string;
   materials: ProductMaterialInstance[];
   availableMaterials: AvailableMaterial[];
-  availableTeeth: string[];  // From worksheet teeth selection
+  availableTeeth: string[];
   onChange: (materials: ProductMaterialInstance[]) => void;
   onMaterialCreated?: (material: AvailableMaterial) => void;
   readOnly?: boolean;
@@ -113,39 +126,58 @@ export function ProductMaterialEditor({
     lotId?: string;
   } | null>(null);
 
-  /**
-   * Add material instance
-   */
+  // Material combobox state
+  const [materialComboOpen, setMaterialComboOpen] = useState(false);
+  const [materialSearch, setMaterialSearch] = useState('');
+  const searchRef = useRef<HTMLInputElement>(null);
+
+  // Inline LOT add state
+  const [inlineLotAdd, setInlineLotAdd] = useState<InlineLotState | null>(null);
+
+  // Focus search when combobox opens
+  useEffect(() => {
+    if (materialComboOpen) {
+      setTimeout(() => searchRef.current?.focus(), 50);
+    } else {
+      setMaterialSearch('');
+    }
+  }, [materialComboOpen]);
+
+  const filteredMaterials = availableMaterials.filter(m =>
+    m.name.toLowerCase().includes(materialSearch.toLowerCase()) ||
+    m.code.toLowerCase().includes(materialSearch.toLowerCase())
+  );
+
+  // ============================================================================
+  // MATERIAL INSTANCE ACTIONS
+  // ============================================================================
+
   const addMaterial = (materialId: string, checkDuplicate: boolean = true) => {
     const materialInfo = availableMaterials.find(m => m.materialId === materialId);
     if (!materialInfo) return;
 
-    // Check for duplicates (same material + same LOT or both null)
     if (checkDuplicate) {
       const hasDuplicate = materials.some(m =>
         m.materialId === materialId && !m.materialLotId
       );
-
       if (hasDuplicate) {
         setDuplicateAlert({
           show: true,
           materialId,
-          materialName: `${materialInfo.code} - ${materialInfo.name}`,
+          materialName: materialInfo.name,
           lotId: undefined,
         });
         return;
       }
     }
 
-    // Get oldest LOT for default FIFO selection
     const oldestLot = materialInfo.lots && materialInfo.lots.length > 0
-      ? materialInfo.lots[0]  // Already sorted by arrivalDate in query
+      ? materialInfo.lots[0]
       : null;
 
-    // Create new instance
     const newInstance: ProductMaterialInstance = {
       materialId,
-      materialLotId: oldestLot?.id,  // Default to FIFO
+      materialLotId: oldestLot?.id,
       quantityUsed: 1,
       toothNumber: undefined,
       notes: undefined,
@@ -155,68 +187,118 @@ export function ProductMaterialEditor({
     onChange([...materials, newInstance]);
   };
 
-  /**
-   * Confirm duplicate addition
-   */
   const confirmDuplicateAdd = () => {
     if (duplicateAlert) {
-      addMaterial(duplicateAlert.materialId, false);  // Bypass check
+      addMaterial(duplicateAlert.materialId, false);
       setDuplicateAlert(null);
     }
   };
 
-  /**
-   * Duplicate existing instance
-   */
   const duplicateInstance = (index: number) => {
     const instance = materials[index];
-    const newInstance: ProductMaterialInstance = {
+    onChange([...materials, {
       ...instance,
-      materialLotId: undefined,  // Clear LOT (force user to select)
+      materialLotId: undefined,
       position: materials.length + 1,
       notes: instance.notes ? `${instance.notes} (copy)` : undefined,
-    };
-
-    onChange([...materials, newInstance]);
+    }]);
   };
 
-  /**
-   * Remove material instance
-   */
   const removeInstance = (index: number) => {
     onChange(materials.filter((_, i) => i !== index));
+    if (inlineLotAdd?.instanceIndex === index) setInlineLotAdd(null);
   };
 
-  /**
-   * Update material instance
-   */
   const updateInstance = (index: number, updates: Partial<ProductMaterialInstance>) => {
-    onChange(
-      materials.map((mat, i) => (i === index ? { ...mat, ...updates } : mat))
-    );
+    onChange(materials.map((mat, i) => (i === index ? { ...mat, ...updates } : mat)));
   };
 
-  /**
-   * Get material info
-   */
-  const getMaterialInfo = (materialId: string) => {
-    return availableMaterials.find(m => m.materialId === materialId);
-  };
+  const getMaterialInfo = (materialId: string) =>
+    availableMaterials.find(m => m.materialId === materialId);
 
-  /**
-   * Get LOT info
-   */
   const getLotInfo = (materialId: string, lotId: string | undefined) => {
     if (!lotId) return null;
-    const material = getMaterialInfo(materialId);
-    return material?.lots.find(l => l.id === lotId);
+    return getMaterialInfo(materialId)?.lots.find(l => l.id === lotId) ?? null;
   };
 
-  /**
-   * Check if LOT is missing (required fields)
-   */
-  const isMissingLot = (instance: ProductMaterialInstance) => {
-    return !instance.materialLotId;
+  const isMissingLot = (instance: ProductMaterialInstance) => !instance.materialLotId;
+
+  // ============================================================================
+  // INLINE LOT ADD
+  // ============================================================================
+
+  const openInlineLotAdd = (instanceIndex: number) => {
+    setInlineLotAdd({
+      instanceIndex,
+      lotNumber: '',
+      quantity: '1',
+      supplierName: '',
+      expiryDate: '',
+      submitting: false,
+      error: null,
+      showScanner: false,
+    });
+  };
+
+  const submitInlineLot = async () => {
+    if (!inlineLotAdd) return;
+    const { instanceIndex, lotNumber, quantity, supplierName, expiryDate } = inlineLotAdd;
+    const instance = materials[instanceIndex];
+
+    if (!lotNumber.trim()) {
+      setInlineLotAdd(prev => prev ? { ...prev, error: 'LOT številka je obvezna' } : null);
+      return;
+    }
+
+    setInlineLotAdd(prev => prev ? { ...prev, submitting: true, error: null } : null);
+
+    try {
+      const res = await fetch(`/api/materials/${instance.materialId}/lots`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          lotNumber: lotNumber.trim(),
+          quantityReceived: parseFloat(quantity) || 1,
+          supplierName: supplierName.trim() || 'Unknown',
+          arrivalDate: new Date(),
+          ...(expiryDate ? { expiryDate: new Date(expiryDate) } : {}),
+        }),
+      });
+
+      if (!res.ok) {
+        const err = await res.json();
+        throw new Error(err.error || 'Napaka pri ustvarjanju LOT-a');
+      }
+
+      const lotResult = await res.json();
+
+      // Auto-select the new lot on this instance
+      updateInstance(instanceIndex, { materialLotId: lotResult.id });
+
+      // Notify parent to refresh available materials
+      const materialInfo = getMaterialInfo(instance.materialId);
+      if (materialInfo && onMaterialCreated) {
+        const newLot = {
+          id: lotResult.id,
+          lotNumber: lotNumber.trim(),
+          quantityAvailable: parseFloat(quantity) || 1,
+          expiryDate: expiryDate || null,
+          arrivalDate: new Date().toISOString(),
+          status: 'AVAILABLE',
+        };
+        onMaterialCreated({
+          ...materialInfo,
+          availableStock: materialInfo.availableStock + (parseFloat(quantity) || 1),
+          lots: [...materialInfo.lots, newLot],
+        });
+      }
+
+      setInlineLotAdd(null);
+    } catch (err: any) {
+      setInlineLotAdd(prev =>
+        prev ? { ...prev, submitting: false, error: err.message || 'Napaka' } : null
+      );
+    }
   };
 
   // ============================================================================
@@ -225,134 +307,124 @@ export function ProductMaterialEditor({
 
   return (
     <div className="space-y-2">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <Label className="text-xs font-medium text-gray-700">
-          {t('productMaterialEditor.materialsUsedTitle', { count: materials.length })}
-        </Label>
+      {/* Header row: label (only when has materials) + missing badge + add button */}
+      <div className="flex items-center gap-1.5">
+        {materials.length > 0 && (
+          <Label className="text-xs font-medium text-gray-600 flex-1">
+            {t('productMaterialEditor.materialsUsedTitle', { count: materials.length })}
+          </Label>
+        )}
+        {materials.length === 0 && <div className="flex-1" />}
+
         {materials.filter(isMissingLot).length > 0 && (
           <Badge variant="outline" className="gap-1 text-amber-600 border-amber-300 text-xs">
             <AlertTriangle className="h-3 w-3" />
             {materials.filter(isMissingLot).length} {t('productMaterialEditor.withoutLot')}
           </Badge>
         )}
-      </div>
 
-      {/* Add Material Dropdown - Moved to top */}
-      {!readOnly && (
-        <div className="flex gap-1">
-          <Select
-            onValueChange={(materialId) => {
-              if (materialId && materialId !== '_placeholder') {
-                addMaterial(materialId);
-              }
-            }}
-          >
-            <SelectTrigger className="h-8 text-xs flex-1">
-              <Plus className="h-3.5 w-3.5 mr-1.5" />
-              <SelectValue placeholder={t('productMaterialEditor.addMaterialPlaceholder')} />
-            </SelectTrigger>
-            <SelectContent>
-              {availableMaterials.map((mat) => (
-                <SelectItem key={mat.materialId} value={mat.materialId} className="text-xs">
-                  {mat.code} - {mat.name}
-                  {mat.availableStock !== undefined && (
-                    <span className="text-[10px] text-gray-500 ml-2">
-                      ({t('productMaterialEditor.availableStock', { count: mat.availableStock, unit: mat.unit })})
-                    </span>
+        {!readOnly && (
+          <>
+            {/* Searchable combobox trigger — compact button */}
+            <Popover open={materialComboOpen} onOpenChange={setMaterialComboOpen}>
+              <PopoverTrigger asChild>
+                <Button type="button" variant="outline" size="sm" className="h-7 px-2 gap-1 text-xs">
+                  <Plus className="h-3.5 w-3.5" />
+                  Dodaj surovino
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent
+                className="p-0"
+                align="end"
+                style={{ width: '320px' }}
+              >
+                <div className="p-2 border-b">
+                  <Input
+                    ref={searchRef}
+                    placeholder="Iskanje surovine..."
+                    value={materialSearch}
+                    onChange={e => setMaterialSearch(e.target.value)}
+                    className="h-8 text-sm bg-white"
+                  />
+                </div>
+                <div className="max-h-72 overflow-y-auto py-1">
+                  {filteredMaterials.length > 0 ? filteredMaterials.map(mat => (
+                    <button
+                      key={mat.materialId}
+                      type="button"
+                      className="w-full text-left px-3 py-2 text-sm hover:bg-muted flex items-center justify-between gap-2"
+                      onClick={() => {
+                        addMaterial(mat.materialId);
+                        setMaterialComboOpen(false);
+                      }}
+                    >
+                      <span className="flex-1 truncate">{mat.name}</span>
+                      <span className="text-xs text-muted-foreground shrink-0 flex items-center gap-1">
+                        {mat.availableStock} {mat.unit}
+                        {mat.lots.length === 0 && <span className="text-amber-500">• brez LOT</span>}
+                      </span>
+                    </button>
+                  )) : (
+                    <p className="px-3 py-3 text-sm text-muted-foreground">Ni rezultatov</p>
                   )}
-                </SelectItem>
-              ))}
-              {availableMaterials.length === 0 && (
-                <SelectItem value="_placeholder" disabled className="text-xs text-gray-500">
-                  {t('productMaterialEditor.noMaterialsAvailable')}
-                </SelectItem>
-              )}
-            </SelectContent>
-          </Select>
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            className="h-8 px-2 shrink-0"
-            onClick={() => setShowCreateDialog(true)}
-            title="Create new material"
-          >
-            <Package className="h-3.5 w-3.5" />
-          </Button>
-        </div>
-      )}
+                </div>
+              </PopoverContent>
+            </Popover>
+
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              className="h-7 w-7 p-0 shrink-0"
+              onClick={() => setShowCreateDialog(true)}
+              title="Ustvari novo surovino"
+            >
+              <Package className="h-3.5 w-3.5" />
+            </Button>
+          </>
+        )}
+      </div>
 
       {/* Material Instances */}
       <div className="space-y-1.5">
-        {materials.length === 0 ? (
-          <p className="text-sm text-gray-500 italic py-2">
-            {t('productMaterialEditor.noMaterialsAssigned')}
-          </p>
-        ) : (
+        {materials.length > 0 && (
           materials.map((instance, index) => {
             const materialInfo = getMaterialInfo(instance.materialId);
             const lotInfo = getLotInfo(instance.materialId, instance.materialLotId);
+            const isAddingLot = inlineLotAdd?.instanceIndex === index;
 
             return (
               <Collapsible key={index} defaultOpen={isMissingLot(instance)}>
                 <div className="border rounded-md bg-white overflow-hidden">
-                  {/* Collapsible Trigger - Entire Header is Clickable */}
+                  {/* Collapsed header */}
                   <CollapsibleTrigger asChild>
-                    <div className="p-2 cursor-pointer hover:bg-gray-50 transition-colors">
-                      <div className="flex items-start gap-2">
-                        <div className="flex-1">
-                          <div className="flex items-center gap-2 mb-0">
-                            <Package className="h-3.5 w-3.5 text-gray-400" />
-                            <span className="font-medium text-xs">
-                              {materialInfo?.code} - {materialInfo?.name}
-                            </span>
-                            {instance.position && (
-                              <Badge variant="outline" className="text-[10px] px-1 py-0">
-                                #{instance.position}
-                              </Badge>
-                            )}
-                            {isMissingLot(instance) && (
-                              <Badge variant="outline" className="text-[10px] px-1 py-0 text-amber-600 border-amber-300">
-                                <AlertTriangle className="h-2.5 w-2.5 mr-0.5" />
-                                {t('productMaterialEditor.noLotBadge')}
-                              </Badge>
-                            )}
-                          </div>
-                          <div className="text-xs text-gray-600">
-                            {t('productMaterialEditor.quantityLabel')} {instance.quantityUsed} {materialInfo?.unit}
-                            {lotInfo && (
-                              <span className="ml-2">
-                                • {t('productMaterialEditor.lotLabel')} {lotInfo.lotNumber}
-                              </span>
-                            )}
-                            {instance.toothNumber && (
-                              <span className="ml-2">
-                                • {t('productMaterialEditor.toothLabel')} {instance.toothNumber}
-                              </span>
-                            )}
-                          </div>
-                        </div>
+                    <div className="px-3 py-2 cursor-pointer hover:bg-gray-50 transition-colors">
+                      <div className="flex items-center gap-2">
+                        <Package className="h-3.5 w-3.5 text-gray-400 shrink-0" />
+                        <span className="font-medium text-xs flex-1 truncate">
+                          {materialInfo?.name}
+                        </span>
 
-                        {/* Action Buttons */}
+                        {/* Quantity — prominent in header */}
+                        <span className="shrink-0 font-semibold text-sm text-gray-800">
+                          {instance.quantityUsed}
+                          <span className="text-xs font-normal text-gray-500 ml-0.5">{materialInfo?.unit}</span>
+                        </span>
+
+                        {lotInfo
+                          ? <span className="text-[10px] text-gray-400 shrink-0 hidden sm:block truncate max-w-[80px]">LOT {lotInfo.lotNumber}</span>
+                          : <Badge variant="outline" className="text-[10px] px-1 py-0 text-amber-600 border-amber-300 shrink-0">
+                              <AlertTriangle className="h-2.5 w-2.5 mr-0.5" />
+                              {t('productMaterialEditor.noLotBadge')}
+                            </Badge>
+                        }
+
                         {!readOnly && (
-                          <div className="flex items-center gap-0.5" onClick={(e) => e.stopPropagation()}>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => duplicateInstance(index)}
-                              className="h-6 w-6 p-0"
-                              title={t('productMaterialEditor.duplicateTitle')}
-                            >
+                          <div className="flex items-center gap-0.5 shrink-0" onClick={e => e.stopPropagation()}>
+                            <Button variant="ghost" size="sm" onClick={() => duplicateInstance(index)} className="h-6 w-6 p-0" title={t('productMaterialEditor.duplicateTitle')}>
                               <Copy className="h-3 w-3" />
                             </Button>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => removeInstance(index)}
-                              className="h-6 w-6 p-0 text-red-600 hover:text-red-700 hover:bg-red-50"
-                              title={t('productMaterialEditor.removeTitle')}
-                            >
+                            <Button variant="ghost" size="sm" onClick={() => removeInstance(index)} className="h-6 w-6 p-0 text-red-600 hover:text-red-700 hover:bg-red-50" title={t('productMaterialEditor.removeTitle')}>
                               <X className="h-3.5 w-3.5" />
                             </Button>
                           </div>
@@ -361,44 +433,55 @@ export function ProductMaterialEditor({
                     </div>
                   </CollapsibleTrigger>
 
-                  {/* Expandable Details - 2-Row Layout */}
-                  <CollapsibleContent className="mt-2 pt-2 border-t space-y-2">
-                    {/* Row 1: Tooth, Quantity, LOT - Optimized widths */}
-                    <div className="grid grid-cols-[1fr_1fr_2fr] gap-2">
-                      {/* Tooth Association - Multi-select */}
+                  {/* Expanded details */}
+                  <CollapsibleContent className="border-t px-3 pt-3 pb-3 space-y-3 bg-gray-50/50">
+
+                    {/* Row 1: Quantity (prominent) + Tooth */}
+                    <div className="grid grid-cols-2 gap-3">
+                      {/* Quantity — first and large */}
                       <div>
-                        <Label className="text-[10px] text-gray-600 mb-0.5 block">
+                        <Label className="text-xs font-semibold text-gray-700 mb-1 block">
+                          Količina ({materialInfo?.unit})
+                        </Label>
+                        <Input
+                          type="number" step="0.001" min="0.001"
+                          value={instance.quantityUsed}
+                          onChange={e => updateInstance(index, { quantityUsed: parseFloat(e.target.value) || 0 })}
+                          disabled={readOnly}
+                          className="h-10 text-base font-semibold bg-white border-2 border-gray-300 focus:border-primary"
+                        />
+                      </div>
+
+                      {/* Tooth */}
+                      <div>
+                        <Label className="text-xs font-semibold text-gray-700 mb-1 block">
                           {t('productMaterialEditor.toothFieldLabel')}
                         </Label>
                         {readOnly ? (
-                          <div className="h-8 text-xs flex items-center px-2 border rounded-md bg-gray-50 text-gray-700">
+                          <div className="h-10 text-sm flex items-center px-3 border rounded-md bg-white text-gray-700">
                             {instance.toothNumber || '—'}
                           </div>
                         ) : (
                           <Popover>
                             <PopoverTrigger asChild>
-                              <button
-                                type="button"
-                                className="h-8 w-full text-xs flex items-center justify-between px-2 border rounded-md bg-white hover:bg-gray-50 text-left truncate"
-                              >
+                              <button type="button" className="h-10 w-full text-sm flex items-center justify-between px-3 border-2 border-gray-300 rounded-md bg-white hover:bg-gray-50 text-left">
                                 <span className="truncate text-gray-700">
                                   {instance.toothNumber
                                     ? instance.toothNumber.split(',').join(', ')
-                                    : <span className="text-gray-400">{t('productMaterialEditor.selectPlaceholder')}</span>
-                                  }
+                                    : <span className="text-gray-400">{t('productMaterialEditor.selectPlaceholder')}</span>}
                                 </span>
                                 <span className="ml-1 text-gray-400 shrink-0">▾</span>
                               </button>
                             </PopoverTrigger>
                             <PopoverContent className="w-44 p-2" align="start">
                               <div className="space-y-1 max-h-48 overflow-y-auto">
-                                {availableTeeth.map((tooth) => {
+                                {availableTeeth.map(tooth => {
                                   const selected = (instance.toothNumber || '').split(',').filter(Boolean).includes(tooth);
                                   return (
                                     <label key={tooth} className="flex items-center gap-2 px-1 py-0.5 rounded hover:bg-gray-50 cursor-pointer text-xs">
                                       <Checkbox
                                         checked={selected}
-                                        onCheckedChange={(checked) => {
+                                        onCheckedChange={checked => {
                                           const current = (instance.toothNumber || '').split(',').filter(Boolean);
                                           const next = checked
                                             ? [...current, tooth].sort((a, b) => parseInt(a) - parseInt(b))
@@ -418,70 +501,171 @@ export function ProductMaterialEditor({
                           </Popover>
                         )}
                       </div>
+                    </div>
 
-                      {/* Quantity - Second (Small) */}
-                      <div>
-                        <Label className="text-[10px] text-gray-600 mb-0.5 block">
-                          {t('productMaterialEditor.quantityFieldLabel', { unit: materialInfo?.unit || '' })}
-                        </Label>
-                        <Input
-                          type="number"
-                          step="0.001"
-                          min="0.001"
-                          value={instance.quantityUsed}
-                          onChange={(e) => updateInstance(index, { quantityUsed: parseFloat(e.target.value) || 0 })}
-                          disabled={readOnly}
-                          className="h-8 text-xs"
-                        />
-                      </div>
-
-                      {/* LOT Selection - Third (Larger) */}
-                      <div>
-                        <Label className="text-[10px] text-gray-600 mb-0.5 block">
+                    {/* Row 2: LOT Selection — full width */}
+                    <div>
+                      <div className="flex items-center justify-between mb-1">
+                        <Label className="text-xs font-semibold text-gray-700">
                           {t('productMaterialEditor.lotFieldLabel')}
                         </Label>
-                        <Select
-                          value={instance.materialLotId || ''}
-                          onValueChange={(value) => updateInstance(index, { materialLotId: value || undefined })}
-                          disabled={readOnly}
-                        >
-                          <SelectTrigger className="h-8 text-xs">
-                            <SelectValue placeholder={t('productMaterialEditor.selectLotPlaceholder')} />
-                          </SelectTrigger>
-                          <SelectContent>
+                        {!readOnly && !isAddingLot && (
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            className="h-5 w-5 p-0 text-muted-foreground hover:text-foreground"
+                            title="Dodaj LOT"
+                            onClick={() => openInlineLotAdd(index)}
+                          >
+                            <Plus className="h-3.5 w-3.5" />
+                          </Button>
+                        )}
+                      </div>
+                      <Select
+                        value={instance.materialLotId || ''}
+                        onValueChange={value => updateInstance(index, { materialLotId: value || undefined })}
+                        disabled={readOnly}
+                      >
+                        <SelectTrigger className="h-9 text-sm bg-white">
+                          <SelectValue placeholder={t('productMaterialEditor.selectLotPlaceholder')} />
+                        </SelectTrigger>
+                        <SelectContent>
                             {materialInfo?.lots && materialInfo.lots.length > 0 ? (
-                              materialInfo.lots.map((lot) => (
-                                <SelectItem key={lot.id} value={lot.id} className="text-sm">
-                                  <div className="flex items-center justify-between gap-2">
-                                    <span>{lot.lotNumber}</span>
-                                    <span className="text-xs text-gray-500">
-                                      {lot.quantityAvailable} {materialInfo.unit}
-                                      {lot.expiryDate && ` • ${t('productMaterialEditor.expLabel')} ${new Date(lot.expiryDate).toLocaleDateString()}`}
-                                    </span>
-                                  </div>
+                              materialInfo.lots.map(lot => (
+                                <SelectItem key={lot.id} value={lot.id} className="text-xs">
+                                  <span>{lot.lotNumber}</span>
+                                  <span className="text-[10px] text-gray-500 ml-2">
+                                    {lot.quantityAvailable} {materialInfo.unit}
+                                    {lot.expiryDate && ` • ${new Date(lot.expiryDate).toLocaleDateString('sl-SI')}`}
+                                  </span>
                                 </SelectItem>
                               ))
                             ) : (
-                              <SelectItem value="_no_lots" disabled className="text-sm text-gray-500">
-                                {t('productMaterialEditor.noLotsAvailable')}
+                              <SelectItem value="_no_lots" disabled className="text-xs text-gray-500">
+                                Ni LOT-ov — dodajte spodaj
                               </SelectItem>
                             )}
                           </SelectContent>
                         </Select>
-                      </div>
+
+                        {/* OCR Scanner (rendered outside inline form to avoid stacking contexts) */}
+                        {isAddingLot && inlineLotAdd?.showScanner && (
+                          <OCRScanner
+                            isOpen
+                            onClose={() => setInlineLotAdd(prev => prev ? { ...prev, showScanner: false } : null)}
+                            onScan={(result: OCRResult) => {
+                              setInlineLotAdd(prev => {
+                                if (!prev) return null;
+                                return {
+                                  ...prev,
+                                  showScanner: false,
+                                  lotNumber: result.lotNumber || prev.lotNumber,
+                                  quantity: result.quantity ? String(result.quantity) : prev.quantity,
+                                  expiryDate: result.expiryDate
+                                    ? result.expiryDate.toISOString().split('T')[0]
+                                    : prev.expiryDate,
+                                };
+                              });
+                            }}
+                            title="Skeniraj LOT etiketo"
+                            description="Usmerite kamero na etiketo materiala"
+                          />
+                        )}
+
+                        {/* Inline Add LOT Form */}
+                        {isAddingLot && inlineLotAdd && (
+                          <div className="mt-2 p-2 bg-blue-50 border border-blue-200 rounded-md space-y-2">
+                            <div className="flex items-center justify-between">
+                              <p className="text-[10px] font-medium text-blue-800">Nov LOT</p>
+                              <Button
+                                type="button"
+                                variant="outline"
+                                size="sm"
+                                className="h-6 px-2 text-[10px] gap-1 bg-white"
+                                onClick={() => setInlineLotAdd(prev => prev ? { ...prev, showScanner: true } : null)}
+                              >
+                                <Camera className="h-3 w-3" /> Skeniraj
+                              </Button>
+                            </div>
+                            <div className="grid grid-cols-2 gap-1.5">
+                              <div>
+                                <Label className="text-[10px] text-gray-600">LOT št. *</Label>
+                                <Input
+                                  className="h-7 text-xs mt-0.5"
+                                  placeholder="npr. LOT2026-042"
+                                  value={inlineLotAdd.lotNumber}
+                                  onChange={e => setInlineLotAdd(prev => prev ? { ...prev, lotNumber: e.target.value } : null)}
+                                  autoFocus
+                                />
+                              </div>
+                              <div>
+                                <Label className="text-[10px] text-gray-600">Količina *</Label>
+                                <Input
+                                  className="h-7 text-xs mt-0.5"
+                                  type="number" min="0.001" step="0.001"
+                                  value={inlineLotAdd.quantity}
+                                  onChange={e => setInlineLotAdd(prev => prev ? { ...prev, quantity: e.target.value } : null)}
+                                />
+                              </div>
+                            </div>
+                            <div className="grid grid-cols-2 gap-1.5">
+                              <div>
+                                <Label className="text-[10px] text-gray-600">Dobavitelj</Label>
+                                <Input
+                                  className="h-7 text-xs mt-0.5"
+                                  placeholder="Dobavitelj"
+                                  value={inlineLotAdd.supplierName}
+                                  onChange={e => setInlineLotAdd(prev => prev ? { ...prev, supplierName: e.target.value } : null)}
+                                />
+                              </div>
+                              <div>
+                                <Label className="text-[10px] text-gray-600">Rok trajanja</Label>
+                                <Input
+                                  className="h-7 text-xs mt-0.5"
+                                  type="date"
+                                  value={inlineLotAdd.expiryDate}
+                                  onChange={e => setInlineLotAdd(prev => prev ? { ...prev, expiryDate: e.target.value } : null)}
+                                />
+                              </div>
+                            </div>
+                            {inlineLotAdd.error && (
+                              <p className="text-[10px] text-red-600">{inlineLotAdd.error}</p>
+                            )}
+                            <div className="flex justify-end gap-1">
+                              <Button
+                                type="button" variant="ghost" size="sm"
+                                className="h-6 text-xs px-2"
+                                onClick={() => setInlineLotAdd(null)}
+                                disabled={inlineLotAdd.submitting}
+                              >
+                                Prekliči
+                              </Button>
+                              <Button
+                                type="button" size="sm"
+                                className="h-6 text-xs px-2"
+                                onClick={submitInlineLot}
+                                disabled={inlineLotAdd.submitting}
+                              >
+                                {inlineLotAdd.submitting && <Loader2 className="h-3 w-3 mr-1 animate-spin" />}
+                                Shrani LOT
+                              </Button>
+                            </div>
+                          </div>
+                        )}
                     </div>
 
-                    {/* Row 2: Notes - Full width */}
+                    {/* Row 3: Notes */}
                     <div>
-                      <Label className="text-[10px] text-gray-600 mb-0.5 block">
+                      <Label className="text-xs font-semibold text-gray-700 mb-1 block">
                         {t('productMaterialEditor.notesFieldLabel')}
                       </Label>
                       <Textarea
                         value={instance.notes || ''}
-                        onChange={(e) => updateInstance(index, { notes: e.target.value || undefined })}
+                        onChange={e => updateInstance(index, { notes: e.target.value || undefined })}
                         disabled={readOnly}
                         placeholder={t('productMaterialEditor.notesPlaceholder')}
-                        className="h-14 text-xs resize-none"
+                        className="h-14 text-sm resize-none bg-white"
                       />
                     </div>
                   </CollapsibleContent>
@@ -492,8 +676,8 @@ export function ProductMaterialEditor({
         )}
       </div>
 
-      {/* Duplicate Confirmation Dialog */}
-      <AlertDialog open={duplicateAlert?.show || false} onOpenChange={(open) => !open && setDuplicateAlert(null)}>
+      {/* Duplicate Confirmation */}
+      <AlertDialog open={duplicateAlert?.show || false} onOpenChange={open => !open && setDuplicateAlert(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle className="flex items-center gap-2">
@@ -501,9 +685,8 @@ export function ProductMaterialEditor({
               {t('productMaterialEditor.duplicateDialogTitle')}
             </AlertDialogTitle>
             <AlertDialogDescription>
-              {t('productMaterialEditor.duplicateDialogDescription', { materialName: duplicateAlert?.materialName || '' }).split('<br />').map((line, i) => (
-                <span key={i} dangerouslySetInnerHTML={{ __html: line }} />
-              ))}
+              {t('productMaterialEditor.duplicateDialogDescription', { materialName: duplicateAlert?.materialName || '' })
+                .split('<br />').map((line, i) => <span key={i} dangerouslySetInnerHTML={{ __html: line }} />)}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -519,20 +702,17 @@ export function ProductMaterialEditor({
       <QuickCreateMaterialDialog
         isOpen={showCreateDialog}
         onClose={() => setShowCreateDialog(false)}
-        onSuccess={(newMat) => {
+        onSuccess={newMat => {
           setShowCreateDialog(false);
-          // Notify parent to refresh available materials list
           if (onMaterialCreated) onMaterialCreated(newMat);
-          // Auto-add the new material to this product
-          const newInstance: ProductMaterialInstance = {
+          onChange([...materials, {
             materialId: newMat.materialId,
             materialLotId: newMat.lots[0]?.id,
             quantityUsed: 1,
             toothNumber: undefined,
             notes: undefined,
             position: materials.length + 1,
-          };
-          onChange([...materials, newInstance]);
+          }]);
         }}
       />
     </div>
@@ -551,7 +731,11 @@ const MATERIAL_TYPES_LIST: MaterialType[] = [
 interface QuickCreateMaterialDialogProps {
   isOpen: boolean;
   onClose: () => void;
-  onSuccess: (material: AvailableMaterial) => void;
+  onSuccess: (material: {
+    materialId: string; code: string; name: string; unit: string;
+    availableStock: number;
+    lots: Array<{ id: string; lotNumber: string; quantityAvailable: number; expiryDate: string | null; arrivalDate: string; status: string }>;
+  }) => void;
 }
 
 function QuickCreateMaterialDialog({ isOpen, onClose, onSuccess }: QuickCreateMaterialDialogProps) {
@@ -559,10 +743,16 @@ function QuickCreateMaterialDialog({ isOpen, onClose, onSuccess }: QuickCreateMa
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
 
-  // ── Tab: New Material ──
+  // LOT tab: searchable material list
+  const [allMaterials, setAllMaterials] = useState<Array<{ id: string; code: string; name: string; unit: string }>>([]);
+  const [loadingMaterials, setLoadingMaterials] = useState(false);
+  const [matSearch, setMatSearch] = useState('');
+  const [matDropOpen, setMatDropOpen] = useState(false);
+  const matSearchRef = useRef<HTMLInputElement>(null);
+
   const newForm = useForm({
     defaultValues: {
-      code: '',
+      generatedCode: '',
       name: '',
       type: 'CERAMIC' as MaterialType,
       manufacturer: '',
@@ -576,12 +766,10 @@ function QuickCreateMaterialDialog({ isOpen, onClose, onSuccess }: QuickCreateMa
     },
   });
 
-  // ── Tab: Add LOT to existing ──
-  const [allMaterials, setAllMaterials] = useState<Array<{ id: string; code: string; name: string; unit: string }>>([]);
-  const [loadingMaterials, setLoadingMaterials] = useState(false);
   const lotForm = useForm({
     defaultValues: {
       materialId: '',
+      materialName: '',
       lotNumber: '',
       quantity: 1,
       supplierName: '',
@@ -589,15 +777,28 @@ function QuickCreateMaterialDialog({ isOpen, onClose, onSuccess }: QuickCreateMa
     },
   });
 
+  // Reset on open/close
   useEffect(() => {
     if (!isOpen) {
       newForm.reset();
       lotForm.reset();
       setSubmitError(null);
       setTab('new');
+      setMatSearch('');
     }
   }, [isOpen]);
 
+  // Auto-generate code when material type changes
+  const watchedType = newForm.watch('type');
+  useEffect(() => {
+    if (!isOpen || tab !== 'new') return;
+    fetch(`/api/materials/generate-code?type=${watchedType}`)
+      .then(r => r.json())
+      .then(d => { if (d.code) newForm.setValue('generatedCode', d.code); })
+      .catch(() => {});
+  }, [watchedType, isOpen, tab]);
+
+  // Load materials for LOT tab
   useEffect(() => {
     if (tab === 'lot' && allMaterials.length === 0) {
       setLoadingMaterials(true);
@@ -609,7 +810,17 @@ function QuickCreateMaterialDialog({ isOpen, onClose, onSuccess }: QuickCreateMa
     }
   }, [tab]);
 
-  const handleNewSubmit = newForm.handleSubmit(async (data) => {
+  // Focus mat search when dropdown opens
+  useEffect(() => {
+    if (matDropOpen) setTimeout(() => matSearchRef.current?.focus(), 50);
+    else setMatSearch('');
+  }, [matDropOpen]);
+
+  const filteredAllMaterials = allMaterials.filter(m =>
+    m.name.toLowerCase().includes(matSearch.toLowerCase())
+  );
+
+  const handleNewSubmit = newForm.handleSubmit(async data => {
     setIsSubmitting(true);
     setSubmitError(null);
     try {
@@ -617,7 +828,7 @@ function QuickCreateMaterialDialog({ isOpen, onClose, onSuccess }: QuickCreateMa
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          code: data.code,
+          code: data.generatedCode,
           name: data.name,
           type: data.type,
           manufacturer: data.manufacturer,
@@ -627,15 +838,12 @@ function QuickCreateMaterialDialog({ isOpen, onClose, onSuccess }: QuickCreateMa
           active: true,
         }),
       });
-      if (!matRes.ok) {
-        const err = await matRes.json();
-        throw new Error(err.error || 'Failed to create material');
-      }
+      if (!matRes.ok) throw new Error((await matRes.json()).error || 'Failed to create material');
       const matResult = await matRes.json();
       const materialId = matResult.id;
       if (!materialId) throw new Error('Material created but ID missing');
 
-      let firstLot: AvailableMaterial['lots'][0] | undefined;
+      let firstLot: { id: string; lotNumber: string; quantityAvailable: number; expiryDate: string | null; arrivalDate: string; status: string } | undefined;
       if (data.lotNumber.trim()) {
         const lotRes = await fetch(`/api/materials/${materialId}/lots`, {
           method: 'POST',
@@ -648,10 +856,7 @@ function QuickCreateMaterialDialog({ isOpen, onClose, onSuccess }: QuickCreateMa
             ...(data.expiryDate ? { expiryDate: new Date(data.expiryDate) } : {}),
           }),
         });
-        if (!lotRes.ok) {
-          const lotErr = await lotRes.json();
-          throw new Error(lotErr.error || 'Failed to create LOT');
-        }
+        if (!lotRes.ok) throw new Error((await lotRes.json()).error || 'Failed to create LOT');
         const lotResult = await lotRes.json();
         if (lotResult.id) {
           firstLot = {
@@ -661,17 +866,17 @@ function QuickCreateMaterialDialog({ isOpen, onClose, onSuccess }: QuickCreateMa
             expiryDate: data.expiryDate || null,
             arrivalDate: new Date().toISOString(),
             status: 'AVAILABLE',
-          };
+          } as any;
         }
       }
 
       onSuccess({
         materialId,
-        code: data.code,
+        code: data.generatedCode,
         name: data.name,
         unit: data.unit,
         availableStock: firstLot ? data.quantity : 0,
-        lots: firstLot ? [firstLot] : [],
+        lots: firstLot ? [firstLot as any] : [],
       });
     } catch (err: any) {
       setSubmitError(err.message || 'Failed to create material');
@@ -680,9 +885,9 @@ function QuickCreateMaterialDialog({ isOpen, onClose, onSuccess }: QuickCreateMa
     }
   });
 
-  const handleLotSubmit = lotForm.handleSubmit(async (data) => {
-    if (!data.materialId) { setSubmitError('Select a material'); return; }
-    if (!data.lotNumber.trim()) { setSubmitError('LOT number is required'); return; }
+  const handleLotSubmit = lotForm.handleSubmit(async data => {
+    if (!data.materialId) { setSubmitError('Izberite surovino'); return; }
+    if (!data.lotNumber.trim()) { setSubmitError('LOT številka je obvezna'); return; }
     setIsSubmitting(true);
     setSubmitError(null);
     try {
@@ -697,29 +902,25 @@ function QuickCreateMaterialDialog({ isOpen, onClose, onSuccess }: QuickCreateMa
           ...(data.expiryDate ? { expiryDate: new Date(data.expiryDate) } : {}),
         }),
       });
-      if (!lotRes.ok) {
-        const err = await lotRes.json();
-        throw new Error(err.error || 'Failed to create LOT');
-      }
+      if (!lotRes.ok) throw new Error((await lotRes.json()).error || 'Failed to create LOT');
       const lotResult = await lotRes.json();
       if (!lotResult.id) throw new Error('LOT created but ID missing');
 
       const mat = allMaterials.find(m => m.id === data.materialId)!;
-      const newLot: AvailableMaterial['lots'][0] = {
-        id: lotResult.id,
-        lotNumber: data.lotNumber.trim(),
-        quantityAvailable: data.quantity,
-        expiryDate: data.expiryDate || null,
-        arrivalDate: new Date().toISOString(),
-        status: 'AVAILABLE',
-      };
       onSuccess({
         materialId: data.materialId,
         code: mat.code,
         name: mat.name,
         unit: mat.unit,
         availableStock: data.quantity,
-        lots: [newLot],
+        lots: [{
+          id: lotResult.id,
+          lotNumber: data.lotNumber.trim(),
+          quantityAvailable: data.quantity,
+          expiryDate: data.expiryDate || null,
+          arrivalDate: new Date().toISOString(),
+          status: 'AVAILABLE',
+        }],
       });
     } catch (err: any) {
       setSubmitError(err.message || 'Failed to create LOT');
@@ -738,22 +939,18 @@ function QuickCreateMaterialDialog({ isOpen, onClose, onSuccess }: QuickCreateMa
           </DialogTitle>
         </DialogHeader>
 
-        {/* Tab switcher */}
+        {/* Tabs */}
         <div className="flex gap-1 p-1 bg-gray-100 rounded-md">
-          <button
-            type="button"
-            onClick={() => { setTab('new'); setSubmitError(null); }}
-            className={`flex-1 text-sm py-1.5 rounded transition-colors ${tab === 'new' ? 'bg-white shadow-sm font-medium' : 'text-gray-600 hover:text-gray-900'}`}
-          >
-            Nova surovina
-          </button>
-          <button
-            type="button"
-            onClick={() => { setTab('lot'); setSubmitError(null); }}
-            className={`flex-1 text-sm py-1.5 rounded transition-colors ${tab === 'lot' ? 'bg-white shadow-sm font-medium' : 'text-gray-600 hover:text-gray-900'}`}
-          >
-            Dodaj LOT obstoječi
-          </button>
+          {(['new', 'lot'] as const).map(t => (
+            <button
+              key={t}
+              type="button"
+              onClick={() => { setTab(t); setSubmitError(null); }}
+              className={`flex-1 text-sm py-1.5 rounded transition-colors ${tab === t ? 'bg-white shadow-sm font-medium' : 'text-gray-600 hover:text-gray-900'}`}
+            >
+              {t === 'new' ? 'Nova surovina' : 'Dodaj LOT obstoječi'}
+            </button>
+          ))}
         </div>
 
         {submitError && (
@@ -763,91 +960,86 @@ function QuickCreateMaterialDialog({ isOpen, onClose, onSuccess }: QuickCreateMa
           </Alert>
         )}
 
-        {/* ── Tab: New Material ── */}
+        {/* New Material Tab */}
         {tab === 'new' && (
           <form onSubmit={handleNewSubmit} className="space-y-4">
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-1">
-                <Label htmlFor="qc-code">Code <span className="text-red-500">*</span></Label>
-                <Input id="qc-code" {...newForm.register('code', { required: true })} placeholder="e.g. CER01" maxLength={5} />
+                <Label>Tip <span className="text-red-500">*</span></Label>
+                <Select value={newForm.watch('type')} onValueChange={v => newForm.setValue('type', v as MaterialType)}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    {MATERIAL_TYPES_LIST.map(t => <SelectItem key={t} value={t}>{t}</SelectItem>)}
+                  </SelectContent>
+                </Select>
               </div>
               <div className="space-y-1">
-                <Label htmlFor="qc-unit">Unit <span className="text-red-500">*</span></Label>
-                <Select value={newForm.watch('unit')} onValueChange={(v) => newForm.setValue('unit', v as any)}>
-                  <SelectTrigger id="qc-unit"><SelectValue /></SelectTrigger>
+                <Label>Enota <span className="text-red-500">*</span></Label>
+                <Select value={newForm.watch('unit')} onValueChange={v => newForm.setValue('unit', v as any)}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
                   <SelectContent>
-                    {(['gram', 'ml', 'piece', 'disc'] as const).map((u) => (
-                      <SelectItem key={u} value={u}>{u}</SelectItem>
-                    ))}
+                    {(['gram', 'ml', 'piece', 'disc'] as const).map(u => <SelectItem key={u} value={u}>{u}</SelectItem>)}
                   </SelectContent>
                 </Select>
               </div>
             </div>
+
             <div className="space-y-1">
-              <Label htmlFor="qc-name">Name <span className="text-red-500">*</span></Label>
-              <Input id="qc-name" {...newForm.register('name', { required: true })} placeholder="Material name" />
+              <Label>Naziv <span className="text-red-500">*</span></Label>
+              <Input {...newForm.register('name', { required: true })} placeholder="Naziv surovine" />
             </div>
-            <div className="grid grid-cols-2 gap-3">
-              <div className="space-y-1">
-                <Label htmlFor="qc-type">Type <span className="text-red-500">*</span></Label>
-                <Select value={newForm.watch('type')} onValueChange={(v) => newForm.setValue('type', v as MaterialType)}>
-                  <SelectTrigger id="qc-type"><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    {MATERIAL_TYPES_LIST.map((t) => (
-                      <SelectItem key={t} value={t}>{t}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="space-y-1">
-                <Label htmlFor="qc-mfr">Manufacturer <span className="text-red-500">*</span></Label>
-                <Input id="qc-mfr" {...newForm.register('manufacturer', { required: true })} placeholder="Manufacturer" />
-              </div>
+
+            <div className="space-y-1">
+              <Label>Proizvajalec <span className="text-red-500">*</span></Label>
+              <Input {...newForm.register('manufacturer', { required: true })} placeholder="Proizvajalec" />
             </div>
+
             <div className="flex gap-4">
               <div className="flex items-center gap-2">
-                <Checkbox id="qc-bio" checked={newForm.watch('biocompatible')} onCheckedChange={(v) => newForm.setValue('biocompatible', Boolean(v))} />
-                <Label htmlFor="qc-bio" className="cursor-pointer">Biocompatible</Label>
+                <Checkbox id="qc-bio" checked={newForm.watch('biocompatible')} onCheckedChange={v => newForm.setValue('biocompatible', Boolean(v))} />
+                <Label htmlFor="qc-bio" className="cursor-pointer">Biokompatibilno</Label>
               </div>
               <div className="flex items-center gap-2">
-                <Checkbox id="qc-ce" checked={newForm.watch('ceMarked')} onCheckedChange={(v) => newForm.setValue('ceMarked', Boolean(v))} />
-                <Label htmlFor="qc-ce" className="cursor-pointer">CE Marked</Label>
+                <Checkbox id="qc-ce" checked={newForm.watch('ceMarked')} onCheckedChange={v => newForm.setValue('ceMarked', Boolean(v))} />
+                <Label htmlFor="qc-ce" className="cursor-pointer">CE oznaka</Label>
               </div>
             </div>
+
             <div className="border-t pt-4 space-y-3">
-              <p className="text-sm font-medium text-gray-700">First Stock Lot (optional)</p>
+              <p className="text-sm font-medium text-gray-700">Prva zaloga (neobvezno)</p>
               <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-1">
-                  <Label htmlFor="qc-lot">LOT Number</Label>
-                  <Input id="qc-lot" {...newForm.register('lotNumber')} placeholder="e.g. LOT2026-001" />
+                  <Label>LOT številka</Label>
+                  <Input {...newForm.register('lotNumber')} placeholder="npr. LOT2026-001" />
                 </div>
                 <div className="space-y-1">
-                  <Label htmlFor="qc-qty">Quantity</Label>
-                  <Input id="qc-qty" type="number" min="0.001" step="0.001" {...newForm.register('quantity', { valueAsNumber: true })} />
+                  <Label>Količina</Label>
+                  <Input type="number" min="0.001" step="0.001" {...newForm.register('quantity', { valueAsNumber: true })} />
                 </div>
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-1">
-                  <Label htmlFor="qc-supplier">Supplier</Label>
-                  <Input id="qc-supplier" {...newForm.register('supplierName')} placeholder="Supplier name" />
+                  <Label>Dobavitelj</Label>
+                  <Input {...newForm.register('supplierName')} placeholder="Dobavitelj" />
                 </div>
                 <div className="space-y-1">
-                  <Label htmlFor="qc-expiry">Expiry Date</Label>
-                  <Input id="qc-expiry" type="date" {...newForm.register('expiryDate')} />
+                  <Label>Rok trajanja</Label>
+                  <Input type="date" {...newForm.register('expiryDate')} />
                 </div>
               </div>
             </div>
+
             <div className="flex justify-end gap-2 pt-2">
-              <Button type="button" variant="outline" onClick={onClose} disabled={isSubmitting}>Cancel</Button>
+              <Button type="button" variant="outline" onClick={onClose} disabled={isSubmitting}>Prekliči</Button>
               <Button type="submit" disabled={isSubmitting}>
                 {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                Create Material
+                Ustvari surovino
               </Button>
             </div>
           </form>
         )}
 
-        {/* ── Tab: Add LOT to existing ── */}
+        {/* Add LOT to Existing Tab */}
         {tab === 'lot' && (
           <form onSubmit={handleLotSubmit} className="space-y-4">
             <div className="space-y-1">
@@ -857,38 +1049,74 @@ function QuickCreateMaterialDialog({ isOpen, onClose, onSuccess }: QuickCreateMa
                   <Loader2 className="h-4 w-4 animate-spin" /> Nalaganje...
                 </div>
               ) : (
-                <Select value={lotForm.watch('materialId')} onValueChange={(v) => lotForm.setValue('materialId', v)}>
-                  <SelectTrigger><SelectValue placeholder="Izberite surovino..." /></SelectTrigger>
-                  <SelectContent>
-                    {allMaterials.map((m) => (
-                      <SelectItem key={m.id} value={m.id}>{m.code} — {m.name}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <Popover open={matDropOpen} onOpenChange={setMatDropOpen}>
+                  <PopoverTrigger asChild>
+                    <button
+                      type="button"
+                      className="w-full h-9 text-sm border border-input rounded-md px-3 flex items-center justify-between bg-background hover:bg-accent"
+                    >
+                      <span className={lotForm.watch('materialName') ? 'text-foreground' : 'text-muted-foreground'}>
+                        {lotForm.watch('materialName') || 'Izberite surovino...'}
+                      </span>
+                      <ChevronDown className="h-4 w-4 text-muted-foreground" />
+                    </button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-full p-0" align="start" style={{ width: 'var(--radix-popover-trigger-width)' }}>
+                    <div className="p-2 border-b">
+                      <Input
+                        ref={matSearchRef}
+                        placeholder="Iskanje..."
+                        value={matSearch}
+                        onChange={e => setMatSearch(e.target.value)}
+                        className="h-7 text-xs"
+                      />
+                    </div>
+                    <div className="max-h-52 overflow-y-auto py-1">
+                      {filteredAllMaterials.length > 0 ? filteredAllMaterials.map(m => (
+                        <button
+                          key={m.id}
+                          type="button"
+                          className="w-full text-left px-3 py-1.5 text-sm hover:bg-muted"
+                          onClick={() => {
+                            lotForm.setValue('materialId', m.id);
+                            lotForm.setValue('materialName', m.name);
+                            setMatDropOpen(false);
+                          }}
+                        >
+                          {m.name}
+                        </button>
+                      )) : (
+                        <p className="px-3 py-2 text-sm text-muted-foreground">Ni rezultatov</p>
+                      )}
+                    </div>
+                  </PopoverContent>
+                </Popover>
               )}
             </div>
+
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-1">
-                <Label htmlFor="lot-number">LOT Number <span className="text-red-500">*</span></Label>
-                <Input id="lot-number" {...lotForm.register('lotNumber')} placeholder="e.g. LOT2026-042" />
+                <Label>LOT številka <span className="text-red-500">*</span></Label>
+                <Input {...lotForm.register('lotNumber')} placeholder="npr. LOT2026-042" />
               </div>
               <div className="space-y-1">
-                <Label htmlFor="lot-qty">Quantity <span className="text-red-500">*</span></Label>
-                <Input id="lot-qty" type="number" min="0.001" step="0.001" {...lotForm.register('quantity', { valueAsNumber: true })} />
+                <Label>Količina <span className="text-red-500">*</span></Label>
+                <Input type="number" min="0.001" step="0.001" {...lotForm.register('quantity', { valueAsNumber: true })} />
               </div>
             </div>
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-1">
-                <Label htmlFor="lot-supplier">Supplier</Label>
-                <Input id="lot-supplier" {...lotForm.register('supplierName')} placeholder="Supplier name" />
+                <Label>Dobavitelj</Label>
+                <Input {...lotForm.register('supplierName')} placeholder="Dobavitelj" />
               </div>
               <div className="space-y-1">
-                <Label htmlFor="lot-expiry">Expiry Date</Label>
-                <Input id="lot-expiry" type="date" {...lotForm.register('expiryDate')} />
+                <Label>Rok trajanja</Label>
+                <Input type="date" {...lotForm.register('expiryDate')} />
               </div>
             </div>
+
             <div className="flex justify-end gap-2 pt-2">
-              <Button type="button" variant="outline" onClick={onClose} disabled={isSubmitting}>Cancel</Button>
+              <Button type="button" variant="outline" onClick={onClose} disabled={isSubmitting}>Prekliči</Button>
               <Button type="submit" disabled={isSubmitting}>
                 {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                 Dodaj LOT

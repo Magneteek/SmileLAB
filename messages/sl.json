@@ -1570,7 +1570,7 @@
     "availableStock": "{count} {unit} na voljo",
     "noMaterialsAvailable": "Ni materialov na voljo",
     "noMaterialsAssigned": "Ni dodeljenih materialov temu produktu",
-    "noLotBadge": "Ni LOT",
+    "noLotBadge": "brez LOT",
     "quantityLabel": "Količina:",
     "lotLabel": "LOT:",
     "toothLabel": "Zob:",

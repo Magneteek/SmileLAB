@@ -338,19 +338,19 @@ export function ProductSelector({
                 <p className="text-xs mt-1">{t('productSelector.selectInstruction')}</p>
               </div>
             ) : (
-              <div className="space-y-3 max-h-[500px] overflow-y-auto">
+              <div className="space-y-2 max-h-[600px] overflow-y-auto">
                 {selectedProducts.map((product) => (
                   <div
                     key={product.productId}
-                    className="p-3 bg-blue-50 rounded-lg border border-blue-200"
+                    className="p-2 bg-blue-50 rounded-lg border border-blue-200"
                   >
                     {/* Product Header - Compact single row */}
                     <div className="flex items-center gap-2 mb-2">
                       {!readOnly && (
                         <>
-                          {/* Quantity Input - First */}
-                          <div className="flex items-center gap-1 shrink-0">
-                            <span className="text-xs text-gray-500">{t('productSelector.qtyLabel')}</span>
+                          {/* Quantity Input - Prominent */}
+                          <div className="flex flex-col items-center shrink-0">
+                            <span className="text-[10px] font-medium text-gray-500 uppercase tracking-wide leading-none mb-0.5">{t('productSelector.qtyLabel')}</span>
                             <Input
                               type="number"
                               min="1"
@@ -361,7 +361,7 @@ export function ProductSelector({
                                   parseInt(e.target.value, 10) || 1
                                 )
                               }
-                              className="w-14 h-7 text-xs"
+                              className="w-16 h-9 text-base font-bold text-center bg-white border-2 border-blue-400 focus:border-blue-600 rounded-md"
                             />
                           </div>
                         </>
@@ -390,7 +390,7 @@ export function ProductSelector({
 
                     {/* Materials Section - New ProductMaterialEditor Component */}
                     {!readOnly && (
-                      <div className="mt-3 pt-3 border-t border-gray-300">
+                      <div className="mt-1.5 pt-1.5 border-t border-blue-200">
                         <ProductMaterialEditor
                           productId={product.productId}
                           productName={product.name || ''}
