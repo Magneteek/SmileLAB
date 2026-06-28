@@ -748,6 +748,7 @@ function QuickCreateMaterialDialog({ isOpen, onClose, onSuccess }: QuickCreateMa
   const [matSearch, setMatSearch] = useState('');
   const [matDropOpen, setMatDropOpen] = useState(false);
   const matSearchRef = useRef<HTMLInputElement>(null);
+  const matDropContainerRef = useRef<HTMLDivElement>(null);
 
   const newForm = useForm({
     defaultValues: {
@@ -809,10 +810,16 @@ function QuickCreateMaterialDialog({ isOpen, onClose, onSuccess }: QuickCreateMa
     }
   }, [tab]);
 
-  // Focus mat search when dropdown opens
+  // Focus mat search when dropdown opens + close on outside click
   useEffect(() => {
-    if (matDropOpen) setTimeout(() => matSearchRef.current?.focus(), 50);
-    else setMatSearch('');
+    if (!matDropOpen) { setMatSearch(''); return; }
+    const handleClickOutside = (e: MouseEvent) => {
+      if (!matDropContainerRef.current?.contains(e.target as Node)) {
+        setMatDropOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
   }, [matDropOpen]);
 
   const filteredAllMaterials = allMaterials.filter(m =>
@@ -1048,48 +1055,50 @@ function QuickCreateMaterialDialog({ isOpen, onClose, onSuccess }: QuickCreateMa
                   <Loader2 className="h-4 w-4 animate-spin" /> Nalaganje...
                 </div>
               ) : (
-                <Popover open={matDropOpen} onOpenChange={setMatDropOpen}>
-                  <PopoverTrigger asChild>
-                    <button
-                      type="button"
-                      className="w-full h-9 text-sm border border-input rounded-md px-3 flex items-center justify-between bg-background hover:bg-accent"
-                    >
-                      <span className={lotForm.watch('materialName') ? 'text-foreground' : 'text-muted-foreground'}>
-                        {lotForm.watch('materialName') || 'Izberite surovino...'}
-                      </span>
-                      <ChevronDown className="h-4 w-4 text-muted-foreground" />
-                    </button>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-full p-0" align="start" style={{ width: 'var(--radix-popover-trigger-width)' }}>
-                    <div className="p-2 border-b">
-                      <Input
-                        ref={matSearchRef}
-                        placeholder="Iskanje..."
-                        value={matSearch}
-                        onChange={e => setMatSearch(e.target.value)}
-                        className="h-7 text-xs"
-                      />
+                <div ref={matDropContainerRef}>
+                  <button
+                    type="button"
+                    className="w-full h-9 text-sm border border-input rounded-md px-3 flex items-center justify-between bg-background hover:bg-accent"
+                    onClick={() => setMatDropOpen(v => !v)}
+                  >
+                    <span className={lotForm.watch('materialName') ? 'text-foreground' : 'text-muted-foreground'}>
+                      {lotForm.watch('materialName') || 'Izberite surovino...'}
+                    </span>
+                    <ChevronDown className="h-4 w-4 text-muted-foreground" />
+                  </button>
+                  {matDropOpen && (
+                    <div className="mt-1 border border-input rounded-md bg-white shadow-sm">
+                      <div className="p-2 border-b">
+                        <Input
+                          ref={matSearchRef}
+                          autoFocus
+                          placeholder="Iskanje..."
+                          value={matSearch}
+                          onChange={e => setMatSearch(e.target.value)}
+                          className="h-7 text-xs"
+                        />
+                      </div>
+                      <div className="max-h-48 overflow-y-auto py-1">
+                        {filteredAllMaterials.length > 0 ? filteredAllMaterials.map(m => (
+                          <button
+                            key={m.id}
+                            type="button"
+                            className="w-full text-left px-3 py-1.5 text-sm hover:bg-muted"
+                            onClick={() => {
+                              lotForm.setValue('materialId', m.id);
+                              lotForm.setValue('materialName', m.name);
+                              setMatDropOpen(false);
+                            }}
+                          >
+                            {m.name}
+                          </button>
+                        )) : (
+                          <p className="px-3 py-2 text-sm text-muted-foreground">Ni rezultatov</p>
+                        )}
+                      </div>
                     </div>
-                    <div className="max-h-52 overflow-y-auto py-1">
-                      {filteredAllMaterials.length > 0 ? filteredAllMaterials.map(m => (
-                        <button
-                          key={m.id}
-                          type="button"
-                          className="w-full text-left px-3 py-1.5 text-sm hover:bg-muted"
-                          onClick={() => {
-                            lotForm.setValue('materialId', m.id);
-                            lotForm.setValue('materialName', m.name);
-                            setMatDropOpen(false);
-                          }}
-                        >
-                          {m.name}
-                        </button>
-                      )) : (
-                        <p className="px-3 py-2 text-sm text-muted-foreground">Ni rezultatov</p>
-                      )}
-                    </div>
-                  </PopoverContent>
-                </Popover>
+                  )}
+                </div>
               )}
             </div>
 
