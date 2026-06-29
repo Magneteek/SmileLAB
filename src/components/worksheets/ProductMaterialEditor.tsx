@@ -131,6 +131,11 @@ export function ProductMaterialEditor({
   const [materialSearch, setMaterialSearch] = useState('');
   const searchRef = useRef<HTMLInputElement>(null);
 
+  // LOT combobox state (one open at a time, tracked by instance index)
+  const [openLotIndex, setOpenLotIndex] = useState<number | null>(null);
+  const [lotSearch, setLotSearch] = useState('');
+  const lotDropdownRefs = useRef<Map<number, HTMLDivElement | null>>(new Map());
+
   // Inline LOT add state
   const [inlineLotAdd, setInlineLotAdd] = useState<InlineLotState | null>(null);
 
@@ -142,6 +147,20 @@ export function ProductMaterialEditor({
       setMaterialSearch('');
     }
   }, [materialComboOpen]);
+
+  // Close LOT dropdown on outside click
+  useEffect(() => {
+    if (openLotIndex === null) return;
+    const handleClickOutside = (e: MouseEvent) => {
+      const ref = lotDropdownRefs.current.get(openLotIndex);
+      if (ref && !ref.contains(e.target as Node)) {
+        setOpenLotIndex(null);
+        setLotSearch('');
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [openLotIndex]);
 
   const filteredMaterials = availableMaterials.filter(m =>
     m.name.toLowerCase().includes(materialSearch.toLowerCase()) ||
@@ -521,32 +540,80 @@ export function ProductMaterialEditor({
                           </Button>
                         )}
                       </div>
-                      <Select
-                        value={instance.materialLotId || ''}
-                        onValueChange={value => updateInstance(index, { materialLotId: value || undefined })}
-                        disabled={readOnly}
-                      >
-                        <SelectTrigger className="h-9 text-sm bg-white">
-                          <SelectValue placeholder={t('productMaterialEditor.selectLotPlaceholder')} />
-                        </SelectTrigger>
-                        <SelectContent>
-                            {materialInfo?.lots && materialInfo.lots.length > 0 ? (
-                              materialInfo.lots.map(lot => (
-                                <SelectItem key={lot.id} value={lot.id} className="text-xs">
-                                  <span>{lot.lotNumber}</span>
-                                  <span className="text-[10px] text-gray-500 ml-2">
-                                    {lot.quantityAvailable} {materialInfo.unit}
-                                    {lot.expiryDate && ` • ${new Date(lot.expiryDate).toLocaleDateString('sl-SI')}`}
+                      {readOnly ? (
+                        <div className="h-9 text-sm flex items-center px-3 border rounded-md bg-white text-gray-700">
+                          {lotInfo
+                            ? <><span className="font-medium">{lotInfo.lotNumber}</span><span className="text-xs text-gray-500 ml-2">{lotInfo.quantityAvailable} {materialInfo?.unit}{lotInfo.expiryDate && ` • ${new Date(lotInfo.expiryDate).toLocaleDateString('sl-SI')}`}</span></>
+                            : <span className="text-gray-400">{t('productMaterialEditor.selectLotPlaceholder')}</span>}
+                        </div>
+                      ) : (() => {
+                        const lots = materialInfo?.lots ?? [];
+                        const filteredLots = openLotIndex === index && lotSearch
+                          ? lots.filter(l => l.lotNumber.toLowerCase().includes(lotSearch.toLowerCase()))
+                          : lots;
+                        return (
+                          <div ref={el => { lotDropdownRefs.current.set(index, el); }}>
+                            <button
+                              type="button"
+                              className="w-full h-9 text-sm border border-input rounded-md px-3 flex items-center justify-between bg-white hover:bg-gray-50"
+                              onClick={() => {
+                                setOpenLotIndex(openLotIndex === index ? null : index);
+                                setLotSearch('');
+                              }}
+                            >
+                              {lotInfo ? (
+                                <span className="flex-1 text-left truncate">
+                                  <span className="font-medium">{lotInfo.lotNumber}</span>
+                                  <span className="text-xs text-gray-500 ml-2">
+                                    {lotInfo.quantityAvailable} {materialInfo?.unit}
+                                    {lotInfo.expiryDate && ` • ${new Date(lotInfo.expiryDate).toLocaleDateString('sl-SI')}`}
                                   </span>
-                                </SelectItem>
-                              ))
-                            ) : (
-                              <SelectItem value="_no_lots" disabled className="text-xs text-gray-500">
-                                Ni LOT-ov — dodajte spodaj
-                              </SelectItem>
+                                </span>
+                              ) : (
+                                <span className="text-muted-foreground">{t('productMaterialEditor.selectLotPlaceholder')}</span>
+                              )}
+                              <ChevronDown className="h-4 w-4 text-muted-foreground shrink-0 ml-1" />
+                            </button>
+                            {openLotIndex === index && (
+                              <div className="mt-1 border border-input rounded-md bg-white shadow-sm">
+                                <div className="p-2 border-b">
+                                  <Input
+                                    autoFocus
+                                    placeholder="Iskanje LOT..."
+                                    value={lotSearch}
+                                    onChange={e => setLotSearch(e.target.value)}
+                                    className="h-7 text-xs"
+                                  />
+                                </div>
+                                <div className="max-h-44 overflow-y-auto py-1">
+                                  {filteredLots.length > 0 ? filteredLots.map(lot => (
+                                    <button
+                                      key={lot.id}
+                                      type="button"
+                                      className="w-full text-left px-3 py-2 text-xs hover:bg-muted flex items-center justify-between gap-2"
+                                      onClick={() => {
+                                        updateInstance(index, { materialLotId: lot.id });
+                                        setOpenLotIndex(null);
+                                        setLotSearch('');
+                                      }}
+                                    >
+                                      <span className="font-medium">{lot.lotNumber}</span>
+                                      <span className="text-gray-500 shrink-0">
+                                        {lot.quantityAvailable} {materialInfo?.unit}
+                                        {lot.expiryDate && ` • ${new Date(lot.expiryDate).toLocaleDateString('sl-SI')}`}
+                                      </span>
+                                    </button>
+                                  )) : (
+                                    <p className="px-3 py-2 text-xs text-muted-foreground">
+                                      {lots.length === 0 ? 'Ni LOT-ov — dodajte spodaj' : 'Ni rezultatov'}
+                                    </p>
+                                  )}
+                                </div>
+                              </div>
                             )}
-                          </SelectContent>
-                        </Select>
+                          </div>
+                        );
+                      })()}
 
                         {/* OCR Scanner (rendered outside inline form to avoid stacking contexts) */}
                         {isAddingLot && inlineLotAdd?.showScanner && (
