@@ -23,7 +23,7 @@ export function MaterialsClientWrapper() {
   const [search, setSearch] = useState('');
   const [filterType, setFilterType] = useState<MaterialType | 'all'>('all');
   const [filterActive, setFilterActive] = useState<boolean | 'all'>('all');
-  const searchDebounce = useRef<ReturnType<typeof setTimeout>>();
+  const searchDebounce = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
   const { toast } = useToast();
   const router = useRouter();
 
