@@ -32,12 +32,19 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { Eye, MoreVertical, Edit, Archive, CheckCircle2, XCircle, Trash2, ToggleLeft, ToggleRight, Plus, Scan } from 'lucide-react';
+import { Eye, MoreVertical, Edit, Archive, CheckCircle2, XCircle, Trash2, ToggleLeft, ToggleRight, Plus, Scan, Loader2 } from 'lucide-react';
 import { SortableTableHeader } from '@/components/shared/SortableTableHeader';
 import { useTableSort } from '@/lib/hooks/useTableSort';
 
 interface MaterialsTableProps {
   materials: MaterialWithLots[];
+  loading?: boolean;
+  total?: number;
+  page?: number;
+  pageSize?: number;
+  searchValue?: string;
+  filterTypeValue?: MaterialType | 'all';
+  filterActiveValue?: boolean | 'all';
   onEdit?: (id: string) => void;
   onArchive?: (id: string) => void;
   onDelete?: (id: string) => void;
@@ -65,6 +72,13 @@ const TYPE_COLORS: Record<MaterialType, string> = {
 
 export function MaterialsTable({
   materials,
+  loading,
+  total,
+  page = 1,
+  pageSize = 20,
+  searchValue = '',
+  filterTypeValue = 'all',
+  filterActiveValue = 'all',
   onEdit,
   onArchive,
   onDelete,
@@ -75,9 +89,9 @@ export function MaterialsTable({
   onFilterActive,
 }: MaterialsTableProps) {
   const t = useTranslations();
-  const [search, setSearch] = useState('');
-  const [filterType, setFilterType] = useState<MaterialType | 'all'>('all');
-  const [filterActive, setFilterActive] = useState<boolean | 'all'>('all');
+  const [search, setSearch] = useState(searchValue);
+  const [filterType, setFilterType] = useState<MaterialType | 'all'>(filterTypeValue);
+  const [filterActive, setFilterActive] = useState<boolean | 'all'>(filterActiveValue);
 
   // Sorting
   const { sortedData: sortedMaterials, sortKey, sortDirection, handleSort } = useTableSort({
@@ -124,17 +138,29 @@ export function MaterialsTable({
     onFilterActive?.(activeValue);
   };
 
+  const from = total !== undefined ? (page - 1) * pageSize + 1 : null;
+  const to = total !== undefined ? Math.min(page * pageSize, total) : null;
+
   return (
     <div className="space-y-4">
-      {/* Filters */}
+      {/* Filters + count */}
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-        <div className="flex flex-1 gap-2">
+        <div className="flex flex-1 items-center gap-3">
           <Input
             placeholder={t('material.searchPlaceholder')}
             value={search}
             onChange={(e) => handleSearch(e.target.value)}
             className="max-w-sm"
           />
+          {loading ? (
+            <Loader2 className="h-4 w-4 animate-spin text-muted-foreground shrink-0" />
+          ) : total !== undefined && (
+            <span className="text-sm text-muted-foreground whitespace-nowrap shrink-0">
+              {from !== null && to !== null && total > pageSize
+                ? `${from}–${to} od ${total}`
+                : `${total} skupaj`}
+            </span>
+          )}
         </div>
         <div className="flex flex-col gap-2 w-full md:w-auto md:flex-row">
           <Select value={filterType} onValueChange={handleFilterType}>

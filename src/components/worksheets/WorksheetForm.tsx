@@ -299,7 +299,7 @@ export function WorksheetForm({
   // Fetch available materials with LOT data for ProductSelector
   const fetchMaterialsWithLots = async () => {
     try {
-      const response = await fetch('/api/materials?active=true&hasStock=false');
+      const response = await fetch('/api/materials?active=true&hasStock=false&pageSize=500');
       if (!response.ok) {
         throw new Error('Failed to fetch materials');
       }
