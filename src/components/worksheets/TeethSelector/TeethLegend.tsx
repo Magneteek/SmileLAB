@@ -29,6 +29,7 @@ const LEGEND_WORK_TYPES: WorkType[] = [
   'wizil',
   'inlay',
   'onlay',
+  'coping',
 ];
 
 /**

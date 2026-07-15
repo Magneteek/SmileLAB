@@ -24,9 +24,6 @@ import { ToothElement } from './ToothElement';
 import { WorkTypeToolbar } from './WorkTypeToolbar';
 import { TeethLegend } from './TeethLegend';
 import { SelectionSummary } from './SelectionSummary';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Button } from '@/components/ui/button';
 import { X } from 'lucide-react';
 
 export function TeethSelector({
@@ -47,8 +44,6 @@ export function TeethSelector({
   const [selectedWorkType, setSelectedWorkType] = useState<WorkType>('crown');
   const [implantMode, setImplantMode] = useState(false);
   const [lastClickedTooth, setLastClickedTooth] = useState<string | null>(null);
-  const [editingShade, setEditingShade] = useState('');
-  const [editingNotes, setEditingNotes] = useState('');
 
   // ============================================================================
   // TOOTH DATA — grouped by quadrant in display order
@@ -168,15 +163,6 @@ export function TeethSelector({
     onTeethChange(selectedTeeth.filter(t => t.toothNumber !== toothNumber));
   }, [selectedTeeth, onTeethChange]);
 
-  const handleShadeNotesUpdate = useCallback(() => {
-    if (selectedTeeth.length === 0) return;
-    onTeethChange(selectedTeeth.map(t => ({
-      ...t,
-      shade: editingShade || t.shade,
-      notes: editingNotes || t.notes,
-    })));
-  }, [selectedTeeth, editingShade, editingNotes, onTeethChange]);
-
   // ============================================================================
   // TOOTH RENDER HELPER
   // ============================================================================
@@ -275,31 +261,6 @@ export function TeethSelector({
     </div>
   );
 
-  const shadeNotesElement = !readOnly && selectedTeeth.length > 0 && (
-    <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 p-3 bg-gray-50 rounded-lg border border-gray-200">
-      <div className="flex-1 space-y-1">
-        <Label className="text-xs text-gray-500">{t('teethSelector.shadeLabel')}</Label>
-        <Input
-          value={editingShade}
-          onChange={(e) => setEditingShade(e.target.value)}
-          onBlur={handleShadeNotesUpdate}
-          placeholder={t('teethSelector.shadePlaceholder')}
-          className="h-9 text-sm"
-        />
-      </div>
-      <div className="flex-1 space-y-1">
-        <Label className="text-xs text-gray-500">{t('teethSelector.notesLabel')}</Label>
-        <Input
-          value={editingNotes}
-          onChange={(e) => setEditingNotes(e.target.value)}
-          onBlur={handleShadeNotesUpdate}
-          placeholder={t('teethSelector.notesPlaceholder')}
-          className="h-9 text-sm"
-        />
-      </div>
-    </div>
-  );
-
   const toolbarElement = !readOnly && (
     <WorkTypeToolbar
       selectedWorkType={selectedWorkType}
@@ -338,7 +299,6 @@ export function TeethSelector({
         <div className="grid grid-cols-1 md:grid-cols-[3fr_2fr] gap-4">
           <div className="space-y-3">
             {chartElement}
-            {shadeNotesElement}
           </div>
           <div className="space-y-3">
             {sidebarElement}
@@ -352,7 +312,6 @@ export function TeethSelector({
     <div className={cn('teeth-selector w-full', className)}>
       {toolbarElement && <div className="mb-3">{toolbarElement}</div>}
       {chartElement}
-      {shadeNotesElement && <div className="mt-3">{shadeNotesElement}</div>}
       <div className="mt-3">{sidebarElement}</div>
     </div>
   );

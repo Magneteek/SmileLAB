@@ -46,6 +46,7 @@ export enum WorkType {
   DENTURE = 'DENTURE',
   WIZIL = 'WIZIL',
   INLAY_ONLAY = 'INLAY_ONLAY',
+  COPING = 'COPING',
   OTHER = 'OTHER'
 }
 
@@ -63,6 +64,8 @@ export interface CreateWorksheetDto {
   intendedUse?: string;
   technicalNotes?: string;
   technicianName?: string;
+  shadeIncisal?: string;
+  shadeCervical?: string;
 }
 
 /**
@@ -75,6 +78,8 @@ export interface UpdateWorksheetDto {
   technicianName?: string;
   qcNotes?: string;
   manufactureDate?: Date;
+  shadeIncisal?: string;
+  shadeCervical?: string;
 }
 
 /**

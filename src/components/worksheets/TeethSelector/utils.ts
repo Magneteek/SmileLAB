@@ -393,6 +393,7 @@ export function isValidWorkType(workType: string): workType is WorkType {
     'wizil',
     'inlay',
     'onlay',
+    'coping',
   ];
   return validTypes.includes(workType as WorkType);
 }

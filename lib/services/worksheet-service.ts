@@ -162,6 +162,8 @@ export async function updateWorksheet(
     qcNotes?: string | null;
     manufactureDate?: string | null;
     technicianName?: string | null;
+    shadeIncisal?: string | null;
+    shadeCervical?: string | null;
   },
   userId: string
 ) {
@@ -179,6 +181,8 @@ export async function updateWorksheet(
       qcNotes: data.qcNotes ?? undefined,
       manufactureDate: data.manufactureDate ? new Date(data.manufactureDate) : undefined,
       technicianName: data.technicianName ?? undefined,
+      shadeIncisal: data.shadeIncisal ?? undefined,
+      shadeCervical: data.shadeCervical ?? undefined,
     },
   });
 

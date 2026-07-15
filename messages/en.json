@@ -1529,6 +1529,7 @@
     "workTypeWizil": "Wizil",
     "workTypeInlay": "Inlay",
     "workTypeOnlay": "Onlay",
+    "workTypeCoping": "Coping",
     "noTeethSelected": "No teeth selected. Click on teeth in the diagram above to select them.",
     "teethSelectedCount": "{count} teeth selected",
     "teethSelectedCount_plural": "{count} teeth selected",
@@ -2396,6 +2397,8 @@
     "toothNumber": "Tooth",
     "workType": "Work Type",
     "shadeColor": "Shade/Color",
+    "shadeIncisalLabel": "Incisal",
+    "shadeCervicalLabel": "Cervical",
     "tooth": "Tooth",
     "workTypeCrown": "Crown",
     "workTypeBridge": "Bridge",
@@ -2405,6 +2408,8 @@
     "workTypeInlay": "Inlay",
     "workTypeOnlay": "Onlay",
     "workTypeVeneer": "Veneer",
+    "workTypeCoping": "Coping",
+    "workTypeWizil": "Wizil",
     "additionalInfo": "Additional Information",
     "laboratoryId": "Laboratory ID",
     "manufacturerSection": "DEVICE MANUFACTURER",
@@ -2651,7 +2656,8 @@
       "DENTURE": "Denture",
       "WIZIL": "Wizil",
       "INLAY": "Inlay",
-      "ONLAY": "Onlay"
+      "ONLAY": "Onlay",
+      "COPING": "Coping"
     },
     "teeth": {
       "11": "Upper Right Central Incisor",

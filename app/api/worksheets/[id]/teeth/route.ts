@@ -34,6 +34,7 @@ const assignTeethSchema = z.object({
         'DENTURE',
         'WIZIL',
         'INLAY_ONLAY',
+        'COPING',
         'OTHER',
       ] as const),
       shade: z.string().optional(),

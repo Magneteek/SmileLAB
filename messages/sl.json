@@ -1531,6 +1531,7 @@
     "workTypeWizil": "Vizil proteza",
     "workTypeInlay": "Inlay",
     "workTypeOnlay": "Onlay",
+    "workTypeCoping": "Kapica",
     "noTeethSelected": "Ni izbranih zob. Kliknite na zobe na diagramu zgoraj, da jih izberete.",
     "teethSelectedCount": "{count} zob izbran",
     "teethSelectedCount_plural": "{count} zobje izbrani",
@@ -2398,6 +2399,8 @@
     "toothNumber": "Zob",
     "workType": "Tip dela",
     "shadeColor": "Barva",
+    "shadeIncisalLabel": "Incizalno",
+    "shadeCervicalLabel": "Cervikalno",
     "tooth": "Zob",
     "workTypeCrown": "Krona",
     "workTypeBridge": "Most",
@@ -2407,6 +2410,8 @@
     "workTypeInlay": "Vložek",
     "workTypeOnlay": "Naložek",
     "workTypeVeneer": "Luska",
+    "workTypeCoping": "Kapica",
+    "workTypeWizil": "Vizil proteza",
     "additionalInfo": "Dodatne informacije",
     "laboratoryId": "Št. laboratorija",
     "manufacturerSection": "IZDELOVALEC NADOMESTKA",
@@ -2653,7 +2658,8 @@
       "DENTURE": "Totalna proteza",
       "WIZIL": "Vizil proteza",
       "INLAY": "Inlay",
-      "ONLAY": "Onlay"
+      "ONLAY": "Onlay",
+      "COPING": "Kapica"
     },
     "teeth": {
       "11": "Zgornji desni osrednji sekalec",

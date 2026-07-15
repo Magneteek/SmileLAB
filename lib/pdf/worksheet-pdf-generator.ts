@@ -36,6 +36,11 @@ interface WorksheetPDFData {
   deviceDescription?: string;
   intendedUse?: string;
   technicalNotes?: string;
+  shadeIncisal?: string;
+  shadeCervical?: string;
+  shadeIncisalColor?: string;
+  shadeCervicalColor?: string;
+  hasShade?: boolean;
 
   // Lab information
   lab: {
@@ -86,6 +91,13 @@ interface WorksheetPDFData {
     shade?: string;
     implant: boolean;
     bgColor: string;
+    patternClass: string;
+  }>;
+  workTypeSummary: Array<{
+    workType: string;
+    count: number;
+    bgColor: string;
+    patternClass: string;
   }>;
 
   // Products with materials
@@ -144,6 +156,7 @@ interface ToothData {
   implant: boolean;
   // Pre-computed styles for template rendering
   bgColor: string;
+  patternClass: string;
   borderColor: string;
   borderWidth: string;
   width: number;
@@ -176,8 +189,47 @@ const TOOTH_WORK_TYPE_COLORS: Record<string, string> = {
   denture:     '#EF4444',
   wizil:       '#F97316',
   inlay_onlay: '#14B8A6',
+  coping:      '#78716C',
   other:       '#9CA3AF',
 };
+
+// Fill patterns per work type, layered on top of the colour so the chart still
+// reads correctly when printed or photocopied in black & white (not colour alone).
+const TOOTH_WORK_TYPE_PATTERNS: Record<string, string> = {
+  crown:       'pat-solid',
+  bridge:      'pat-diag1',
+  veneer:      'pat-dots',
+  denture:     'pat-horiz',
+  wizil:       'pat-vert',
+  inlay_onlay: 'pat-diag2',
+  coping:      'pat-diagcross',
+  other:       'pat-cross',
+};
+
+// Canonical display order for the deduplicated work-type summary
+const WORK_TYPE_ORDER = ['crown', 'bridge', 'veneer', 'denture', 'wizil', 'inlay_onlay', 'coping', 'other'];
+
+// VITA shade hex colors (mirrors ToothShadeReference.tsx)
+const VITA_COLORS_PDF: Record<string, string> = {
+  A1: '#F5E6C4', A2: '#F0D9A0', A3: '#E8CA78', 'A3.5': '#E0BE60', A4: '#D4A840',
+  B1: '#F5EAD0', B2: '#EFDFB5', B3: '#E8D095', B4: '#D8BC70',
+  C1: '#F0E5D5', C2: '#E6D5B8', C3: '#D8C49A', C4: '#C8B080',
+  D2: '#EDD8B8', D3: '#E0C890', D4: '#CEB278',
+  '0M1': '#F7EDD8', '0M2': '#F5E5C8', '0M3': '#F0DDB8',
+  '1M1': '#F2E4C0', '1M2': '#EDD9A8',
+  '2L1.5': '#EEDD98', '2L2.5': '#EAD490', '2M1': '#EDD89C', '2M2': '#E8CF88',
+  '2M3': '#E3C870', '2R1.5': '#EAD594', '2R2.5': '#E5CD80',
+  '3L1.5': '#E8CF84', '3L2.5': '#E3C870', '3M1': '#E8CC80', '3M2': '#E3C268',
+  '3M3': '#DCBA58', '3R1.5': '#E5C97C', '3R2.5': '#DFC070',
+  '4L1.5': '#E2C874', '4L2.5': '#DBC060', '4M1': '#E2C570', '4M2': '#DCBC5C',
+  '4M3': '#D4B04A', '4R1.5': '#DEC26C', '4R2.5': '#D8B858',
+  '5M1': '#DBBC60', '5M2': '#D4B24C', '5M3': '#CCA83C',
+};
+
+function getShadeHexColor(shade: string | null | undefined): string {
+  if (!shade) return '#F3F4F6';
+  return VITA_COLORS_PDF[shade] ?? '#F0E6D0';
+}
 
 // ============================================================================
 // MAIN GENERATION FUNCTION
@@ -521,6 +573,11 @@ async function prepareTemplateData(
     deviceDescription: worksheet.deviceDescription || undefined,
     intendedUse: worksheet.intendedUse || undefined,
     technicalNotes: worksheet.technicalNotes || undefined,
+    shadeIncisal: (worksheet as any).shadeIncisal || undefined,
+    shadeCervical: (worksheet as any).shadeCervical || undefined,
+    shadeIncisalColor: getShadeHexColor((worksheet as any).shadeIncisal),
+    shadeCervicalColor: getShadeHexColor((worksheet as any).shadeCervical),
+    hasShade: !!((worksheet as any).shadeIncisal || (worksheet as any).shadeCervical),
 
     products: productsData,
     materials: materialsData,
@@ -565,6 +622,9 @@ function prepareTeethData(teethRecords: any[], translations: Record<string, stri
     const bgColor = selected && info
       ? (TOOTH_WORK_TYPE_COLORS[info.workTypeKey] ?? '#9CA3AF')
       : '#F3F4F6';
+    const patternClass = selected && info
+      ? (TOOTH_WORK_TYPE_PATTERNS[info.workTypeKey] ?? 'pat-cross')
+      : 'pat-solid';
     const borderColor = selected ? 'rgba(0,0,0,0.22)' : '#E5E7EB';
     const { crownRadius } = config;
 
@@ -575,6 +635,7 @@ function prepareTeethData(teethRecords: any[], translations: Record<string, stri
       shade: selected ? info?.shade : undefined,
       implant: selected ? (info?.implant ?? false) : false,
       bgColor,
+      patternClass,
       borderColor,
       borderWidth: selected ? '2px' : '1.5px',
       width: config.width,
@@ -588,14 +649,36 @@ function prepareTeethData(teethRecords: any[], translations: Record<string, stri
     };
   };
 
-  // Generate selected teeth details list (with colour for legend)
+  // Generate selected teeth details list (with colour + pattern for legend)
   const selectedTeethDetails = teethRecords.map((tooth) => ({
     toothNumber: tooth.toothNumber,
     workType: translateWorkType(tooth.workType, translations),
     shade: tooth.shade || undefined,
     implant: tooth.implant || false,
     bgColor: TOOTH_WORK_TYPE_COLORS[tooth.workType.toLowerCase()] ?? '#9CA3AF',
+    patternClass: TOOTH_WORK_TYPE_PATTERNS[tooth.workType.toLowerCase()] ?? 'pat-cross',
   }));
+
+  // Deduplicated per-work-type summary (one entry per type, with a count) —
+  // used for the legend and the "TIP DELA" line instead of repeating every tooth.
+  const workTypeCounts = new Map<string, { workType: string; count: number; bgColor: string; patternClass: string }>();
+  teethRecords.forEach((tooth) => {
+    const key = tooth.workType.toLowerCase();
+    const existing = workTypeCounts.get(key);
+    if (existing) {
+      existing.count += 1;
+    } else {
+      workTypeCounts.set(key, {
+        workType: translateWorkType(tooth.workType, translations),
+        count: 1,
+        bgColor: TOOTH_WORK_TYPE_COLORS[key] ?? '#9CA3AF',
+        patternClass: TOOTH_WORK_TYPE_PATTERNS[key] ?? 'pat-cross',
+      });
+    }
+  });
+  const workTypeSummary = WORK_TYPE_ORDER
+    .filter((key) => workTypeCounts.has(key))
+    .map((key) => workTypeCounts.get(key)!);
 
   // Generate all teeth for each quadrant
   return {
@@ -604,6 +687,7 @@ function prepareTeethData(teethRecords: any[], translations: Record<string, stri
     lowerRight: Array.from({ length: 8 }, (_, i) => createTooth(48 - i)), // 48→41
     lowerLeft:  Array.from({ length: 8 }, (_, i) => createTooth(31 + i)), // 31→38
     selectedTeethDetails,
+    workTypeSummary,
   };
 }
 

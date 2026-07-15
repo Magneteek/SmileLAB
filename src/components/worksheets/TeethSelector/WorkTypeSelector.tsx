@@ -48,6 +48,7 @@ const ALL_WORK_TYPES: WorkType[] = [
   'wizil',
   'inlay',
   'onlay',
+  'coping',
 ];
 
 /**
@@ -81,6 +82,7 @@ export function WorkTypeSelector({
       wizil: t('teethSelector.workTypeWizil'),
       inlay: t('teethSelector.workTypeInlay'),
       onlay: t('teethSelector.workTypeOnlay'),
+      coping: t('teethSelector.workTypeCoping'),
     };
     return labelMap[workType];
   };

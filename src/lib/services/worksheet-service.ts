@@ -50,7 +50,7 @@ export async function createWorksheetFromOrder(
   data: CreateWorksheetDto,
   userId: string
 ): Promise<WorkSheet> {
-  const { orderId, deviceDescription, intendedUse, technicalNotes } = data;
+  const { orderId, deviceDescription, intendedUse, technicalNotes, shadeIncisal, shadeCervical } = data;
 
   // Verify order exists and check for existing worksheets
   const order = await prisma.order.findUnique({
@@ -100,6 +100,8 @@ export async function createWorksheetFromOrder(
         deviceDescription,
         intendedUse,
         technicalNotes,
+        shadeIncisal: shadeIncisal || null,
+        shadeCervical: shadeCervical || null,
       },
     });
 

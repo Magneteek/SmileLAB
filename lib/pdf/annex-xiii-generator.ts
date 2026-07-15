@@ -59,6 +59,8 @@ interface AnnexXIIIData {
   // Device information
   deviceDescription: string;
   intendedUse: string;
+  shadeIncisal?: string | null;
+  shadeCervical?: string | null;
   manufactureDate: string;
   deliveryDate?: string | null;
   patientName: string;
@@ -488,6 +490,8 @@ async function prepareTemplateData(
 
     deviceDescription: worksheet.deviceDescription || 'Custom-made dental device',
     intendedUse: worksheet.intendedUse || 'Dental restoration',
+    shadeIncisal: (worksheet as any).shadeIncisal || null,
+    shadeCervical: (worksheet as any).shadeCervical || null,
     manufactureDate: worksheet.manufactureDate
       ? formatDateLocalized(worksheet.manufactureDate, locale)
       : generationDateFormatted,

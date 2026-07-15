@@ -278,6 +278,24 @@ export default async function WorksheetDetailPage({
                 )}
               </div>
 
+              {/* Shade / Barva */}
+              {((worksheet as any).shadeIncisal || (worksheet as any).shadeCervical) && (
+                <div className="flex gap-4 text-sm">
+                  {(worksheet as any).shadeIncisal && (
+                    <div>
+                      <span className="text-xs text-muted-foreground uppercase tracking-wide">{t('toothShadeReference.incisalLabel')}</span>
+                      <p className="font-semibold">{(worksheet as any).shadeIncisal}</p>
+                    </div>
+                  )}
+                  {(worksheet as any).shadeCervical && (
+                    <div>
+                      <span className="text-xs text-muted-foreground uppercase tracking-wide">{t('toothShadeReference.cervicalLabel')}</span>
+                      <p className="font-semibold">{(worksheet as any).shadeCervical}</p>
+                    </div>
+                  )}
+                </div>
+              )}
+
               <Separator />
 
               {worksheet.deviceDescription && (

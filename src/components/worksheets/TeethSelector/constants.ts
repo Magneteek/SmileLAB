@@ -579,6 +579,7 @@ export const WORK_TYPE_COLORS: WorkTypeColors = {
   wizil: '#F97316', // Orange - Partial denture (Vizil/skeleton)
   inlay: '#14B8A6', // Teal
   onlay: '#6366F1', // Indigo
+  coping: '#78716C', // Stone - substructure/framework, not the final crown
 };
 
 /** Amber used for the implant overlay badge (not a work type color) */

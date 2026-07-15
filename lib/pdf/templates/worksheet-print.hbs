@@ -197,6 +197,16 @@
       flex-shrink: 0;
     }
 
+    /* Work-type fill patterns — layered on top of background-color so the
+       chart still reads correctly in black & white prints/copies, not colour alone. */
+    .pat-diag1 { background-image: repeating-linear-gradient(45deg, rgba(255,255,255,0.65) 0px, rgba(255,255,255,0.65) 1.3px, transparent 1.3px, transparent 4px); }
+    .pat-diag2 { background-image: repeating-linear-gradient(135deg, rgba(255,255,255,0.65) 0px, rgba(255,255,255,0.65) 1.3px, transparent 1.3px, transparent 4px); }
+    .pat-horiz { background-image: repeating-linear-gradient(0deg, rgba(255,255,255,0.65) 0px, rgba(255,255,255,0.65) 1.3px, transparent 1.3px, transparent 4px); }
+    .pat-vert  { background-image: repeating-linear-gradient(90deg, rgba(255,255,255,0.65) 0px, rgba(255,255,255,0.65) 1.3px, transparent 1.3px, transparent 4px); }
+    .pat-dots  { background-image: radial-gradient(rgba(255,255,255,0.8) 0.7px, transparent 0.9px); background-size: 3.2px 3.2px; }
+    .pat-cross { background-image: repeating-linear-gradient(0deg, rgba(255,255,255,0.6) 0px, rgba(255,255,255,0.6) 1px, transparent 1px, transparent 4px), repeating-linear-gradient(90deg, rgba(255,255,255,0.6) 0px, rgba(255,255,255,0.6) 1px, transparent 1px, transparent 4px); }
+    .pat-diagcross { background-image: repeating-linear-gradient(45deg, rgba(255,255,255,0.55) 0px, rgba(255,255,255,0.55) 1px, transparent 1px, transparent 4px), repeating-linear-gradient(135deg, rgba(255,255,255,0.55) 0px, rgba(255,255,255,0.55) 1px, transparent 1px, transparent 4px); }
+
     /* Selected Teeth Details */
     .selected-teeth-list {
       padding: 8px;
@@ -468,7 +478,7 @@
               <div style="display:flex;flex-direction:column;align-items:center;gap:1px;margin-bottom:{{this.archOffset}}px;flex-shrink:0;">
                 <span style="font-size:6.5pt;font-family:monospace;color:{{this.numberColor}};font-weight:{{this.numberWeight}};line-height:1;">{{this.number}}</span>
                 {{#if this.implant}}<span style="font-size:9pt;line-height:1;color:#111;font-weight:900;text-align:center;">&#9660;</span>{{/if}}
-                <div style="width:{{this.width}}px;height:{{this.height}}px;background-color:{{this.bgColor}};border:{{this.borderWidth}} solid {{this.borderColor}};border-radius:{{this.borderRadiusUpper}};"></div>
+                <div class="{{this.patternClass}}" style="width:{{this.width}}px;height:{{this.height}}px;background-color:{{this.bgColor}};border:{{this.borderWidth}} solid {{this.borderColor}};border-radius:{{this.borderRadiusUpper}};"></div>
               </div>
             {{/each}}
             <div class="teeth-midline"></div>
@@ -476,7 +486,7 @@
               <div style="display:flex;flex-direction:column;align-items:center;gap:1px;margin-bottom:{{this.archOffset}}px;flex-shrink:0;">
                 <span style="font-size:6.5pt;font-family:monospace;color:{{this.numberColor}};font-weight:{{this.numberWeight}};line-height:1;">{{this.number}}</span>
                 {{#if this.implant}}<span style="font-size:9pt;line-height:1;color:#111;font-weight:900;text-align:center;">&#9660;</span>{{/if}}
-                <div style="width:{{this.width}}px;height:{{this.height}}px;background-color:{{this.bgColor}};border:{{this.borderWidth}} solid {{this.borderColor}};border-radius:{{this.borderRadiusUpper}};"></div>
+                <div class="{{this.patternClass}}" style="width:{{this.width}}px;height:{{this.height}}px;background-color:{{this.bgColor}};border:{{this.borderWidth}} solid {{this.borderColor}};border-radius:{{this.borderRadiusUpper}};"></div>
               </div>
             {{/each}}
           </div>
@@ -485,7 +495,7 @@
           <div class="teeth-row lower">
             {{#each lowerRight}}
               <div style="display:flex;flex-direction:column;align-items:center;gap:1px;margin-top:{{this.archOffset}}px;flex-shrink:0;">
-                <div style="width:{{this.width}}px;height:{{this.height}}px;background-color:{{this.bgColor}};border:{{this.borderWidth}} solid {{this.borderColor}};border-radius:{{this.borderRadiusLower}};"></div>
+                <div class="{{this.patternClass}}" style="width:{{this.width}}px;height:{{this.height}}px;background-color:{{this.bgColor}};border:{{this.borderWidth}} solid {{this.borderColor}};border-radius:{{this.borderRadiusLower}};"></div>
                 {{#if this.implant}}<span style="font-size:9pt;line-height:1;color:#111;font-weight:900;text-align:center;">&#9650;</span>{{/if}}
                 <span style="font-size:6.5pt;font-family:monospace;color:{{this.numberColor}};font-weight:{{this.numberWeight}};line-height:1;">{{this.number}}</span>
               </div>
@@ -493,7 +503,7 @@
             <div class="teeth-midline"></div>
             {{#each lowerLeft}}
               <div style="display:flex;flex-direction:column;align-items:center;gap:1px;margin-top:{{this.archOffset}}px;flex-shrink:0;">
-                <div style="width:{{this.width}}px;height:{{this.height}}px;background-color:{{this.bgColor}};border:{{this.borderWidth}} solid {{this.borderColor}};border-radius:{{this.borderRadiusLower}};"></div>
+                <div class="{{this.patternClass}}" style="width:{{this.width}}px;height:{{this.height}}px;background-color:{{this.bgColor}};border:{{this.borderWidth}} solid {{this.borderColor}};border-radius:{{this.borderRadiusLower}};"></div>
                 {{#if this.implant}}<span style="font-size:9pt;line-height:1;color:#111;font-weight:900;text-align:center;">&#9650;</span>{{/if}}
                 <span style="font-size:6.5pt;font-family:monospace;color:{{this.numberColor}};font-weight:{{this.numberWeight}};line-height:1;">{{this.number}}</span>
               </div>
@@ -501,13 +511,13 @@
           </div>
 
           <!-- Colour legend -->
-          {{#if selectedTeethDetails.length}}
+          {{#if workTypeSummary.length}}
           <div class="teeth-legend">
             <span style="font-size:6pt;color:#555;margin-right:2px;">Legenda:</span>
-            {{#each selectedTeethDetails}}
+            {{#each workTypeSummary}}
               <div class="legend-item">
-                <div class="legend-swatch" style="background-color:{{this.bgColor}};"></div>
-                <span>{{this.workType}}{{#if this.shade}} ({{this.shade}}){{/if}}</span>
+                <div class="legend-swatch {{this.patternClass}}" style="background-color:{{this.bgColor}};"></div>
+                <span>{{this.workType}}</span>
               </div>
             {{/each}}
             <div class="legend-item">
@@ -524,14 +534,35 @@
     <div>
       <div class="section-header">{{t.additionalInfo}}</div>
       <div class="additional-info">
-        {{#if selectedTeethDetails.length}}
+        {{#if workTypeSummary.length}}
           <div class="info-line">
             <span class="info-label">{{t.workType}}:</span>
-            {{#each selectedTeethDetails}}{{this.workType}}{{#unless @last}}, {{/unless}}{{/each}}
+            {{#each workTypeSummary}}{{this.count}}x {{this.workType}}{{#unless @last}}, {{/unless}}{{/each}}
           </div>
-          <div class="info-line">
-            <span class="info-label">{{t.shadeColor}}:</span>
-            {{#each selectedTeethDetails}}{{#if this.shade}}{{this.shade}}{{#unless @last}}, {{/unless}}{{/if}}{{/each}}
+        {{/if}}
+        {{#if hasShade}}
+          <div class="info-line" style="margin-bottom: 6px;">
+            <div style="font-weight: 700; color: #007289; font-size: 6pt; text-transform: uppercase; letter-spacing: 0.3px; margin-bottom: 4px;">Barva / Shade</div>
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <svg viewBox="0 0 80 145" width="50" height="91" style="display:block;flex-shrink:0;filter:drop-shadow(0 1px 2px rgba(0,0,0,0.12));">
+                <defs>
+                  <clipPath id="psh-i"><path d="M 0,0 L 80,0 L 80,63 L 0,63 Z"/></clipPath>
+                  <clipPath id="psh-c"><path d="M 0,63 L 80,63 L 80,145 L 0,145 Z"/></clipPath>
+                </defs>
+                <g clip-path="url(#psh-c)">
+                  <path d="M 14,25 C 14,20 18,17 40,17 C 62,17 66,20 66,25 L 66,65 C 66,70 62,72 58,72 L 55,115 C 55,122 50,127 46,127 L 40,128 L 34,127 C 30,127 25,122 25,115 L 22,72 C 18,72 14,70 14,65 Z" fill="{{shadeCervicalColor}}"/>
+                </g>
+                <g clip-path="url(#psh-i)">
+                  <path d="M 14,25 C 14,20 18,17 40,17 C 62,17 66,20 66,25 L 66,65 C 66,70 62,72 58,72 L 55,115 C 55,122 50,127 46,127 L 40,128 L 34,127 C 30,127 25,122 25,115 L 22,72 C 18,72 14,70 14,65 Z" fill="{{shadeIncisalColor}}"/>
+                </g>
+                <line x1="14" y1="63" x2="66" y2="63" stroke="rgba(0,0,0,0.15)" stroke-width="1" stroke-dasharray="3 2"/>
+                <path d="M 14,25 C 14,20 18,17 40,17 C 62,17 66,20 66,25 L 66,65 C 66,70 62,72 58,72 L 55,115 C 55,122 50,127 46,127 L 40,128 L 34,127 C 30,127 25,122 25,115 L 22,72 C 18,72 14,70 14,65 Z" fill="none" stroke="rgba(0,0,0,0.2)" stroke-width="1.5"/>
+              </svg>
+              <div style="font-size: 6.5pt; line-height: 1.8;">
+                {{#if shadeIncisal}}<div><span style="color:#6c757d;font-size:5.5pt;text-transform:uppercase;letter-spacing:0.3px;">{{t.shadeIncisalLabel}}</span><br><strong>{{shadeIncisal}}</strong></div>{{/if}}
+                {{#if shadeCervical}}<div style="margin-top:3px;"><span style="color:#6c757d;font-size:5.5pt;text-transform:uppercase;letter-spacing:0.3px;">{{t.shadeCervicalLabel}}</span><br><strong>{{shadeCervical}}</strong></div>{{/if}}
+              </div>
+            </div>
           </div>
         {{/if}}
         {{#if deviceDescription}}

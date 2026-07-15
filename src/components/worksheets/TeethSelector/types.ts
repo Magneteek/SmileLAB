@@ -69,7 +69,8 @@ export type WorkType =
   | 'denture'
   | 'wizil'
   | 'inlay'
-  | 'onlay';
+  | 'onlay'
+  | 'coping';
 
 /**
  * Complete tooth data model with FDI notation and metadata
@@ -342,6 +343,7 @@ export interface WorkTypeColors {
   wizil: string;
   inlay: string;
   onlay: string;
+  coping: string;
 }
 
 /**
@@ -486,6 +488,7 @@ export function toGlobalWorkType(workType: WorkType): GlobalWorkType {
     wizil: 'WIZIL' as GlobalWorkType,
     inlay: 'INLAY_ONLAY' as GlobalWorkType,
     onlay: 'INLAY_ONLAY' as GlobalWorkType,
+    coping: 'COPING' as GlobalWorkType,
   };
 
   return mapping[workType];
@@ -503,6 +506,7 @@ export function fromGlobalWorkType(workType: GlobalWorkType): WorkType {
     DENTURE: 'denture',
     WIZIL: 'wizil',
     INLAY_ONLAY: 'inlay',
+    COPING: 'coping',
   };
 
   return mapping[workType] ?? 'crown';

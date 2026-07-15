@@ -46,7 +46,7 @@ import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Separator } from '@/components/ui/separator';
 import { Button } from '@/components/ui/button';
 import { useTranslations } from 'next-intl';
 import {
@@ -67,7 +67,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { TeethSelector, type ToothSelection, toTeethSelectionData } from './TeethSelector';
 import { ToothShadeReference } from './ToothShadeReference';
@@ -121,7 +121,6 @@ const basicInfoSchema = z.object({
   orderId: z.string().min(1, 'Order ID is required'),
   patientName: z.string().optional(),
   deviceDescription: z.string().optional(),
-  intendedUse: z.string().optional(),
   technicalNotes: z.string().optional(),
   manufactureDate: z.string().optional(), // ISO date string
 });
@@ -219,7 +218,6 @@ export function WorksheetForm({
   const t = useTranslations();
 
   // State
-  const [activeTab, setActiveTab] = useState<string>('teeth');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [orderNumber, setOrderNumber] = useState<string>('');
@@ -382,7 +380,6 @@ export function WorksheetForm({
       orderId: orderId || worksheet?.orderId || '',
       patientName: worksheet?.patientName || '',
       deviceDescription: worksheet?.deviceDescription || '',
-      intendedUse: worksheet?.intendedUse || '',
       technicalNotes: worksheet?.technicalNotes || '',
       manufactureDate: worksheet?.manufactureDate
         ? new Date(worksheet.manufactureDate).toISOString().split('T')[0]
@@ -551,7 +548,6 @@ export function WorksheetForm({
           orderId: data.orderId,
           patientName: data.patientName,
           deviceDescription: data.deviceDescription,
-          intendedUse: data.intendedUse,
           technicalNotes: data.technicalNotes,
           shadeIncisal: shadeIncisal ?? undefined,
           shadeCervical: shadeCervical ?? undefined,
@@ -561,7 +557,6 @@ export function WorksheetForm({
         await updateWorksheet(currentWorksheetId, {
           patientName: data.patientName,
           deviceDescription: data.deviceDescription,
-          intendedUse: data.intendedUse,
           technicalNotes: data.technicalNotes,
           shadeIncisal: shadeIncisal ?? undefined,
           shadeCervical: shadeCervical ?? undefined,
@@ -574,7 +569,7 @@ export function WorksheetForm({
 
       // Step 2: Assign teeth (always call to ensure "replace all" behavior)
       // If teeth array is empty, this will delete all existing teeth
-      await assignTeeth(currentWorksheetId, data.teeth as any);
+      await assignTeeth(currentWorksheetId, selectedTeeth);
 
       // Step 3: Assign products (always call to ensure "replace all" behavior)
       // If products array is empty, this will delete all existing products
@@ -589,92 +584,6 @@ export function WorksheetForm({
     } catch (err: any) {
       setError(err.message || 'An error occurred');
       console.error('Form submission error:', err);
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
-  /**
-   * Save current tab (partial save for multi-step workflow)
-   */
-  const saveCurrentTab = async () => {
-    setIsSubmitting(true);
-    setError(null);
-
-    try {
-      const data = form.getValues();
-      console.log('💾 saveCurrentTab called, activeTab:', activeTab);
-
-      // Always save basic info alongside tab content
-      if (worksheetId) {
-        await updateWorksheet(worksheetId, {
-          deviceDescription: data.deviceDescription,
-          intendedUse: data.intendedUse,
-          technicalNotes: data.technicalNotes,
-        });
-      }
-
-      // Save based on active tab
-      if (activeTab === 'teeth' && worksheetId) {
-        // Always call to ensure "replace all" - empty array will delete all teeth
-        await assignTeeth(worksheetId, data.teeth as any);
-      } else if (activeTab === 'products' && worksheetId) {
-        // Always call to ensure "replace all" - empty array will delete all products
-        await assignProducts(worksheetId, data.products);
-
-        // CRITICAL: After saving products, reload worksheet to get fresh WorksheetProduct IDs
-        // The "replace all" pattern deletes old WorksheetProduct records and creates new ones
-        // Wait a bit to ensure database transaction is committed
-        console.log('🔄 Waiting for database commit...');
-        await new Promise(resolve => setTimeout(resolve, 500));
-
-        console.log('🔄 Reloading worksheet to get fresh WorksheetProduct IDs...');
-        const reloadResponse = await fetch(`/api/worksheets/${worksheetId}`, {
-          headers: { 'Cache-Control': 'no-cache' }, // Ensure we don't get cached data
-        });
-        if (reloadResponse.ok) {
-          const reloadData = await reloadResponse.json();
-          const freshWorksheet = reloadData.data;
-
-          console.log('📦 Fresh worksheet products from reload:', freshWorksheet.products?.map((p: any) => ({
-            id: p.id,
-            productId: p.productId,
-            code: p.product?.code,
-          })));
-
-          // Update selectedProducts with new WorksheetProduct IDs and materials
-          const updatedProducts = freshWorksheet.products?.map((p: any) => ({
-            productId: p.productId,
-            quantity: p.quantity,
-            priceAtSelection: Number(p.priceAtSelection),
-            notes: p.notes || undefined,
-            worksheetProductId: p.id, // Fresh WorksheetProduct ID
-            code: p.product.code,
-            name: p.product.name,
-            unit: p.product.unit,
-            materials: p.productMaterials?.map((pm: any) => ({
-              materialId: pm.materialId,
-              quantityUsed: Number(pm.quantityUsed),
-            })) || [],
-          })) || [];
-
-          console.log('🔧 Updated selectedProducts with IDs:', updatedProducts.map((p: any) => ({
-            worksheetProductId: p.worksheetProductId,
-            code: p.code,
-          })));
-
-          setSelectedProducts(updatedProducts);
-          console.log('✅ Worksheet reloaded with fresh IDs');
-        }
-      } else if (activeTab === 'materials' && worksheetId) {
-        // Save materials (simple list, no product associations)
-        // Product-material associations will be managed from the Products tab
-
-        console.log('💾 Saving materials:', data.materials.length);
-        await assignMaterials(worksheetId, data.materials);
-      }
-    } catch (err: any) {
-      setError(err.message || 'Failed to save');
     } finally {
       setIsSubmitting(false);
     }
@@ -695,18 +604,20 @@ export function WorksheetForm({
         const ws = await createWorksheet({
           orderId: data.orderId,
           deviceDescription: data.deviceDescription,
-          intendedUse: data.intendedUse,
           technicalNotes: data.technicalNotes,
           technicianName: technicianName || undefined,
+          shadeIncisal: shadeIncisal ?? undefined,
+          shadeCervical: shadeCervical ?? undefined,
         });
         currentId = ws.id;
         setWorksheetId(currentId);
       } else if (currentId) {
         await updateWorksheet(currentId, {
           deviceDescription: data.deviceDescription,
-          intendedUse: data.intendedUse,
           technicalNotes: data.technicalNotes,
           technicianName: technicianName || undefined,
+          shadeIncisal: shadeIncisal ?? undefined,
+          shadeCervical: shadeCervical ?? undefined,
         });
       }
       if (technicianName) {
@@ -715,11 +626,8 @@ export function WorksheetForm({
 
       if (!currentId) throw new Error('Worksheet ID required');
 
-      if (activeTab === 'teeth') {
-        await assignTeeth(currentId, data.teeth as any);
-      } else if (activeTab === 'products') {
-        await assignProducts(currentId, data.products);
-      }
+      await assignTeeth(currentId, selectedTeeth);
+      await assignProducts(currentId, data.products);
 
       onSuccess?.({ id: currentId });
     } catch (err: any) {
@@ -738,10 +646,67 @@ export function WorksheetForm({
       <form onSubmit={form.handleSubmit(onSubmit)} className={className}>
         <Card>
           <CardHeader className="pb-3">
-            <div className="flex items-center justify-between gap-4">
-              <CardTitle className="text-base">
-                {mode === 'create' ? t('worksheet.formCreateTitle') : t('worksheet.formEditTitle')}
-              </CardTitle>
+            <div className="flex items-end gap-3">
+              <div className="flex-1 grid grid-cols-1 md:grid-cols-3 gap-3">
+                <FormField
+                  control={form.control}
+                  name="deviceDescription"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="text-xs font-medium">{t('worksheet.deviceDescriptionLabel')}</FormLabel>
+                      <FormControl>
+                        <Textarea
+                          {...field}
+                          placeholder={t('worksheet.deviceDescriptionPlaceholder')}
+                          rows={2}
+                          className="text-sm resize-none"
+                          disabled={isReadOnly}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="technicalNotes"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="text-xs font-medium">{t('worksheet.technicalNotesLabel')}</FormLabel>
+                      <FormControl>
+                        <Textarea
+                          {...field}
+                          placeholder={t('worksheet.technicalNotesPlaceholder')}
+                          rows={2}
+                          className="text-sm resize-none"
+                          disabled={isReadOnly}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                {/* Technician assignment */}
+                <FormItem>
+                  <FormLabel className="text-xs font-medium">{t('worksheet.technicianLabel')}</FormLabel>
+                  <Select
+                    value={technicianName}
+                    onValueChange={setTechnicianName}
+                    disabled={isReadOnly}
+                  >
+                    <SelectTrigger className="text-sm h-[62px] items-start pt-2">
+                      <SelectValue placeholder={t('worksheet.technicianPlaceholder')} />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {TECHNICIAN_NAMES.map((name) => (
+                        <SelectItem key={name} value={name}>{name}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </FormItem>
+              </div>
+
               {!isReadOnly && (
                 <Button
                   type="button"
@@ -782,104 +747,13 @@ export function WorksheetForm({
               render={({ field }) => <input type="hidden" {...field} />}
             />
 
-            {/* Compact MDR fields — always visible above tabs */}
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
-              <FormField
-                control={form.control}
-                name="deviceDescription"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel className="text-xs font-medium">{t('worksheet.deviceDescriptionLabel')}</FormLabel>
-                    <FormControl>
-                      <Textarea
-                        {...field}
-                        placeholder={t('worksheet.deviceDescriptionPlaceholder')}
-                        rows={2}
-                        className="text-sm resize-none"
-                        disabled={isReadOnly}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="intendedUse"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel className="text-xs font-medium">{t('worksheet.intendedUseLabel')}</FormLabel>
-                    <FormControl>
-                      <Textarea
-                        {...field}
-                        placeholder={t('worksheet.intendedUsePlaceholder')}
-                        rows={2}
-                        className="text-sm resize-none"
-                        disabled={isReadOnly}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="technicalNotes"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel className="text-xs font-medium">{t('worksheet.technicalNotesLabel')}</FormLabel>
-                    <FormControl>
-                      <Textarea
-                        {...field}
-                        placeholder={t('worksheet.technicalNotesPlaceholder')}
-                        rows={2}
-                        className="text-sm resize-none"
-                        disabled={isReadOnly}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              {/* Technician assignment */}
-              <FormItem>
-                <FormLabel className="text-xs font-medium">{t('worksheet.technicianLabel')}</FormLabel>
-                <Select
-                  value={technicianName}
-                  onValueChange={setTechnicianName}
-                  disabled={isReadOnly}
-                >
-                  <SelectTrigger className="text-sm h-[62px] items-start pt-2">
-                    <SelectValue placeholder={t('worksheet.technicianPlaceholder')} />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {TECHNICIAN_NAMES.map((name) => (
-                      <SelectItem key={name} value={name}>{name}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </FormItem>
-            </div>
-
-            {/* Multi-Tab Form */}
-            <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-              <TabsList className={`grid w-full ${ENABLE_DIRECT_MATERIALS_TAB ? 'grid-cols-3' : 'grid-cols-2'}`}>
-                <TabsTrigger value="teeth">
+            {/* Single-screen layout: teeth, products and (optionally) materials stacked together */}
+            <div className="space-y-6">
+              {/* Section: Teeth Selection */}
+              <div className="space-y-4">
+                <h3 className="text-sm font-semibold text-gray-700 uppercase tracking-wide">
                   {t('worksheet.tabTeethSelection')}
-                </TabsTrigger>
-                {ENABLE_DIRECT_MATERIALS_TAB && (
-                  <TabsTrigger value="materials">
-                    {t('worksheet.tabMaterials')}
-                  </TabsTrigger>
-                )}
-                <TabsTrigger value="products">
-                  {t('worksheet.tabProducts')}
-                </TabsTrigger>
-              </TabsList>
-
-              {/* Tab 1: Teeth Selection */}
-              <TabsContent value="teeth" className="space-y-4">
+                </h3>
                 <TeethSelector
                   selectedTeeth={selectedTeeth}
                   onTeethChange={setSelectedTeeth}
@@ -900,66 +774,51 @@ export function WorksheetForm({
                     />
                   }
                 />
+              </div>
 
-                {!isReadOnly && (
-                  <div className="flex justify-end">
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      onClick={() => setActiveTab(ENABLE_DIRECT_MATERIALS_TAB ? 'materials' : 'products')}
-                    >
-                      {t('worksheet.tabProducts')} →
-                    </Button>
-                  </div>
-                )}
-              </TabsContent>
+              <Separator />
 
-              {/* Tab 2: Products */}
-              <TabsContent value="products" className="space-y-4">
-                <div>
-                  <ProductSelector
-                    selectedProducts={selectedProducts}
-                    onProductsChange={setSelectedProducts}
-                    availableMaterials={availableMaterialsWithLots}
-                    availableTeeth={selectedTeeth.map(t => t.toothNumber)}
-                    readOnly={isReadOnly}
-                    onMaterialCreated={(newMat) => {
-                      setAvailableMaterialsWithLots((prev) => {
-                        const idx = prev.findIndex(m => m.materialId === newMat.materialId);
-                        if (idx >= 0) {
-                          // Existing material — merge new lots in
-                          const updated = [...prev];
-                          const existing = updated[idx];
-                          const newLotIds = new Set(newMat.lots.map((l: { id: string }) => l.id));
-                          updated[idx] = {
-                            ...existing,
-                            lots: [...existing.lots.filter((l: { id: string }) => !newLotIds.has(l.id)), ...newMat.lots],
-                            availableStock: existing.availableStock + newMat.availableStock,
-                          };
-                          return updated;
-                        }
-                        return [...prev, newMat];
-                      });
-                    }}
-                  />
+              {/* Section: Products */}
+              <div className="space-y-4">
+                <h3 className="text-sm font-semibold text-gray-700 uppercase tracking-wide">
+                  {t('worksheet.tabProducts')}
+                </h3>
+                <ProductSelector
+                  selectedProducts={selectedProducts}
+                  onProductsChange={setSelectedProducts}
+                  availableMaterials={availableMaterialsWithLots}
+                  availableTeeth={selectedTeeth.map(t => t.toothNumber)}
+                  readOnly={isReadOnly}
+                  onMaterialCreated={(newMat) => {
+                    setAvailableMaterialsWithLots((prev) => {
+                      const idx = prev.findIndex(m => m.materialId === newMat.materialId);
+                      if (idx >= 0) {
+                        // Existing material — merge new lots in
+                        const updated = [...prev];
+                        const existing = updated[idx];
+                        const newLotIds = new Set(newMat.lots.map((l: { id: string }) => l.id));
+                        updated[idx] = {
+                          ...existing,
+                          lots: [...existing.lots.filter((l: { id: string }) => !newLotIds.has(l.id)), ...newMat.lots],
+                          availableStock: existing.availableStock + newMat.availableStock,
+                        };
+                        return updated;
+                      }
+                      return [...prev, newMat];
+                    });
+                  }}
+                />
+              </div>
 
-                  {!isReadOnly && (
-                    <div className="mt-4 flex justify-start">
-                      <Button type="button" variant="outline" size="sm" onClick={() => setActiveTab(ENABLE_DIRECT_MATERIALS_TAB ? 'materials' : 'teeth')}>
-                        ← {t('worksheet.tabTeethSelection')}
-                      </Button>
-                    </div>
-                  )}
-                </div>
-              </TabsContent>
-
-              {/* Tab 3: Materials - Hidden by default (see ENABLE_DIRECT_MATERIALS_TAB) */}
+              {/* Section: Materials - Hidden by default (see ENABLE_DIRECT_MATERIALS_TAB) */}
               {ENABLE_DIRECT_MATERIALS_TAB && (
-                <TabsContent value="materials" className="space-y-4">
-                  <div>
-                    <h3 className="text-lg font-semibold mb-2">{t('worksheet.materialSelectionTitle')}</h3>
-                    <p className="text-sm text-gray-600 mb-4">
+                <>
+                  <Separator />
+                  <div className="space-y-4">
+                    <h3 className="text-sm font-semibold text-gray-700 uppercase tracking-wide">
+                      {t('worksheet.tabMaterials')}
+                    </h3>
+                    <p className="text-sm text-gray-600">
                       {t('worksheet.materialSelectionDescription')}
                     </p>
 
@@ -968,27 +827,10 @@ export function WorksheetForm({
                       onMaterialsChange={setSelectedMaterials}
                       readOnly={isReadOnly}
                     />
-
-                    {!isReadOnly && (
-                      <div className="mt-4 flex justify-end gap-3">
-                        <Button type="button" variant="outline" onClick={() => setActiveTab('teeth')}>
-                          {t('worksheet.buttonBack')}
-                        </Button>
-                        <Button type="button" variant="default" onClick={(e) => {
-                          e.preventDefault();
-                          e.stopPropagation();
-                          saveCurrentTab();
-                          setActiveTab('products');
-                        }} disabled={isSubmitting}>
-                          {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                          {t('worksheet.buttonSaveNext')}
-                        </Button>
-                      </div>
-                    )}
                   </div>
-                </TabsContent>
+                </>
               )}
-            </Tabs>
+            </div>
           </CardContent>
         </Card>
       </form>

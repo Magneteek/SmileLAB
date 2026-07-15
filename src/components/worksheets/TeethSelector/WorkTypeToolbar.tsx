@@ -22,7 +22,7 @@ export interface WorkTypeToolbarProps {
 }
 
 const PRIMARY_TYPES: WorkType[] = ['crown', 'bridge', 'veneer', 'denture', 'wizil'];
-const SECONDARY_TYPES: WorkType[] = ['inlay', 'onlay'];
+const SECONDARY_TYPES: WorkType[] = ['inlay', 'onlay', 'coping'];
 
 export function WorkTypeToolbar({
   selectedWorkType,
