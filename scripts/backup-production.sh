@@ -32,6 +32,14 @@ BACKUP_FILENAME="smilelab_backup_${DATE}.sql.gz"
 LOCAL_RETENTION_DAYS=7      # Keep local backups for 7 days
 SPACES_RETENTION_DAYS=90    # Keep Spaces backups for 90 days
 
+# Generated documents (MDR/Annex XIII + invoice PDFs) — these are legal
+# compliance records (EU MDR requires 10-year retention) and are NOT safely
+# regenerable from live data (referenced material/dentist text isn't
+# snapshotted, so edits to those records after the fact would change a
+# "regenerated" document). Synced with no expiry, separate from the
+# daily DB dump rotation above.
+DOCUMENTS_DIR="/var/www/smilelab-mdr/documents"
+
 # Digital Ocean Spaces configuration
 SPACES_BUCKET="s3://smilelabv1"
 SPACES_ENDPOINT="ams3.digitaloceanspaces.com"
@@ -125,6 +133,23 @@ s3cmd ls "$SPACES_BUCKET/daily/" --host="$SPACES_ENDPOINT" --host-bucket="%(buck
     fi
 done
 
+# Step 7: Sync generated documents (MDR/Annex XIII + invoice PDFs)
+# No expiry/deletion here — these are compliance records that must persist
+# for 10 years, unlike the rotating daily DB dumps above. `s3cmd sync`
+# without --delete-removed only ever adds/updates, never removes remote
+# copies, so this is safe even against accidental local deletion.
+if [ -d "$DOCUMENTS_DIR" ]; then
+    log_info "Syncing generated documents (permanent, no expiry)..."
+    if s3cmd sync "$DOCUMENTS_DIR/" "$SPACES_BUCKET/documents/" --host="$SPACES_ENDPOINT" --host-bucket="%(bucket)s.$SPACES_ENDPOINT"; then
+        log_info "Documents sync successful ✓"
+    else
+        log_error "Documents sync failed!"
+        # Don't exit - database backup already succeeded
+    fi
+else
+    log_warning "Documents directory not found at $DOCUMENTS_DIR, skipping"
+fi
+
 # Summary
 log_info "========================================="
 log_info "Backup Summary"
@@ -132,6 +157,7 @@ log_info "========================================="
 log_info "Local:  $BACKUP_DIR/$BACKUP_FILENAME"
 log_info "Spaces: $SPACES_BUCKET/daily/$BACKUP_FILENAME"
 log_info "Size:   $BACKUP_SIZE"
+log_info "Documents: $SPACES_BUCKET/documents/ (synced, no expiry)"
 log_info "========================================="
 log_info "Backup completed successfully!"
 
